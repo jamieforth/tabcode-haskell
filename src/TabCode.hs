@@ -18,64 +18,153 @@
 
 module TabCode where
 
-data Duration = Breve | Semibreve | Minim | Crotchet | Quaver | Semiquaver | Demisemiquaver | Hemidemisemiquaver | Semihemidemisemiquaver
+data Duration = Fermata
+              | Breve
+              | Semibreve
+              | Minim
+              | Crotchet
+              | Quaver
+              | Semiquaver
+              | Demisemiquaver
+              | Hemidemisemiquaver
+              | Semihemidemisemiquaver
+              deriving (Eq, Show)
 
-data Dot = Dot | NoDot
+data Dot = Dot
+         | NoDot
+         deriving (Eq, Show)
 
 data Beam a = BeamOpen a
             | BeamClose a
+            deriving (Eq, Show)
 
-data Beat = Simple | Compound
+beamDuration :: Int -> Duration
+beamDuration 1 = Quaver
+beamDuration 2 = Semiquaver
+beamDuration 3 = Demisemiquaver
+beamDuration 4 = Hemidemisemiquaver
+beamDuration 5 = Semihemidemisemiquaver
+beamDuration _ = error "Invalid beam count"
 
-data RhythmSign = RhythmSign (Beam Duration) Duration Beat Dot
+data Beat = Simple
+          | Compound
+          deriving (Eq, Show)
 
-data Fret = A | B | C | D | E | F | G | H
-data Course = One | Two | Three | Four | Five | Six | Bass Int
+data RhythmSign = RhythmSign Duration Beat Dot (Maybe (Beam Duration)) deriving (Eq, Show)
 
-data Attachment = AboveLeft | Above | AboveRight | Left | Right | BelowLeft | Below | BelowRight
+-- FIXME Perhaps this data model should rather be a numeric fret
+-- number and then any symbol from the source should be captured as
+-- another part of the Note type
+data Fret = A | B | C | D | E | F | G | H | I | J | K | L | M | N deriving (Eq, Show)
 
-data Hand = RH | LH
-data Finger = FingerOne | FingerTWo | FingerThree | FingerFour | Thumb
-data Fingering = Fingering (Maybe Hand) Finger (Maybe Attachment)
-data Ornament = OrnA (Maybe Attachment)
-              | OrnB (Maybe Attachment)
-              | OrnC (Maybe Attachment)
-              | OrnD (Maybe Attachment)
-              | OrnE (Maybe Attachment)
-              | OrnF (Maybe Attachment)
-              | OrnG (Maybe Attachment)
-              | OrnH (Maybe Attachment)
-              | OrnI (Maybe Attachment)
-              | OrnJ (Maybe Attachment)
-              | OrnK (Maybe Attachment)
-              | OrnL (Maybe Attachment)
+data Course = One
+            | Two
+            | Three
+            | Four
+            | Five
+            | Six
+            | Bass Int
+            deriving (Eq, Show)
 
-data SepareePosition = SepareeLeft | SepareeRight | SepareeCentre
-data SepareeDirection = SepareeUp | SepareeDown
+data Attachment = PosAboveLeft
+                | PosAbove
+                | PosAboveRight
+                | PosLeft
+                | PosRight
+                | PosBelowLeft
+                | PosBelow
+                | PosBelowRight
+                deriving (Eq, Show)
 
-data Articulation = EnsembleFrom Note
-                  | EnsembleTo Note
-                  | SepareeFrom Note SepareeDirection (Maybe SepareePosition)
-                  | SepareeTo Note SepareeDirection (Maybe SepareePosition)
+data Hand = RH
+          | LH deriving (Eq, Show)
 
-data SlurDirection = SlurUp | SlurDown
+data Finger = FingerOne
+            | FingerTwo
+            | FingerThree
+            | FingerFour
+            | Thumb deriving (Eq, Show)
+
+data Fingering = Fingering (Maybe Hand) Finger (Maybe Attachment) deriving (Eq, Show)
+
+type OrnSubtype = Int
+-- FIXME Work out the proper ornament names
+data Ornament = OrnA (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnB (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnC (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnD (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnE (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnF (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnG (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnH (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnI (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnJ (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnK (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnL (Maybe OrnSubtype) (Maybe Attachment)
+              deriving (Eq, Show)
+
+data SepareePosition = SepareeLeft
+                     | SepareeRight
+                     | SepareeCentre
+                     deriving (Eq, Show)
+
+data SepareeDirection = SepareeUp
+                      | SepareeDown
+                      deriving (Eq, Show)
+
+data Articulation = Ensemble
+                  | Separee SepareeDirection (Maybe SepareePosition)
+                  deriving (Eq, Show)
+
+data SlurDirection = SlurUp | SlurDown deriving (Eq, Show)
 type ConnectingId = Int
-data Connecting = SlurFrom Note SlurDirection
-                | SlurTo Note SlurDirection
-                | StraightFrom Note ConnectingId (Maybe Attachment)
-                | StraightTo Note ConnectingId (Maybe Attachment)
-                | CurvedFrom Note ConnectingId (Maybe Attachment)
-                | CurvedTo Note ConnectingId (Maybe Attachment)
+data Connecting = Slur SlurDirection
+                | StraightFrom ConnectingId (Maybe Attachment)
+                | StraightTo ConnectingId (Maybe Attachment)
+                | CurvedUpFrom ConnectingId (Maybe Attachment)
+                | CurvedUpTo ConnectingId (Maybe Attachment)
+                | CurvedDownFrom ConnectingId (Maybe Attachment)
+                | CurvedDownTo ConnectingId (Maybe Attachment)
+                deriving (Eq, Show)
 
-data Note = Note Course Fret (Maybe Fingering) (Maybe Ornament) (Maybe Articulation) (Maybe Connecting)
+data Note = Note Course Fret (Maybe Fingering) (Maybe Ornament) (Maybe Articulation) (Maybe Connecting) deriving (Eq, Show)
 
-data Bar = SingleBar | DoubleBar | RepeatLBar | RepeatLRBar | DashedBar | NonCountingBar | NthTimeBar Int
+data Counting = Counting
+              | NotCounting
+              deriving (Eq, Show)
 
-data Tempus = Perfect | Imperfect | HalfPerfect | HalfImperfect | HalfHalfPerfect | HalfHalfImperfect |  Beats Int
+data Dashed = Dashed
+            | NotDashed
+            deriving (Eq, Show)
 
-data MeterSign = SingleMeterSign Tempus Dot
-               | VerticalMeterSign Tempus Tempus Dot
-               | HorizontalMeterSign Tempus Tempus Dot
+data RepeatMark = RepeatLeft
+                | RepeatRight
+                | RepeatBoth
+                deriving (Eq, Show)
+
+data Repetition = Reprise
+                | NthTime Int
+                deriving (Eq, Show)
+
+data Bar = SingleBar (Maybe RepeatMark) (Maybe Repetition) Dashed Counting
+         | DoubleBar (Maybe RepeatMark) (Maybe Repetition) Dashed Counting
+         deriving (Eq, Show)
+
+data Mensuration = PerfectMajor
+                 | PerfectMinor
+                 | ImperfectMajor
+                 | ImperfectMinor
+                 | HalfPerfectMajor
+                 | HalfPerfectMinor
+                 | HalfImperfectMajor
+                 | HalfImperfectMinor
+                 | Beats Int
+                 deriving (Eq, Show)
+
+data MeterSign = SingleMeterSign Mensuration
+               | VerticalMeterSign Mensuration Mensuration
+               | HorizontalMeterSign Mensuration Mensuration
+               deriving (Eq, Show)
 
 data TabWord = Chord RhythmSign [Note]
              | Rest RhythmSign
@@ -84,3 +173,4 @@ data TabWord = Chord RhythmSign [Note]
              | Comment String
              | SystemBreak
              | PageBreak
+             deriving (Eq, Show)
