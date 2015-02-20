@@ -6,6 +6,12 @@ build-type: Simple
 cabal-version: >= 1.8
 
 library
-  build-depends: base
-  exposed-modules: TabCode
+  build-depends: base, parsec, parsec-numbers
+  exposed-modules: TabCode, TabCode.Parser
   hs-source-dirs: src
+
+executable checker
+  build-depends: base, parsec, parsec-numbers
+  main-is: Checker.hs
+  hs-source-dirs: src
+  other-modules: TabCode.Parser, TabCode
