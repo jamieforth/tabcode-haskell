@@ -2,6 +2,7 @@ name: TabCode
 version: 0.1
 synopsis: A parser for the Tabcode lute tablature language
 author: Richard Lewis
+license: GPL
 build-type: Simple
 cabal-version: >= 1.8
 
