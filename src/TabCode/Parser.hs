@@ -34,7 +34,7 @@ tabword = chord <|> rest <|> barLine <|> meter <|> comment <|> systemBreak <|> p
 
 chord :: GenParser Char st TabWord
 chord = do
-  rs <- rhythmSign
+  rs <- option Nothing $ do { r <- rhythmSign; return $ Just r }
   ns <- many1 note
   return $ Chord rs ns
 
@@ -83,7 +83,7 @@ duration = do
 rest :: GenParser Char st TabWord
 rest = do
   rs <- rhythmSign
-  notFollowedBy note
+  lookAhead space
   return $ Rest rs
 
 barLine :: GenParser Char st TabWord

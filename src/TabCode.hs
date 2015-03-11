@@ -168,7 +168,7 @@ data MeterSign = SingleMeterSign Mensuration
                | HorizontalMeterSign Mensuration Mensuration
                deriving (Eq, Show)
 
-data TabWord = Chord RhythmSign [Note]
+data TabWord = Chord (Maybe RhythmSign) [Note]
              | Rest RhythmSign
              | BarLine Bar
              | Meter MeterSign
