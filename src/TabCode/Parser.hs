@@ -216,13 +216,19 @@ bassCourse = do
   return $ Bass $ (length c) + 1
 
 fingering :: GenParser Char st (Maybe Fingering)
-fingering = between (char '(') (char ')') $ do
-  char 'F'
-  h <- hand
-  f <- finger <|> fingeringDots <|> rhThumb <|> rhFinger2
-  a <- attachment
+fingering = option Nothing $ abbr <|> full
+  where
+    abbr = do
+      f <- fingeringDots <|> rhThumb <|> rhFinger2
+      return $ Just $ Fingering Nothing f Nothing
+    full = do
+      between (char '(') (char ')') $ do
+        char 'F'
+        h <- hand
+        f <- finger <|> fingeringDots <|> rhThumb <|> rhFinger2
+        a <- attachment
 
-  return $ Just $ Fingering h f a
+        return $ Just $ Fingering h f a
 
 hand :: GenParser Char st (Maybe Hand)
 hand = option Nothing (left <|> right)
