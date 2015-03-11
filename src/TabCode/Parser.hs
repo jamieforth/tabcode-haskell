@@ -30,7 +30,7 @@ tablature :: GenParser Char st [TabWord]
 tablature = tabword `sepBy` spaces
 
 tabword :: GenParser Char st TabWord
-tabword = chord <|> rest <|> barLine <|> meter <|> comment <|> systemBreak <|> pageBreak
+tabword = (try chord) <|> (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak)
 
 chord :: GenParser Char st TabWord
 chord = do
