@@ -93,7 +93,7 @@ barLine = do
   rightRpt <- option False $ do { char ':'; return True }
   nonC     <- option NotCounting $ do { char '0'; return Counting }
   dash     <- option NotDashed $ do { char '='; return Dashed }
-  rep      <- addition
+  rep      <- option Nothing addition
 
   if line == "|"
     then return $ BarLine $ SingleBar (combineRepeat leftRpt rightRpt) rep dash nonC
