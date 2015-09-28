@@ -7,12 +7,18 @@ build-type: Simple
 cabal-version: >= 1.8
 
 library
-  build-depends: base, parsec, parsec-numbers
+  build-depends: base, parsec, parsec-numbers, hxt
   exposed-modules: TabCode, TabCode.Parser
   hs-source-dirs: src
 
 executable checker
   build-depends: base, parsec, parsec-numbers
   main-is: Checker.hs
+  hs-source-dirs: src
+  other-modules: TabCode.Parser, TabCode
+
+executable tc2mei
+  build-depends: base, parsec, parsec-numbers, hxt
+  main-is: TC2MEI.hs
   hs-source-dirs: src
   other-modules: TabCode.Parser, TabCode
