@@ -20,13 +20,14 @@
 
 module Main where
 
+import TabCode
 import TabCode.Parser (parseTabcodeFile)
 import System.Environment (getArgs)
 
 main :: IO ()
 main = do
   argv  <- getArgs
-  words <- parseTabcodeFile (head argv)
+  (TabCode words)    <- parseTabcodeFile (head argv)
   mapM_ (putStrLn . show) words
 
 

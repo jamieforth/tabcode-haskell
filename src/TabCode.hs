@@ -176,3 +176,5 @@ data TabWord = Chord (Maybe RhythmSign) [Note]
              | SystemBreak
              | PageBreak
              deriving (Eq, Show)
+
+newtype TabCode = TabCode [TabWord]

@@ -26,8 +26,10 @@ import Text.ParserCombinators.Parsec.Number
 import System.IO (hPutStrLn, stderr)
 import System.Exit (exitFailure)
 
-tablature :: GenParser Char st [TabWord]
-tablature = tabword `sepBy` spaces
+tablature :: GenParser Char st TabCode
+tablature = do
+  words <- tabword `sepBy` spaces
+  return $ TabCode words
 
 tabword :: GenParser Char st TabWord
 tabword = (try chord) <|> (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak)
@@ -388,10 +390,10 @@ systemBreak = string "{^}" >> return SystemBreak
 pageBreak :: GenParser Char st TabWord
 pageBreak = string "{>}{^}" >> return PageBreak
 
-parseTabcode :: String -> Either ParseError [TabWord]
+parseTabcode :: String -> Either ParseError TabCode
 parseTabcode = parse tablature ""
 
-parseTabcodeFile :: FilePath -> IO [TabWord]
+parseTabcodeFile :: FilePath -> IO TabCode
 parseTabcodeFile fileName = parseFromFile tablature fileName >>= either report return
   where
     report err = do
