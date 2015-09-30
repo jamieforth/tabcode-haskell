@@ -59,9 +59,6 @@ xpChord = xpElem "tabChord" xpickle
 xpChordNoRS :: PU TabWord
 xpChordNoRS = xpElem "tabChord" xpickle
 
-xpRest :: PU TabWord
-xpRest = xpElem "rest" xpickle
-
 xpBarLine :: PU TabWord
 xpBarLine = xpickle
 
@@ -131,3 +128,51 @@ xpSystemBreak = xpElem "break" xpickle
 
 xpPageBreak :: PU TabWord
 xpPageBreak = xpElem "pb" xpickle
+
+rsMEIDuration :: RhythmSign -> String
+rsMEIDuration (RhythmSign Fermata _ dot _) =
+  if dot == Dot then (error "Dotted fermata not allowed.") else "fermata"
+rsMEIDuration (RhythmSign Breve _ dot _) =
+  if dot == Dot then "breve." else "breve"
+rsMEIDuration (RhythmSign Semibreve _ dot _) =
+  if dot == Dot then "1." else "1"
+rsMEIDuration (RhythmSign Minim _ dot _) =
+  if dot == Dot then "2." else "2"
+rsMEIDuration (RhythmSign Crotchet _ dot _) =
+  if dot == Dot then "4." else "4"
+rsMEIDuration (RhythmSign Quaver _ dot _) =
+  if dot == Dot then "8." else "8"
+rsMEIDuration (RhythmSign Semiquaver _ dot _) =
+  if dot == Dot then "16." else "16"
+rsMEIDuration (RhythmSign Demisemiquaver _ dot _) =
+  if dot == Dot then "32." else "32"
+rsMEIDuration (RhythmSign Hemidemisemiquaver _ dot _) =
+  if dot == Dot then "64." else "64"
+rsMEIDuration (RhythmSign Semihemidemisemiquaver _ dot _) =
+  if dot == Dot then "128." else "128"
+
+meiDurRS :: String -> RhythmSign
+meiDurRS "fermata" = RhythmSign Fermata Simple NoDot Nothing
+meiDurRS "breve" = RhythmSign Breve Simple NoDot Nothing
+meiDurRS "breve." = RhythmSign Breve Simple Dot Nothing
+meiDurRS "1" = RhythmSign Semibreve Simple NoDot Nothing
+meiDurRS "1." = RhythmSign Semibreve Simple Dot Nothing
+meiDurRS "2" = RhythmSign Minim Simple NoDot Nothing
+meiDurRS "2." = RhythmSign Minim Simple Dot Nothing
+meiDurRS "4" = RhythmSign Crotchet Simple NoDot Nothing
+meiDurRS "4." = RhythmSign Crotchet Simple Dot Nothing
+meiDurRS "8" = RhythmSign Quaver Simple NoDot Nothing
+meiDurRS "8." = RhythmSign Quaver Simple Dot Nothing
+meiDurRS "16" = RhythmSign Semiquaver Simple NoDot Nothing
+meiDurRS "16." = RhythmSign Semiquaver Simple Dot Nothing
+meiDurRS "32" = RhythmSign Demisemiquaver Simple NoDot Nothing
+meiDurRS "32." = RhythmSign Demisemiquaver Simple Dot Nothing
+meiDurRS "64" = RhythmSign Hemidemisemiquaver Simple NoDot Nothing
+meiDurRS "64." = RhythmSign Hemidemisemiquaver Simple Dot Nothing
+meiDurRS "128" = RhythmSign Semihemidemisemiquaver Simple NoDot Nothing
+meiDurRS "128." = RhythmSign Semihemidemisemiquaver Simple Dot Nothing
+
+xpRest :: PU TabWord
+xpRest = xpElem "tabChord" $
+         xpWrap ( \dur -> Rest (meiDurRS dur) , \(Rest rs) -> (rsMEIDuration rs) ) $
+         xpTextAttr "dur"
