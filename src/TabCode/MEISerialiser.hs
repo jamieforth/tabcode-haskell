@@ -129,6 +129,12 @@ xpSystemBreak = xpElem "break" xpickle
 xpPageBreak :: PU TabWord
 xpPageBreak = xpElem "pb" xpickle
 
+xpNote :: PU Note
+xpNote = xpElem "tabNote" $
+         xpWrap ( \((course, fret, fing, orn, artic, conn)) -> Note course fret fing orn artic conn , \(Note course fret fing orn artic conn) -> (course, fret, fing, orn, artic, conn) ) $
+         xp6Tuple
+         -- ...
+
 rsMEIDuration :: RhythmSign -> String
 rsMEIDuration (RhythmSign Fermata _ dot _) =
   if dot == Dot then (error "Dotted fermata not allowed.") else "fermata"
