@@ -35,13 +35,13 @@ staff (TabCode tws) =
 
 tabWord :: TabWord -> Xml Elem
 tabWord (Chord (Just rs) ns) =
-  xelemQ mei "chord" $ (xattr "dur" (rsMEIDur rs)) <#> ((rhythmSign rs) <> (xelems $ map note ns))
+  xelemQ mei "chord" $ (durAttr rs) <#> ((rhythmSign rs) <> (xelems $ map note ns))
 
 tabWord (Chord Nothing ns) =
   xelemQ mei "chord" $ xelems $ map note ns
 
 tabWord (Rest rs) =
-  xelemQ mei "rest" $ (xattr "dur" (rsMEIDur rs)) <#> (rhythmSign rs)
+  xelemQ mei "rest" $ (durAttr rs) <#> (rhythmSign rs)
 
 tabWord (BarLine b) =
   xelemQEmpty mei "barLine"
@@ -60,29 +60,35 @@ tabWord PageBreak =
 
 rhythmSign :: RhythmSign -> Xml Elem
 rhythmSign (RhythmSign dur _ dt _) =
-  xelemQ mei "rhythmGlyph" $ xattr "symbol" (durSymb dur)
+  xelemQ mei "rhythmGlyph" $ durSymbAttr dur
 
 note :: Note -> Xml Elem
 note (Note crs frt (Just fngrg) _ _ _) =
-  xelemQ mei "note" $ (xattrs [ (xattr "tab.course" (course crs))
-                              , (xattr "tab.fret" (fret frt)) ])
+  xelemQ mei "note" $ xattrs [ (tabCourseAttr crs)
+                             , (tabFretAttr frt) ]
                       <#> (fingering fngrg)
 
 note (Note crs frt Nothing _ _ _) =
-  xelemQ mei "note" $ xattrs [ (xattr "tab.course" (course crs))
-                             , (xattr "tab.fret" (fret frt)) ]
+  xelemQ mei "note" $ xattrs [ (tabCourseAttr crs)
+                             , (tabFretAttr frt) ]
 
 fingering :: Fingering -> Xml Elem
 fingering (Fingering (Just hnd) fngr _) =
-  xelemQ mei "fingering" $ xattrs [ (xattr "playingHand" (hand hnd))
-                                  , (xattr "playingFinger" (finger fngr)) ]
+  xelemQ mei "fingering" $ xattrs [ (playingHandAttr hnd)
+                                  , (playingFingerAttr fngr) ]
 
 fingering (Fingering Nothing fngr _) =
   xelemQ mei "fingering" $ xattr "playingFinger" (finger fngr)
 
+playingHandAttr :: Hand -> Xml Attr
+playingHandAttr hnd = xattr "playingHand" (hand hnd)
+
 hand :: Hand -> Text
 hand RH = pack "right"
 hand LH = pack "left"
+
+playingFingerAttr :: Finger -> Xml Attr
+playingFingerAttr fngr = xattr "playingFinger" (finger fngr)
 
 finger :: Finger -> Text
 finger FingerOne = pack "1"
@@ -90,6 +96,9 @@ finger FingerTwo = pack "2"
 finger FingerThree = pack "3"
 finger FingerFour = pack "4"
 finger Thumb = pack "t"
+
+tabCourseAttr :: Course -> Xml Attr
+tabCourseAttr crs = xattr "tab.course" (course crs)
 
 course :: Course -> Text
 course One = pack "1"
@@ -99,6 +108,9 @@ course Four = pack "4"
 course Five = pack "5"
 course Six = pack "6"
 course (Bass n) = pack $ show $ 6 + n
+
+tabFretAttr :: Fret -> Xml Attr
+tabFretAttr frt = xattr "tab.fret" (fret frt)
 
 fret :: Fret -> Text
 fret A = pack "o"
@@ -116,6 +128,9 @@ fret L = pack "11"
 fret M = pack "12"
 fret N = pack "13"
 
+durSymbAttr :: Duration -> Xml Attr
+durSymbAttr dur = xattr "symbol" (durSymb dur)
+
 durSymb :: Duration -> Text
 durSymb Fermata = pack "F"
 durSymb Breve = pack "B"
@@ -127,6 +142,9 @@ durSymb Semiquaver = pack "S"
 durSymb Demisemiquaver = pack "T"
 durSymb Hemidemisemiquaver = pack "Y"
 durSymb Semihemidemisemiquaver = pack "Z"
+
+durAttr :: RhythmSign -> Xml Attr
+durAttr rs = xattr "dur" (rsMEIDur rs)
 
 rsMEIDur :: RhythmSign -> Text
 rsMEIDur (RhythmSign Fermata _ dot _) =
