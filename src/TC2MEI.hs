@@ -20,15 +20,17 @@
 
 module Main where
 
-import TabCode.Parser (parseTabcodeFile)
-import TabCode.MEISerialiser (serialise)
+import Data.ByteString.Char8 (putStrLn)
+import Prelude hiding (putStrLn)
 import System.Environment (getArgs)
-import Text.XML.HXT.Core
+import TabCode.MEISerialiser (staff)
+import TabCode.Parser (parseTabcodeFile)
+import Text.XML.Generator
 
 main :: IO ()
 main = do
   argv <- getArgs
   tc   <- parseTabcodeFile (head argv)
-  putStrLn $ showPickled [ withIndent yes ] tc
+  putStrLn $ xrender $ doc defaultDocInfo $ staff tc
   return ()
 

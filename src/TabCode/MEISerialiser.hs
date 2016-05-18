@@ -18,146 +18,139 @@
 -- You should have received a copy of the GNU General Public License
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module TabCode.MEISerialiser where
 
+import Data.Text (pack, Text(..))
 import TabCode
-import Text.XML.HXT.Core
+import Text.XML.Generator
 
-instance XmlPickler TabCode where
-  xpickle = xpWrap ( \words -> TabCode words , \(TabCode words) -> words ) $
-            xpElem "staff" $
-            xpTabWords
+mei :: Namespace
+mei = namespace "" "http://www.music-encoding.org/ns/mei"
 
-xpTabWords :: PU [TabWord]
-xpTabWords = xpList xpickle
+staff :: TabCode -> Xml Elem
+staff (TabCode tws) =
+  xelemQ mei "staff" $ xelems $ map tabWord tws
 
-instance XmlPickler TabWord where
-  xpickle =
-    xpAlt tag ps
-    where
-      tag (Chord (Just rs) ns) = 0
-      tag (Chord Nothing ns)   = 1
-      tag (Rest rs)            = 2
-      tag (BarLine bl)         = 3
-      tag (Meter m)            = 4
-      tag (Comment c)          = 5
-      tag SystemBreak          = 6
-      tag PageBreak            = 7
-      ps = [ xpChord
-           , xpChordNoRS
-           , xpRest
-           , xpBarLine
-           , xpMeter
-           , xpComment
-           , xpSystemBreak
-           , xpPageBreak
-           ]
+tabWord :: TabWord -> Xml Elem
+tabWord (Chord (Just rs) ns) =
+  xelemQ mei "chord" ((xattr "dur" (rsMEIDur rs)) <#> ((rhythmSign rs) <> (xelems $ map note ns)))
 
-xpChord :: PU TabWord
-xpChord = xpElem "tabChord" xpickle
+tabWord (Chord Nothing ns) =
+  xelemQ mei "chord" $ xelems $ map note ns
 
-xpChordNoRS :: PU TabWord
-xpChordNoRS = xpElem "tabChord" xpickle
+tabWord (Rest rs) =
+  xelemQ mei "rest" ((xattr "dur" (rsMEIDur rs)) <#> (rhythmSign rs))
 
-xpBarLine :: PU TabWord
-xpBarLine = xpickle
+tabWord (BarLine b) =
+  xelemQEmpty mei "barLine"
 
-instance XmlPickler Bar where
-  xpickle = xpBar
+tabWord (Meter ms) =
+  xelemQEmpty mei "timeSig"
 
-xpBar :: PU Bar
-xpBar = xpAlt tag ps
-  where
-    tag (SingleBar rm r d c) = 0
-    tag (DoubleBar rm r d c) = 1
-    ps = [ xpSingleBar
-         , xpDoubleBar
-         ]
+tabWord (Comment c) =
+  xelemQ mei "comment" (xtext $ pack c)
 
-xpSingleBar :: PU Bar
-xpSingleBar = xpElem "barLine" $
-              xpWrap ( \((rend, rm, r, d, c)) -> SingleBar rm r d c , \(SingleBar rm r d c) -> ("single", rm, r, d, c) ) $
-              xp5Tuple
-              (xpAttr "rend" (xpTextAttr "single"))
-              xpRepeatMark
-              xpRepetition
-              xpDashed
-              xpCounting
+tabWord SystemBreak =
+  xelemQEmpty mei "sb"
 
-xpDoubleBar :: PU Bar
-xpDoubleBar = xpElem "barLine" $
-              xpWrap ( \((rend, rm, r, d, c)) -> DoubleBar rm r d c , \(DoubleBar rm r d c) -> ("double", rm, r, d, c) ) $
-              xp5Tuple
-              (xpAttr "rend" (xpTextAttr "double"))
-              xpRepeatMark
-              xpRepetition
-              xpDashed
-              xpCounting
+tabWord PageBreak =
+  xelemQEmpty mei "pb"
 
-xpRepeatMark :: PU (Maybe RepeatMark)
-xpRepeatMark = xpOption $ xpRepeat
+rhythmSign :: RhythmSign -> Xml Elem
+rhythmSign (RhythmSign dur _ dt _) =
+  xelemQ mei "rhythmGlyph" (xattr "symbol" (durSymb dur))
 
-xpRepeat :: PU RepeatMark
-xpRepeat = xpAlt tag ps
-  where
-    tag RepeatLeft  = 0
-    tag RepeatRight = 1
-    tag RepeatBoth  = 2
-    ps = [ xpWrap ( const RepeatLeft, const "left" )   $ xpTextAttr "repeat"
-         , xpWrap ( const RepeatRight, const "right" ) $ xpTextAttr "repeat"
-         , xpWrap ( const RepeatBoth, const "both" )   $ xpTextAttr "repeat"
-         ]
+note :: Note -> Xml Elem
+note (Note crs frt (Just fngrg) _ _ _) =
+  xelemQ mei "note" $ (xattrs [ (xattr "tab.course" (course crs))
+                              , (xattr "tab.fret" (fret frt)) ])
+                      <#> (fingering fngrg)
 
-xpRepetition :: PU (Maybe Repetition)
-xpRepetition = xpOption $ xpAttr "repetition" xpickle
+note (Note crs frt Nothing _ _ _) =
+  xelemQ mei "note" $ xattrs [ (xattr "tab.course" (course crs))
+                             , (xattr "tab.fret" (fret frt)) ]
 
-xpDashed :: PU Dashed
-xpDashed = xpAttr "dashed" xpickle
+fingering :: Fingering -> Xml Elem
+fingering (Fingering (Just hnd) fngr _) =
+  xelemQ mei "fingering" $ xattrs [ (xattr "playingHand" (hand hnd))
+                                  , (xattr "playingFinger" (finger fngr)) ]
 
-xpCounting :: PU Counting
-xpCounting = xpAttr "counting" xpickle
+fingering (Fingering Nothing fngr _) =
+  xelemQ mei "fingering" (xattr "playingFinger" (finger fngr))
 
-xpMeter :: PU TabWord
-xpMeter = xpElem "meter" xpickle
+hand :: Hand -> Text
+hand RH = pack "right"
+hand LH = pack "left"
 
-xpComment :: PU TabWord
-xpComment = xpElem "comment" xpickle
+finger :: Finger -> Text
+finger FingerOne = pack "1"
+finger FingerTwo = pack "2"
+finger FingerThree = pack "3"
+finger FingerFour = pack "4"
+finger Thumb = pack "t"
 
-xpSystemBreak :: PU TabWord
-xpSystemBreak = xpElem "break" xpickle
+course :: Course -> Text
+course One = pack "1"
+course Two = pack "2"
+course Three = pack "3"
+course Four = pack "4"
+course Five = pack "5"
+course Six = pack "6"
+course (Bass n) = pack $ show $ 6 + n
 
-xpPageBreak :: PU TabWord
-xpPageBreak = xpElem "pb" xpickle
+fret :: Fret -> Text
+fret A = pack "o"
+fret B = pack "1"
+fret C = pack "2"
+fret D = pack "3"
+fret E = pack "4"
+fret F = pack "5"
+fret G = pack "6"
+fret H = pack "7"
+fret I = pack "8"
+fret J = pack "9"
+fret K = pack "10"
+fret L = pack "11"
+fret M = pack "12"
+fret N = pack "13"
 
-xpNote :: PU Note
-xpNote = xpElem "tabNote" $
-         xpWrap ( \((course, fret, fing, orn, artic, conn)) -> Note course fret fing orn artic conn , \(Note course fret fing orn artic conn) -> (course, fret, fing, orn, artic, conn) ) $
-         xp6Tuple
-         -- ...
+durSymb :: Duration -> Text
+durSymb Fermata = pack "F"
+durSymb Breve = pack "B"
+durSymb Semibreve = pack "W"
+durSymb Minim = pack "H"
+durSymb Crotchet = pack "Q"
+durSymb Quaver = pack "E"
+durSymb Semiquaver = pack "S"
+durSymb Demisemiquaver = pack "T"
+durSymb Hemidemisemiquaver = pack "Y"
+durSymb Semihemidemisemiquaver = pack "Z"
 
-rsMEIDuration :: RhythmSign -> String
-rsMEIDuration (RhythmSign Fermata _ dot _) =
-  if dot == Dot then (error "Dotted fermata not allowed.") else "fermata"
-rsMEIDuration (RhythmSign Breve _ dot _) =
-  if dot == Dot then "breve." else "breve"
-rsMEIDuration (RhythmSign Semibreve _ dot _) =
-  if dot == Dot then "1." else "1"
-rsMEIDuration (RhythmSign Minim _ dot _) =
-  if dot == Dot then "2." else "2"
-rsMEIDuration (RhythmSign Crotchet _ dot _) =
-  if dot == Dot then "4." else "4"
-rsMEIDuration (RhythmSign Quaver _ dot _) =
-  if dot == Dot then "8." else "8"
-rsMEIDuration (RhythmSign Semiquaver _ dot _) =
-  if dot == Dot then "16." else "16"
-rsMEIDuration (RhythmSign Demisemiquaver _ dot _) =
-  if dot == Dot then "32." else "32"
-rsMEIDuration (RhythmSign Hemidemisemiquaver _ dot _) =
-  if dot == Dot then "64." else "64"
-rsMEIDuration (RhythmSign Semihemidemisemiquaver _ dot _) =
-  if dot == Dot then "128." else "128"
+rsMEIDur :: RhythmSign -> Text
+rsMEIDur (RhythmSign Fermata _ dot _) =
+  if dot == Dot then (error "Dotted fermata not allowed.") else pack "fermata"
+rsMEIDur (RhythmSign Breve _ dot _) =
+  if dot == Dot then pack "breve." else pack "breve"
+rsMEIDur (RhythmSign Semibreve _ dot _) =
+  if dot == Dot then pack "1." else pack "1"
+rsMEIDur (RhythmSign Minim _ dot _) =
+  if dot == Dot then pack "2." else pack "2"
+rsMEIDur (RhythmSign Crotchet _ dot _) =
+  if dot == Dot then pack "4." else pack "4"
+rsMEIDur (RhythmSign Quaver _ dot _) =
+  if dot == Dot then pack "8." else pack "8"
+rsMEIDur (RhythmSign Semiquaver _ dot _) =
+  if dot == Dot then pack "16." else pack "16"
+rsMEIDur (RhythmSign Demisemiquaver _ dot _) =
+  if dot == Dot then pack "32." else pack "32"
+rsMEIDur (RhythmSign Hemidemisemiquaver _ dot _) =
+  if dot == Dot then pack "64." else pack "64"
+rsMEIDur (RhythmSign Semihemidemisemiquaver _ dot _) =
+  if dot == Dot then pack "128." else pack "128"
 
-meiDurRS :: String -> RhythmSign
+meiDurRS :: Text -> RhythmSign
 meiDurRS "fermata" = RhythmSign Fermata Simple NoDot Nothing
 meiDurRS "breve" = RhythmSign Breve Simple NoDot Nothing
 meiDurRS "breve." = RhythmSign Breve Simple Dot Nothing
@@ -177,8 +170,3 @@ meiDurRS "64" = RhythmSign Hemidemisemiquaver Simple NoDot Nothing
 meiDurRS "64." = RhythmSign Hemidemisemiquaver Simple Dot Nothing
 meiDurRS "128" = RhythmSign Semihemidemisemiquaver Simple NoDot Nothing
 meiDurRS "128." = RhythmSign Semihemidemisemiquaver Simple Dot Nothing
-
-xpRest :: PU TabWord
-xpRest = xpElem "tabChord" $
-         xpWrap ( \dur -> Rest (meiDurRS dur) , \(Rest rs) -> (rsMEIDuration rs) ) $
-         xpTextAttr "dur"
