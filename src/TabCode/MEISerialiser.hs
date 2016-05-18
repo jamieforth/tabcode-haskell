@@ -20,7 +20,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module TabCode.MEISerialiser where
+module TabCode.MEISerialiser (staff) where
 
 import Data.Text (pack, Text(..))
 import TabCode
