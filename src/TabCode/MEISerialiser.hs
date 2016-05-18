@@ -35,13 +35,13 @@ staff (TabCode tws) =
 
 tabWord :: TabWord -> Xml Elem
 tabWord (Chord (Just rs) ns) =
-  xelemQ mei "chord" ((xattr "dur" (rsMEIDur rs)) <#> ((rhythmSign rs) <> (xelems $ map note ns)))
+  xelemQ mei "chord" $ (xattr "dur" (rsMEIDur rs)) <#> ((rhythmSign rs) <> (xelems $ map note ns))
 
 tabWord (Chord Nothing ns) =
   xelemQ mei "chord" $ xelems $ map note ns
 
 tabWord (Rest rs) =
-  xelemQ mei "rest" ((xattr "dur" (rsMEIDur rs)) <#> (rhythmSign rs))
+  xelemQ mei "rest" $ (xattr "dur" (rsMEIDur rs)) <#> (rhythmSign rs)
 
 tabWord (BarLine b) =
   xelemQEmpty mei "barLine"
@@ -50,7 +50,7 @@ tabWord (Meter ms) =
   xelemQEmpty mei "timeSig"
 
 tabWord (Comment c) =
-  xelemQ mei "comment" (xtext $ pack c)
+  xelemQ mei "comment" $ xtext $ pack c
 
 tabWord SystemBreak =
   xelemQEmpty mei "sb"
@@ -60,7 +60,7 @@ tabWord PageBreak =
 
 rhythmSign :: RhythmSign -> Xml Elem
 rhythmSign (RhythmSign dur _ dt _) =
-  xelemQ mei "rhythmGlyph" (xattr "symbol" (durSymb dur))
+  xelemQ mei "rhythmGlyph" $ xattr "symbol" (durSymb dur)
 
 note :: Note -> Xml Elem
 note (Note crs frt (Just fngrg) _ _ _) =
@@ -78,7 +78,7 @@ fingering (Fingering (Just hnd) fngr _) =
                                   , (xattr "playingFinger" (finger fngr)) ]
 
 fingering (Fingering Nothing fngr _) =
-  xelemQ mei "fingering" (xattr "playingFinger" (finger fngr))
+  xelemQ mei "fingering" $ xattr "playingFinger" (finger fngr)
 
 hand :: Hand -> Text
 hand RH = pack "right"
