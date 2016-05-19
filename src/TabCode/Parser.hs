@@ -28,8 +28,23 @@ import System.Exit (exitFailure)
 
 tablature :: GenParser Char st TabCode
 tablature = do
+  rls   <- rules
   words <- tabword `sepBy` spaces
-  return $ TabCode words
+  return $ TabCode rls words
+
+rules :: GenParser Char st [Rule]
+rules = do
+  rls <- between (string "{<rules>") (string "</rules>}") $ do
+    many1 $ (try $ rule "notation") <|> (try $ rule "title")
+  spaces
+  return rls
+
+rule :: String -> GenParser Char st Rule
+rule r = do
+  spaces
+  nt <- between (string $ "<" ++ r ++ ">") (string $ "</" ++ r ++ ">") $ many1 $ noneOf "<"
+  spaces
+  return $ Rule r nt
 
 tabword :: GenParser Char st TabWord
 tabword = (try chord) <|> (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak)

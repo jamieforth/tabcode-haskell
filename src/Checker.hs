@@ -27,7 +27,8 @@ import System.Environment (getArgs)
 main :: IO ()
 main = do
   argv  <- getArgs
-  (TabCode words)    <- parseTabcodeFile (head argv)
+  (TabCode rules words)    <- parseTabcodeFile (head argv)
+  mapM_ (putStrLn . show) rules
   mapM_ (putStrLn . show) words
 
 

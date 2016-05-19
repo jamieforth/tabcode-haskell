@@ -177,4 +177,6 @@ data TabWord = Chord (Maybe RhythmSign) [Note]
              | PageBreak
              deriving (Eq, Show)
 
-newtype TabCode = TabCode [TabWord]
+data Rule = Rule String String deriving (Eq, Show)
+
+data TabCode = TabCode [Rule] [TabWord]
