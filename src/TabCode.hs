@@ -179,4 +179,15 @@ data TabWord = Chord (Maybe RhythmSign) [Note]
 
 data Rule = Rule String String deriving (Eq, Show)
 
+ruleLkup :: [Rule] -> String -> Maybe String
+ruleLkup rls r = lookup r rlsMap
+  where
+    rlsMap = map (\(Rule r v) -> (r, v)) rls
+
+notation :: [Rule] -> Maybe String
+notation = (flip ruleLkup) "notation"
+
+title :: [Rule] -> Maybe String
+title = (flip ruleLkup) "title"
+
 data TabCode = TabCode [Rule] [TabWord]
