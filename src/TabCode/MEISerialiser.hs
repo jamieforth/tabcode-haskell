@@ -208,24 +208,3 @@ rsMEIDur (RhythmSign Hemidemisemiquaver _ dot _) =
   if dot == Dot then pack "64." else pack "64"
 rsMEIDur (RhythmSign Semihemidemisemiquaver _ dot _) =
   if dot == Dot then pack "128." else pack "128"
-
-meiDurRS :: Text -> RhythmSign
-meiDurRS "fermata" = RhythmSign Fermata Simple NoDot Nothing
-meiDurRS "breve" = RhythmSign Breve Simple NoDot Nothing
-meiDurRS "breve." = RhythmSign Breve Simple Dot Nothing
-meiDurRS "1" = RhythmSign Semibreve Simple NoDot Nothing
-meiDurRS "1." = RhythmSign Semibreve Simple Dot Nothing
-meiDurRS "2" = RhythmSign Minim Simple NoDot Nothing
-meiDurRS "2." = RhythmSign Minim Simple Dot Nothing
-meiDurRS "4" = RhythmSign Crotchet Simple NoDot Nothing
-meiDurRS "4." = RhythmSign Crotchet Simple Dot Nothing
-meiDurRS "8" = RhythmSign Quaver Simple NoDot Nothing
-meiDurRS "8." = RhythmSign Quaver Simple Dot Nothing
-meiDurRS "16" = RhythmSign Semiquaver Simple NoDot Nothing
-meiDurRS "16." = RhythmSign Semiquaver Simple Dot Nothing
-meiDurRS "32" = RhythmSign Demisemiquaver Simple NoDot Nothing
-meiDurRS "32." = RhythmSign Demisemiquaver Simple Dot Nothing
-meiDurRS "64" = RhythmSign Hemidemisemiquaver Simple NoDot Nothing
-meiDurRS "64." = RhythmSign Hemidemisemiquaver Simple Dot Nothing
-meiDurRS "128" = RhythmSign Semihemidemisemiquaver Simple NoDot Nothing
-meiDurRS "128." = RhythmSign Semihemidemisemiquaver Simple Dot Nothing
