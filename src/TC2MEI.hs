@@ -22,15 +22,11 @@ module Main where
 
 import Data.ByteString.Char8 (putStrLn)
 import Prelude hiding (putStrLn)
-import System.Environment (getArgs)
 import TabCode.MEISerialiser (staff)
-import TabCode.Parser (parseTabcodeFile)
+import TabCode.Parser (parseTabcodeStdIn)
 import Text.XML.Generator
 
 main :: IO ()
 main = do
-  argv <- getArgs
-  tc   <- parseTabcodeFile (head argv)
+  tc <- parseTabcodeStdIn
   putStrLn $ xrender $ doc defaultDocInfo $ staff tc
-  return ()
-

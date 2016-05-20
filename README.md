@@ -36,11 +36,28 @@ lute tablature, and tools for checking and converting Tabcode files to
 ### Usage
 
 Following the build process, you have two executables in
-`tabcode-haskell/dist`: `tc2mei` and `tccheck`. Both take a single
-file name as an argument. `tc2mei` then writes an MEI XMl version of
-the file to standard out. `tccheck` will either report errors in
-parsing the file or print a representation of the data structure into
-which the file was pasred.
+`tabcode-haskell/dist`: `tc2mei` and `tccheck`. Both read Tabcode data
+from standard in. `tc2mei` then writes an MEI XML version of its input
+to standard out. `tccheck` will either report errors in parsing the
+input or print a representation of the data structure into which the
+the input was pasred.
+
+It may be useful to copy the `tc2mei` and/or `tccheck` executables
+into a directory on your `PATH`, e.g.:
+
+    $ sudo cp tabcode-haskell/dist/build/tc2mei/tc2mei /usr/local/bin
+
+This way, you can use `tc2mei` from anywhere.
+
+The output produced by the `xmlgen` library is not very readable. If
+you need to inspect it visually, you may consider formatting it with
+`xmllint`:
+
+    $ cat tabcodefile.tc | tc2mei | xmllint --format -
+
+Or to put it into a file:
+
+    $ cat tabcodefile.tc | tc2mei | xmllint --format - > tabcodefile.xml
 
 ### License
 

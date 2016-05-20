@@ -23,7 +23,7 @@ module TabCode.Parser where
 import TabCode
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Number
-import System.IO (hPutStrLn, stderr)
+import System.IO (hPutStrLn, stderr, getContents)
 import System.Exit (exitFailure)
 
 tablature :: GenParser Char st TabCode
@@ -408,9 +408,13 @@ pageBreak = string "{>}{^}" >> return PageBreak
 parseTabcode :: String -> Either ParseError TabCode
 parseTabcode = parse tablature ""
 
+parseTabcodeStdIn :: IO TabCode
+parseTabcodeStdIn = getContents >>= (return . parseTabcode) >>= either reportErr return
+
 parseTabcodeFile :: FilePath -> IO TabCode
-parseTabcodeFile fileName = parseFromFile tablature fileName >>= either report return
-  where
-    report err = do
-      hPutStrLn stderr $ "Error: " ++ show err
-      exitFailure
+parseTabcodeFile fileName = parseFromFile tablature fileName >>= either reportErr return
+
+reportErr :: ParseError -> IO a
+reportErr err = do
+  hPutStrLn stderr $ "Error: " ++ show err
+  exitFailure
