@@ -11,7 +11,7 @@ library
   exposed-modules: TabCode, TabCode.Parser, TabCode.MEISerialiser
   hs-source-dirs: src
 
-executable checker
+executable tccheck
   build-depends: base, parsec, parsec-numbers
   main-is: Checker.hs
   hs-source-dirs: src
