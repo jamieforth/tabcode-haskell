@@ -63,15 +63,24 @@ rhythmSign :: RhythmSign -> Xml Elem
 rhythmSign (RhythmSign dur _ dt _) =
   xelemQ mei "rhythmGlyph" $ durSymbAttr dur
 
-note :: Note -> Xml Elem
-note (Note crs frt (Just fngrg) _ _ _) =
+note :: [Rule] -> Note -> Xml Elem
+note rls (Note crs frt fngrg orn artic conn) =
   xelemQ mei "note" $ xattrs [ (tabCourseAttr crs)
                              , (tabFretAttr frt) ]
-                      <#> (fingering fngrg)
+                    <#> (xelems $ catMaybes [ (fretGlyph rls frt)
+                                            , (fingering <$> fngrg)
+                                            , (ornament <$> orn)
+                                            , (articulation <$> artic)
+                                            , (connectingLine <$> conn) ])
 
-note (Note crs frt Nothing _ _ _) =
-  xelemQ mei "note" $ xattrs [ (tabCourseAttr crs)
-                             , (tabFretAttr frt) ]
+fretGlyph :: [Rule] -> Fret -> Maybe (Xml Elem)
+fretGlyph rls frt = el <$> glyph
+  where
+    el g  = xelemQ mei "fretGlyph" $ xtext g
+    glyph = case notation rls of
+      Just "italian" -> Just $ fretGlyphIt frt
+      Just "french"  -> Just $ fretGlyphFr frt
+      otherwise      -> Nothing
 
 fingering :: Fingering -> Xml Elem
 fingering (Fingering (Just hnd) fngr _) =
@@ -123,23 +132,42 @@ course Six = pack "6"
 course (Bass n) = pack $ show $ 6 + n
 
 tabFretAttr :: Fret -> Xml Attr
-tabFretAttr frt = xattr "tab.fret" (fret frt)
+tabFretAttr frt = xattr "tab.fret" (fretNo frt)
 
-fret :: Fret -> Text
-fret A = pack "o"
-fret B = pack "1"
-fret C = pack "2"
-fret D = pack "3"
-fret E = pack "4"
-fret F = pack "5"
-fret G = pack "6"
-fret H = pack "7"
-fret I = pack "8"
-fret J = pack "9"
-fret K = pack "10"
-fret L = pack "11"
-fret M = pack "12"
-fret N = pack "13"
+fretNo :: Fret -> Text
+fretNo A = pack "o"
+fretNo B = pack "1"
+fretNo C = pack "2"
+fretNo D = pack "3"
+fretNo E = pack "4"
+fretNo F = pack "5"
+fretNo G = pack "6"
+fretNo H = pack "7"
+fretNo I = pack "8"
+fretNo J = pack "9"
+fretNo K = pack "10"
+fretNo L = pack "11"
+fretNo M = pack "12"
+fretNo N = pack "13"
+
+fretGlyphIt :: Fret -> Text
+fretGlyphIt = fretNo
+
+fretGlyphFr :: Fret -> Text
+fretGlyphFr A = pack "a"
+fretGlyphFr B = pack "b"
+fretGlyphFr C = pack "c"
+fretGlyphFr D = pack "d"
+fretGlyphFr E = pack "e"
+fretGlyphFr F = pack "f"
+fretGlyphFr G = pack "g"
+fretGlyphFr H = pack "h"
+fretGlyphFr I = pack "i"
+fretGlyphFr J = pack "j"
+fretGlyphFr K = pack "k"
+fretGlyphFr L = pack "l"
+fretGlyphFr M = pack "m"
+fretGlyphFr N = pack "n"
 
 durSymbAttr :: Duration -> Xml Attr
 durSymbAttr dur = xattr "symbol" (durSymb dur)
