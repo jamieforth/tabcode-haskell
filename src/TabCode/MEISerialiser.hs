@@ -90,6 +90,18 @@ hand LH = pack "left"
 playingFingerAttr :: Finger -> Xml Attr
 playingFingerAttr fngr = xattr "playingFinger" (finger fngr)
 
+tc :: Namespace
+tc = namespace "tc" "http://data.t-mus.org/ns/tabcode"
+
+ornament :: Ornament -> Xml Elem
+ornament _ = xelemQEmpty tc "ornament"
+
+articulation :: Articulation -> Xml Elem
+articulation _ = xelemQEmpty mei "artic"
+
+connectingLine :: Connecting -> Xml Elem
+connectingLine _ = xelemQEmpty tc "connectingLine"
+
 finger :: Finger -> Text
 finger FingerOne = pack "1"
 finger FingerTwo = pack "2"
