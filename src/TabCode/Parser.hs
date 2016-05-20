@@ -29,7 +29,7 @@ import System.Exit (exitFailure)
 tablature :: GenParser Char st TabCode
 tablature = do
   rls   <- option [] rules
-  words <- tabword `sepBy` spaces
+  words <- tabword `endBy` spaces
   return $ TabCode rls words
 
 rules :: GenParser Char st [Rule]
