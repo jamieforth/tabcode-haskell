@@ -22,6 +22,7 @@
 
 module TabCode.MEISerialiser (staff) where
 
+import Data.Maybe (catMaybes)
 import Data.Text (pack, Text(..))
 import TabCode
 import Text.XML.Generator
@@ -30,32 +31,32 @@ mei :: Namespace
 mei = namespace "" "http://www.music-encoding.org/ns/mei"
 
 staff :: TabCode -> Xml Elem
-staff (TabCode tws) =
-  xelemQ mei "staff" $ xelems $ map tabWord tws
+staff (TabCode rls tws) =
+  xelemQ mei "staff" $ xelems $ map (tabWord rls) tws
 
-tabWord :: TabWord -> Xml Elem
-tabWord (Chord (Just rs) ns) =
-  xelemQ mei "chord" $ (durAttr rs) <#> ((rhythmSign rs) <> (xelems $ map note ns))
+tabWord :: [Rule] -> TabWord -> Xml Elem
+tabWord rls (Chord (Just rs) ns) =
+  xelemQ mei "chord" $ (durAttr rs) <#> ((rhythmSign rs) <> (xelems $ map (note rls) ns))
 
-tabWord (Chord Nothing ns) =
-  xelemQ mei "chord" $ xelems $ map note ns
+tabWord rls (Chord Nothing ns) =
+  xelemQ mei "chord" $ xelems $ map (note rls) ns
 
-tabWord (Rest rs) =
+tabWord rls (Rest rs) =
   xelemQ mei "rest" $ (durAttr rs) <#> (rhythmSign rs)
 
-tabWord (BarLine b) =
+tabWord rls (BarLine b) =
   xelemQEmpty mei "barLine"
 
-tabWord (Meter ms) =
+tabWord rls (Meter ms) =
   xelemQEmpty mei "timeSig"
 
-tabWord (Comment c) =
+tabWord rls (Comment c) =
   xelemQ mei "comment" $ xtext $ pack c
 
-tabWord SystemBreak =
+tabWord rls SystemBreak =
   xelemQEmpty mei "sb"
 
-tabWord PageBreak =
+tabWord rls PageBreak =
   xelemQEmpty mei "pb"
 
 rhythmSign :: RhythmSign -> Xml Elem
