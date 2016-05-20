@@ -59,6 +59,15 @@ Or to put it into a file:
 
     $ cat tabcodefile.tc | tc2mei | xmllint --format - > tabcodefile.xml
 
+### Limitations
+
+* `tc2mei` currently produces just a single `<mei:staff>` element and
+  none of the required containers (e.g. `<mei:mei>`, `<mei:meiHead>`,
+  `<mei:body>`, etc.)
+* Various features of Tabcode are not yet converted to MEI by
+  `tc2mei`, including: ornaments, articulation markings, and
+  connecting lines.
+
 ### License
 
 Copyright (C) 2015, 2016 Richard Lewis, Goldsmiths' College
