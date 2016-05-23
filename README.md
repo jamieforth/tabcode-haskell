@@ -29,9 +29,14 @@ lute tablature, and tools for checking and converting Tabcode files to
         $ cabal update
         $ cabal install --only-dependencies
 
-5. Compile:
+5. Optionally enable the tests:
+
+        $ cabal configure --enable-tests
+
+6. Compile (and optionally run the tests):
 
         $ cabal build
+        $ cabal test
 
 ### Usage
 

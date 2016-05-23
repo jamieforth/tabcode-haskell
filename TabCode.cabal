@@ -4,7 +4,7 @@ synopsis: A parser for the Tabcode lute tablature language
 author: Richard Lewis
 license: GPL
 build-type: Simple
-cabal-version: >= 1.8
+cabal-version: >= 1.9.2
 
 library
   build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring
@@ -25,3 +25,10 @@ executable tc2mei
   hs-source-dirs: src
   other-modules: TabCode.MEISerialiser, TabCode.Parser, TabCode
   ghc-options: -O2
+
+test-suite parse-tests
+  type: detailed-0.9
+  test-module: ParseTests
+  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers
+  hs-source-dirs: src, tests
+  other-modules: TabCode, TabCode.Parser
