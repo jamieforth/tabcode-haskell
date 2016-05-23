@@ -106,7 +106,7 @@ duration = do
 rest :: GenParser Char st TabWord
 rest = do
   rs <- rhythmSign
-  lookAhead space
+  notFollowedBy note
   return $ Rest rs
 
 barLine :: GenParser Char st TabWord
