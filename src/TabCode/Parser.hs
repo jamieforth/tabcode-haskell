@@ -18,12 +18,17 @@
 -- You should have received a copy of the GNU General Public License
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
-module TabCode.Parser where
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+
+module TabCode.Parser ( parseTabcode
+                      , parseTabcodeStdIn
+                      , parseTabcodeFile ) where
 
 import TabCode
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Number
-import System.IO (hPutStrLn, stderr, getContents)
+import Prelude hiding (words)
+import System.IO (hPutStrLn, stderr)
 import System.Exit (exitFailure)
 
 tablature :: GenParser Char st TabCode
@@ -66,10 +71,10 @@ rhythmSign = do
   return $ RhythmSign dur bt dts beam
 
 dots :: GenParser Char st Dot
-dots = option NoDot (do { dots <- many1 (char '.'); return Dot })
+dots = option NoDot (do { _ <- many1 (char '.'); return Dot })
 
 beat :: GenParser Char st Beat
-beat = option Simple (do { triplet <- char '3'; return Compound })
+beat = option Simple (do { _ <- char '3'; return Compound })
 
 beams :: Char -> (Duration -> Beam Duration) -> GenParser Char st (Maybe (Beam Duration))
 beams c mkBeam = option Nothing $ do
@@ -96,6 +101,7 @@ duration = do
    'W' -> Semibreve
    'B' -> Breve
    'F' -> Fermata
+   _   -> error $ "Invalid duration " ++ (show d)
 
 rest :: GenParser Char st TabWord
 rest = do
@@ -169,6 +175,7 @@ meter = do
     mkMensur (Just 'D') Nothing      Nothing    = HalfImperfectMinor
     mkMensur (Just ms)  _            _          =
       Beats $ ((read [ms]) :: Int)
+    mkMensur Nothing    _            _          = error "Invalid mensuration sign"
 
 note :: GenParser Char st Note
 note = trebNote <|> bassNote
@@ -202,6 +209,7 @@ fret = do
     'l' -> L
     'm' -> M
     'n' -> N
+    _   -> error $ "Invalid fret symbol: " ++ (show f)
 
 course :: GenParser Char st Course
 course = do
@@ -213,6 +221,7 @@ course = do
     '4' -> Four
     '5' -> Five
     '6' -> Six
+    _   -> error $ "Invalid course number: " ++ (show c)
 
 bassNote :: GenParser Char st Note
 bassNote = do
@@ -261,6 +270,7 @@ finger = do
     '2' -> FingerTwo
     '3' -> FingerThree
     '4' -> FingerFour
+    _   -> error $ "Invalid finger number: " ++ (show n)
 
 fingeringDots :: GenParser Char st Finger
 fingeringDots = do
@@ -270,6 +280,7 @@ fingeringDots = do
     2 -> FingerTwo
     3 -> FingerThree
     4 -> FingerFour
+    _ -> error $ "Invalid fingering dots: " ++ (show d)
 
 rhThumb :: GenParser Char st Finger
 rhThumb = char '!' >> (notFollowedBy $ char '!') >> return Thumb
@@ -289,6 +300,7 @@ attachmentNoColon = option Nothing $ do
     '6' -> PosBelowLeft
     '7' -> PosBelow
     '8' -> PosBelowRight
+    _   -> error $ "Invalid attachment position: " ++ (show pos)
 
 attachment :: GenParser Char st (Maybe Attachment)
 attachment = char ':' >> attachmentNoColon
@@ -315,6 +327,7 @@ ornament = option Nothing $ do
       'j' -> OrnJ s pos
       'k' -> OrnK s pos
       'l' -> OrnL s pos
+      _   -> error $ "Invalid ornament: " ++ (show t)
 
 articulation :: GenParser Char st (Maybe Articulation)
 articulation = option Nothing (ensemble <|> separee)
@@ -340,12 +353,14 @@ separee = option Nothing $ do
         return $ case d of
           'u' -> SepareeUp
           'd' -> SepareeDown
+          _   -> error $ "Invalid separee direction: " ++ (show d)
       position = option Nothing $ do
         char ':'
         p <- oneOf "lr"
         return $ Just $ case p of
           'l' -> SepareeLeft
           'r' -> SepareeRight
+          _   -> error $ "Invalid separee position: " ++ (show p)
 
 connecting :: GenParser Char st (Maybe Connecting)
 connecting = option Nothing (slur <|> straight <|> curved)
@@ -364,6 +379,7 @@ slur = option Nothing $ do
         return $ case d of
           'u' -> SlurUp
           'd' -> SlurDown
+          _   -> error $ "Invalid slur direction: " ++ (show d)
 
 straight :: GenParser Char st (Maybe Connecting)
 straight = option Nothing $ do
@@ -391,6 +407,7 @@ curved = option Nothing $ do
                        | i < 0  = Just (CurvedUpTo i p)
       mkCurved i 'd' p | i >= 0 = Just (CurvedDownFrom i p)
                        | i < 0  = Just (CurvedDownTo i p)
+      mkCurved _  d  _ = error $ "Invalid curved connecting line direction: " ++ (show d)
 
 comment :: GenParser Char st TabWord
 comment = do

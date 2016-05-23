@@ -23,7 +23,7 @@
 module TabCode.MEISerialiser (staff) where
 
 import Data.Maybe (catMaybes)
-import Data.Text (pack, Text(..))
+import Data.Text (pack, Text)
 import TabCode
 import Text.XML.Generator
 
@@ -80,7 +80,7 @@ fretGlyph rls frt = el <$> glyph
     glyph = case notation rls of
       Just "italian" -> Just $ fretGlyphIt frt
       Just "french"  -> Just $ fretGlyphFr frt
-      otherwise      -> Nothing
+      _              -> Nothing
 
 fingering :: Fingering -> Xml Elem
 fingering (Fingering (Just hnd) fngr _) =

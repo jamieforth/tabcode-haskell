@@ -180,7 +180,7 @@ data TabWord = Chord (Maybe RhythmSign) [Note]
 data Rule = Rule String String deriving (Eq, Show)
 
 ruleLkup :: [Rule] -> String -> Maybe String
-ruleLkup rls r = lookup r rlsMap
+ruleLkup rls rl = lookup rl rlsMap
   where
     rlsMap = map (\(Rule r v) -> (r, v)) rls
 
