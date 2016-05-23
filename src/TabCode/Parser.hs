@@ -154,13 +154,14 @@ meter = do
 
   where
     mensurSign = char 'O' <|> char 'C' <|> char 'D'
-    cuts       = option Nothing $ do { cs <- many $ char '/'; return $ Just cs }
+    cuts       = option Nothing $ do { cs <- many1 $ char '/'; return $ Just cs }
     prol       = option Nothing $ do { ds <- char '.'; return $ Just ds }
 
     mkMS (Just arrangement) mensur1 cut1 prolation1 mensur2 cut2 prolation2
       | arrangement == ':' = Meter $ VerticalMeterSign (mkMensur mensur1 cut1 prolation1) (mkMensur mensur2 cut2 prolation2)
       | arrangement == ';' = Meter $ HorizontalMeterSign (mkMensur mensur1 cut1 prolation1) (mkMensur mensur2 cut2 prolation2)
-    mkMs Nothing mensur1 cut1 prolation1 _ _ _
+    mkMS (Just _) _ _ _ _ _ _ = error "Invalid meter arrangement symbol"
+    mkMS Nothing mensur1 cut1 prolation1 _ _ _
       = Meter $ SingleMeterSign (mkMensur mensur1 cut1 prolation1)
 
     mkMensur (Just 'O') Nothing      (Just '.') = PerfectMajor
