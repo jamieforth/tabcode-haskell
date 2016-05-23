@@ -151,7 +151,8 @@ fretNo M = pack "12"
 fretNo N = pack "13"
 
 fretGlyphIt :: Fret -> Text
-fretGlyphIt = fretNo
+fretGlyphIt A = pack "0"
+fretGlyphIt f = fretNo f
 
 fretGlyphFr :: Fret -> Text
 fretGlyphFr A = pack "a"
