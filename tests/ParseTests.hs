@@ -46,6 +46,7 @@ mkParseTest tc tw = TestInstance {
 
 tests :: IO [Test]
 tests = return $ meterSigns
+  ++ rests
 
 meterSigns :: [Test]
 meterSigns =
@@ -62,4 +63,34 @@ meterSigns =
   , Test $ mkParseTest "M(3)" (Meter (SingleMeterSign (Beats 3)))
   , Test $ mkParseTest "M(4:4)" (Meter (VerticalMeterSign (Beats 4) (Beats 4)))
   , Test $ mkParseTest "M(4;4)" (Meter (HorizontalMeterSign (Beats 4) (Beats 4)))
+  ]
+
+rests :: [Test]
+rests =
+  [ Test $ mkParseTest "F" (Rest (RhythmSign Fermata Simple NoDot Nothing))
+  , Test $ mkParseTest "B" (Rest (RhythmSign Breve Simple NoDot Nothing))
+  , Test $ mkParseTest "W" (Rest (RhythmSign Semibreve Simple NoDot Nothing))
+  , Test $ mkParseTest "W." (Rest (RhythmSign Semibreve Simple Dot Nothing))
+  , Test $ mkParseTest "W3" (Rest (RhythmSign Semibreve Compound NoDot Nothing))
+  , Test $ mkParseTest "H" (Rest (RhythmSign Minim Simple NoDot Nothing))
+  , Test $ mkParseTest "H." (Rest (RhythmSign Minim Simple Dot Nothing))
+  , Test $ mkParseTest "H3" (Rest (RhythmSign Minim Compound NoDot Nothing))
+  , Test $ mkParseTest "Q" (Rest (RhythmSign Crotchet Simple NoDot Nothing))
+  , Test $ mkParseTest "Q." (Rest (RhythmSign Crotchet Simple Dot Nothing))
+  , Test $ mkParseTest "Q3" (Rest (RhythmSign Crotchet Compound NoDot Nothing))
+  , Test $ mkParseTest "E" (Rest (RhythmSign Quaver Simple NoDot Nothing))
+  , Test $ mkParseTest "E." (Rest (RhythmSign Quaver Simple Dot Nothing))
+  , Test $ mkParseTest "E3" (Rest (RhythmSign Quaver Compound NoDot Nothing))
+  , Test $ mkParseTest "S" (Rest (RhythmSign Semiquaver Simple NoDot Nothing))
+  , Test $ mkParseTest "S." (Rest (RhythmSign Semiquaver Simple Dot Nothing))
+  , Test $ mkParseTest "S3" (Rest (RhythmSign Semiquaver Compound NoDot Nothing))
+  , Test $ mkParseTest "T" (Rest (RhythmSign Demisemiquaver Simple NoDot Nothing))
+  , Test $ mkParseTest "T." (Rest (RhythmSign Demisemiquaver Simple Dot Nothing))
+  , Test $ mkParseTest "T3" (Rest (RhythmSign Demisemiquaver Compound NoDot Nothing))
+  , Test $ mkParseTest "Y" (Rest (RhythmSign Hemidemisemiquaver Simple NoDot Nothing))
+  , Test $ mkParseTest "Y." (Rest (RhythmSign Hemidemisemiquaver Simple Dot Nothing))
+  , Test $ mkParseTest "Y3" (Rest (RhythmSign Hemidemisemiquaver Compound NoDot Nothing))
+  , Test $ mkParseTest "Z" (Rest (RhythmSign Semihemidemisemiquaver Simple NoDot Nothing))
+  , Test $ mkParseTest "Z." (Rest (RhythmSign Semihemidemisemiquaver Simple Dot Nothing))
+  , Test $ mkParseTest "Z3" (Rest (RhythmSign Semihemidemisemiquaver Compound NoDot Nothing))
   ]
