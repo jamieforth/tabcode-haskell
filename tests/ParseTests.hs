@@ -47,6 +47,7 @@ mkParseTest tc tw = TestInstance {
 tests :: IO [Test]
 tests = return $ meterSigns
   ++ rests
+  ++ barLines
 
 meterSigns :: [Test]
 meterSigns =
@@ -93,4 +94,36 @@ rests =
   , Test $ mkParseTest "Z" (Rest (RhythmSign Semihemidemisemiquaver Simple NoDot Nothing))
   , Test $ mkParseTest "Z." (Rest (RhythmSign Semihemidemisemiquaver Simple Dot Nothing))
   , Test $ mkParseTest "Z3" (Rest (RhythmSign Semihemidemisemiquaver Compound NoDot Nothing))
+  ]
+
+barLines :: [Test]
+barLines =
+  [ Test $ mkParseTest "|" (BarLine (SingleBar Nothing Nothing NotDashed Counting))
+  , Test $ mkParseTest "||" (BarLine (DoubleBar Nothing Nothing NotDashed Counting))
+  , Test $ mkParseTest ":|" (BarLine (SingleBar (Just RepeatLeft) Nothing NotDashed Counting))
+  , Test $ mkParseTest ":||" (BarLine (DoubleBar (Just RepeatLeft) Nothing NotDashed Counting))
+  , Test $ mkParseTest "|:" (BarLine (SingleBar (Just RepeatRight) Nothing NotDashed Counting))
+  , Test $ mkParseTest "||:" (BarLine (DoubleBar (Just RepeatRight) Nothing NotDashed Counting))
+  , Test $ mkParseTest ":|:" (BarLine (SingleBar (Just RepeatBoth) Nothing NotDashed Counting))
+  , Test $ mkParseTest ":||:" (BarLine (DoubleBar (Just RepeatBoth) Nothing NotDashed Counting))
+  , Test $ mkParseTest "|=" (BarLine (SingleBar Nothing Nothing Dashed Counting))
+  , Test $ mkParseTest "||=" (BarLine (DoubleBar Nothing Nothing Dashed Counting))
+  , Test $ mkParseTest ":|=" (BarLine (SingleBar (Just RepeatLeft) Nothing Dashed Counting))
+  , Test $ mkParseTest ":||=" (BarLine (DoubleBar (Just RepeatLeft) Nothing Dashed Counting))
+  , Test $ mkParseTest "|:=" (BarLine (SingleBar (Just RepeatRight) Nothing Dashed Counting))
+  , Test $ mkParseTest "||:=" (BarLine (DoubleBar (Just RepeatRight) Nothing Dashed Counting))
+  , Test $ mkParseTest ":|:=" (BarLine (SingleBar (Just RepeatBoth) Nothing Dashed Counting))
+  , Test $ mkParseTest ":||:=" (BarLine (DoubleBar (Just RepeatBoth) Nothing Dashed Counting))
+  , Test $ mkParseTest "|0" (BarLine (SingleBar Nothing Nothing NotDashed NotCounting))
+  , Test $ mkParseTest "||0" (BarLine (DoubleBar Nothing Nothing NotDashed NotCounting))
+  , Test $ mkParseTest ":|0" (BarLine (SingleBar (Just RepeatLeft) Nothing NotDashed NotCounting))
+  , Test $ mkParseTest ":||0" (BarLine (DoubleBar (Just RepeatLeft) Nothing NotDashed NotCounting))
+  , Test $ mkParseTest "|:0" (BarLine (SingleBar (Just RepeatRight) Nothing NotDashed NotCounting))
+  , Test $ mkParseTest "||:0" (BarLine (DoubleBar (Just RepeatRight) Nothing NotDashed NotCounting))
+  , Test $ mkParseTest ":|:0" (BarLine (SingleBar (Just RepeatBoth) Nothing NotDashed NotCounting))
+  , Test $ mkParseTest ":||:0" (BarLine (DoubleBar (Just RepeatBoth) Nothing NotDashed NotCounting))
+  , Test $ mkParseTest "|(T=:\\R)" (BarLine (SingleBar Nothing (Just Reprise) NotDashed Counting))
+  , Test $ mkParseTest "||(T=:\\R)" (BarLine (DoubleBar Nothing (Just Reprise) NotDashed Counting))
+  , Test $ mkParseTest "|(T+:\\1)" (BarLine (SingleBar Nothing (Just $ NthTime 1) NotDashed Counting))
+  , Test $ mkParseTest "||(T+:\\1)" (BarLine (DoubleBar Nothing (Just $ NthTime 1) NotDashed Counting))
   ]
