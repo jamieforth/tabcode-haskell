@@ -112,9 +112,9 @@ rest = do
 barLine :: GenParser Char st TabWord
 barLine = do
   leftRpt  <- option False $ do { char ':'; return True }
-  line     <- sgl <|> dbl
+  line     <- (try dbl) <|> (try sgl)
   rightRpt <- option False $ do { char ':'; return True }
-  nonC     <- option NotCounting $ do { char '0'; return Counting }
+  nonC     <- option Counting $ do { char '0'; return NotCounting }
   dash     <- option NotDashed $ do { char '='; return Dashed }
   rep      <- option Nothing addition
 
@@ -125,12 +125,12 @@ barLine = do
   where
     sgl     = string "|"
     dbl     = string "||"
-    addition = reprise <|> nthTime
+    addition = (try reprise) <|> (try nthTime)
     reprise = between (char '(') (char ')') $ do
       string "T=:\\R"
       return $ Just Reprise
     nthTime = between (char '(') (char ')') $ do
-      string "T+\\"
+      string "T+:\\"
       time <- int
       return $ Just $ NthTime time
     combineRepeat True True  = Just RepeatBoth
