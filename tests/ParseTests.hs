@@ -43,3 +43,23 @@ mkParseTest tc tw = TestInstance {
   , options = []
   , setOption = \_ _ -> Right $ mkParseTest tc tw
   }
+
+tests :: IO [Test]
+tests = return $ meterSigns
+
+meterSigns :: [Test]
+meterSigns =
+  [ Test $ mkParseTest "M(O.)" (Meter (SingleMeterSign PerfectMajor))
+  , Test $ mkParseTest "M(O)" (Meter (SingleMeterSign PerfectMinor))
+  , Test $ mkParseTest "M(C.)" (Meter (SingleMeterSign ImperfectMajor))
+  , Test $ mkParseTest "M(C)" (Meter (SingleMeterSign ImperfectMinor))
+  , Test $ mkParseTest "M(O/.)" (Meter (SingleMeterSign HalfPerfectMajor))
+  , Test $ mkParseTest "M(O/)" (Meter (SingleMeterSign HalfPerfectMinor))
+  , Test $ mkParseTest "M(C/.)" (Meter (SingleMeterSign HalfImperfectMajor))
+  , Test $ mkParseTest "M(C/)" (Meter (SingleMeterSign HalfImperfectMinor))
+  , Test $ mkParseTest "M(D.)" (Meter (SingleMeterSign HalfImperfectMajor))
+  , Test $ mkParseTest "M(D)" (Meter (SingleMeterSign HalfImperfectMinor))
+  , Test $ mkParseTest "M(3)" (Meter (SingleMeterSign (Beats 3)))
+  , Test $ mkParseTest "M(4:4)" (Meter (VerticalMeterSign (Beats 4) (Beats 4)))
+  , Test $ mkParseTest "M(4;4)" (Meter (HorizontalMeterSign (Beats 4) (Beats 4)))
+  ]
