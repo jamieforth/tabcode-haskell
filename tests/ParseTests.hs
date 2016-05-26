@@ -38,7 +38,7 @@ tryParseWord tc tw =
 mkParseTest :: String -> TabWord -> TestInstance
 mkParseTest tc tw = TestInstance {
     run = return $ Finished $ tryParseWord tc tw
-  , name = show tw
+  , name = show tc
   , tags = []
   , options = []
   , setOption = \_ _ -> Right $ mkParseTest tc tw
