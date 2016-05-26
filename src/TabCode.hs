@@ -177,6 +177,13 @@ data TabWord = Chord (Maybe RhythmSign) [Note]
              | PageBreak
              deriving (Eq, Show)
 
+coursesFromNotes :: [Note] -> [Course]
+coursesFromNotes ns = map (\(Note crs _ _ _ _ _) -> crs) ns
+
+courses :: TabWord -> [Course]
+courses (Chord _ ns) = coursesFromNotes ns
+courses _ = []
+
 data Rule = Rule String String deriving (Eq, Show)
 
 ruleLkup :: [Rule] -> String -> Maybe String
