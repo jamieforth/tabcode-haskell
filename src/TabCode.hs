@@ -20,6 +20,8 @@
 
 module TabCode where
 
+import Data.Set (size, fromList)
+
 data Duration = Fermata
               | Breve
               | Semibreve
@@ -57,7 +59,7 @@ data RhythmSign = RhythmSign Duration Beat Dot (Maybe (Beam Duration)) deriving 
 -- FIXME Perhaps this data model should rather be a numeric fret
 -- number and then any symbol from the source should be captured as
 -- another part of the Note type
-data Fret = A | B | C | D | E | F | G | H | I | J | K | L | M | N deriving (Eq, Show)
+data Fret = A | B | C | D | E | F | G | H | I | J | K | L | M | N deriving (Eq, Show, Ord)
 
 data Course = One
             | Two
@@ -66,7 +68,7 @@ data Course = One
             | Five
             | Six
             | Bass Int
-            deriving (Eq, Show)
+            deriving (Eq, Show, Ord)
 
 data Attachment = PosAboveLeft
                 | PosAbove
@@ -130,6 +132,15 @@ data Connecting = Slur SlurDirection
                 deriving (Eq, Show)
 
 data Note = Note Course Fret (Maybe Fingering) (Maybe Ornament) (Maybe Articulation) (Maybe Connecting) deriving (Eq, Show)
+
+duplicateCoursesInNotes :: [Note] -> Bool
+duplicateCoursesInNotes ns =
+  length cs > size (fromList cs)
+  where cs = coursesFromNotes ns
+
+duplicateCourses :: TabWord -> Bool
+duplicateCourses (Chord _ ns) = duplicateCoursesInNotes ns
+duplicateCourses _ = False
 
 data Counting = Counting
               | NotCounting

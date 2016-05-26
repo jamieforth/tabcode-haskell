@@ -7,20 +7,20 @@ build-type: Simple
 cabal-version: >= 1.9.2
 
 library
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring
+  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring, containers
   exposed-modules: TabCode, TabCode.Parser, TabCode.MEISerialiser
   hs-source-dirs: src
   ghc-options: -O2
 
 executable tccheck
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers
+  build-depends: base >= 4 && < 5, parsec, parsec-numbers, containers
   main-is: Checker.hs
   hs-source-dirs: src
   other-modules: TabCode.Parser, TabCode
   ghc-options: -O2
 
 executable tc2mei
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring
+  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring, containers
   main-is: TC2MEI.hs
   hs-source-dirs: src
   other-modules: TabCode.MEISerialiser, TabCode.Parser, TabCode
@@ -29,6 +29,6 @@ executable tc2mei
 test-suite parse-tests
   type: detailed-0.9
   test-module: ParseTests
-  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers
+  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers
   hs-source-dirs: src, tests
   other-modules: TabCode, TabCode.Parser

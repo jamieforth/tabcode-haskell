@@ -25,6 +25,7 @@ module TabCode.Parser ( parseTabcode
                       , parseTabcodeFile ) where
 
 import TabCode
+import Text.Parsec (ParsecT)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Number
 import Prelude hiding (words)
@@ -52,13 +53,20 @@ rule r = do
   return $ Rule r nt
 
 tabword :: GenParser Char st TabWord
-tabword = (try chord) <|> (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak)
+tabword = (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak) <|> chord
 
 chord :: GenParser Char st TabWord
 chord = do
   rs <- option Nothing $ do { r <- rhythmSign; return $ Just r }
-  ns <- many1 note
+  ns <- uniqueNotes $ many1 note
   return $ Chord rs ns
+
+uniqueNotes :: ParsecT s u m [Note] -> ParsecT s u m [Note]
+uniqueNotes parser = do
+  ns <- parser
+  if duplicateCoursesInNotes ns
+    then fail $ "Chord contains duplicate courses: " ++ (show $ coursesFromNotes ns)
+    else return ns
 
 rhythmSign :: GenParser Char st RhythmSign
 rhythmSign = do
