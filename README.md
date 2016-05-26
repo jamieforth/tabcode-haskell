@@ -44,8 +44,8 @@ Following the build process, you have two executables in
 `tabcode-haskell/dist`: `tc2mei` and `tccheck`. Both read Tabcode data
 from standard in. `tc2mei` then writes an MEI XML version of its input
 to standard out. `tccheck` will either report errors in parsing the
-input or print a representation of the data structure into which the
-the input was pasred.
+input and return exit code `1` or, if the input was valid, just return
+exit code `0`.
 
 It may be useful to copy the `tc2mei` and/or `tccheck` executables
 into a directory on your `PATH`, e.g.:

@@ -26,7 +26,4 @@ import TabCode.Parser (parseTabcodeStdIn)
 main :: IO ()
 main = do
   (TabCode rules words) <- parseTabcodeStdIn
-  mapM_ (putStrLn . show) rules
-  mapM_ (putStrLn . show) words
-
-
+  return ()
