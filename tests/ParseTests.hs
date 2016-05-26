@@ -44,6 +44,21 @@ mkParseTest tc tw = TestInstance {
   , setOption = \_ _ -> Right $ mkParseTest tc tw
   }
 
+tryParseInvalidWord :: String -> Result
+tryParseInvalidWord tc =
+  case parseTabcode tc of
+    Right (TabCode rls wrds) -> Fail $ show wrds
+    Left err                 -> Pass
+
+mkInvalidTest :: String -> TestInstance
+mkInvalidTest tc = TestInstance {
+    run = return $ Finished $ tryParseInvalidWord tc
+  , name = show $ tc ++ " [invalid]"
+  , tags = []
+  , options = []
+  , setOption = \_ _ -> Right $ mkInvalidTest tc
+  }
+
 tests :: IO [Test]
 tests = return $ meterSigns
   ++ rests
