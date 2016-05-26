@@ -63,6 +63,7 @@ tests :: IO [Test]
 tests = return $ meterSigns
   ++ rests
   ++ barLines
+  ++ failChords
 
 meterSigns :: [Test]
 meterSigns =
@@ -141,4 +142,10 @@ barLines =
   , Test $ mkParseTest "||(T=:\\R)" (BarLine (DoubleBar Nothing (Just Reprise) NotDashed Counting))
   , Test $ mkParseTest "|(T+:\\1)" (BarLine (SingleBar Nothing (Just $ NthTime 1) NotDashed Counting))
   , Test $ mkParseTest "||(T+:\\1)" (BarLine (DoubleBar Nothing (Just $ NthTime 1) NotDashed Counting))
+  ]
+
+failChords :: [Test]
+failChords =
+  [ Test $ mkInvalidTest "a1b1"
+  , Test $ mkInvalidTest "a1a2a1"
   ]
