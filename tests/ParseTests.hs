@@ -63,6 +63,7 @@ tests :: IO [Test]
 tests = return $ meterSigns
   ++ rests
   ++ barLines
+  ++ simpleChords
   ++ failChords
 
 meterSigns :: [Test]
@@ -144,8 +145,31 @@ barLines =
   , Test $ mkParseTest "||(T+:\\1)\n" (BarLine (DoubleBar Nothing (Just $ NthTime 1) NotDashed Counting))
   ]
 
+simpleChords :: [Test]
+simpleChords =
+  [ Test $ mkParseTest "c1\n" (Chord Nothing [Note One C Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "c1a2\n" (Chord Nothing [ Note One C Nothing Nothing Nothing Nothing
+                                               , Note Two A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Qc1\n" (Chord (Just (RhythmSign Crotchet Simple NoDot Nothing)) [Note One C Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Q.c1\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing)) [Note One C Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Q3c1\n" (Chord (Just (RhythmSign Crotchet Compound NoDot Nothing)) [Note One C Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Qc1a2\n" (Chord (Just (RhythmSign Crotchet Simple NoDot Nothing)) [ Note One C Nothing Nothing Nothing Nothing
+                                                                                          , Note Two A Nothing Nothing Nothing Nothing ])
+  ]
+
 failChords :: [Test]
 failChords =
   [ Test $ mkInvalidTest "a1b1\n"
   , Test $ mkInvalidTest "a1a2a1\n"
+  , Test $ mkInvalidTest "Qa1b1\n"
+  , Test $ mkInvalidTest "Qa1a2a1\n"
+  , Test $ mkInvalidTest "Q.a1b1\n"
+  , Test $ mkInvalidTest "Q.a1a2a1\n"
+  , Test $ mkInvalidTest "o1\n"
+  , Test $ mkInvalidTest "a1\no1\n"
+  , Test $ mkInvalidTest "o1\na1\n"
+  , Test $ mkInvalidTest "So1\n"
+  , Test $ mkInvalidTest "Sa1\no1\n"
+  , Test $ mkInvalidTest "So1\na1\n"
+  , Test $ mkInvalidTest "E.p1\n"
   ]
