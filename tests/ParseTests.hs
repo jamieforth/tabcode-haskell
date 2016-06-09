@@ -64,6 +64,7 @@ tests = return $ meterSigns
   ++ rests
   ++ barLines
   ++ simpleChords
+  ++ chordsWithBass
   ++ failChords
 
 meterSigns :: [Test]
@@ -155,6 +156,50 @@ simpleChords =
   , Test $ mkParseTest "Q3c1\n" (Chord (Just (RhythmSign Crotchet Compound NoDot Nothing)) [Note One C Nothing Nothing Nothing Nothing])
   , Test $ mkParseTest "Qc1a2\n" (Chord (Just (RhythmSign Crotchet Simple NoDot Nothing)) [ Note One C Nothing Nothing Nothing Nothing
                                                                                           , Note Two A Nothing Nothing Nothing Nothing ])
+  ]
+
+chordsWithBass :: [Test]
+chordsWithBass =
+  [ Test $ mkParseTest "Xa\n" (Chord Nothing [Note (Bass 1) A Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Xa/\n" (Chord Nothing [Note (Bass 2) A Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Xb//\n" (Chord Nothing [Note (Bass 3) B Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "X1\n" (Chord Nothing [Note (Bass 1) A Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "X4\n" (Chord Nothing [Note (Bass 4) A Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "c1Xa\n" (Chord Nothing [ Note One C Nothing Nothing Nothing Nothing
+                                               , Note (Bass 1) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1Xa/\n" (Chord Nothing [ Note One C Nothing Nothing Nothing Nothing
+                                                , Note (Bass 2) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1Xb//\n" (Chord Nothing [ Note One C Nothing Nothing Nothing Nothing
+                                                 , Note (Bass 3) B Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1X1\n" (Chord Nothing [ Note One C Nothing Nothing Nothing Nothing
+                                               , Note (Bass 1) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1X4\n" (Chord Nothing [ Note One C Nothing Nothing Nothing Nothing
+                                               , Note (Bass 4) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Q.Xa\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                  [Note (Bass 1) A Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Q.Xa/\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                   [Note (Bass 2) A Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Q.Xb//\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                   [Note (Bass 3) B Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Q.X1\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                  [Note (Bass 1) A Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Q.X4\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                  [Note (Bass 4) A Nothing Nothing Nothing Nothing])
+  , Test $ mkParseTest "Q.c1Xa\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                    [ Note One C Nothing Nothing Nothing Nothing
+                                    , Note (Bass 1) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Q.c1Xa/\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                     [ Note One C Nothing Nothing Nothing Nothing
+                                     , Note (Bass 2) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Q.c1Xb//\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                      [ Note One C Nothing Nothing Nothing Nothing
+                                      , Note (Bass 3) B Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Q.c1X1\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                    [ Note One C Nothing Nothing Nothing Nothing
+                                    , Note (Bass 1) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Q.c1X4\n" (Chord (Just (RhythmSign Crotchet Simple Dot Nothing))
+                                    [ Note One C Nothing Nothing Nothing Nothing
+                                    , Note (Bass 4) A Nothing Nothing Nothing Nothing ])
   ]
 
 failChords :: [Test]
