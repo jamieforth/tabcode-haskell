@@ -36,6 +36,7 @@ tablature :: GenParser Char st TabCode
 tablature = do
   rls   <- option [] rules
   words <- tabword `endBy` spaces
+  eof
   return $ TabCode rls words
 
 rules :: GenParser Char st [Rule]
@@ -114,7 +115,7 @@ duration = do
 rest :: GenParser Char st TabWord
 rest = do
   rs <- rhythmSign
-  notFollowedBy note
+  try $ many1 space
   return $ Rest rs
 
 barLine :: GenParser Char st TabWord
