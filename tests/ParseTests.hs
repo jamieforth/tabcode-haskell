@@ -66,6 +66,7 @@ tests = return $ meterSigns
   ++ simpleChords
   ++ chordsWithBass
   ++ failChords
+  ++ articulations
 
 meterSigns :: [Test]
 meterSigns =
@@ -217,4 +218,43 @@ failChords =
   , Test $ mkInvalidTest "Sa1\no1\n"
   , Test $ mkInvalidTest "So1\na1\n"
   , Test $ mkInvalidTest "E.p1\n"
+  , Test $ mkInvalidTest "b3(E)(S)d4\n"
+  , Test $ mkInvalidTest "b3(S)(E)d4\n"
+  , Test $ mkInvalidTest "b3(E)(Su)d4\n"
+  , Test $ mkInvalidTest "b3(Su)(E)d4\n"
+  ]
+
+articulations :: [Test]
+articulations =
+  [ Test $ mkParseTest "b3(E)d4\n" (Chord Nothing [ Note Three B Nothing Nothing (Just Ensemble) Nothing
+                                                  , Note Four D Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Hc1c2d3(E)d6\n" (Chord (Just (RhythmSign Minim Simple NoDot Nothing))
+                                          [ Note One C Nothing Nothing Nothing Nothing
+                                          , Note Two C Nothing Nothing Nothing Nothing
+                                          , Note Three D Nothing Nothing (Just Ensemble) Nothing
+                                          , Note Six D Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(E)X4" (Chord Nothing [ Note One C Nothing Nothing (Just Ensemble) Nothing
+                                                , Note (Bass 4) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b3(S)d4\n" (Chord Nothing [ Note Three B Nothing Nothing (Just $ Separee Nothing Nothing) Nothing
+                                                  , Note Four D Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Hc1c2d3(S)d6\n" (Chord (Just (RhythmSign Minim Simple NoDot Nothing))
+                                          [ Note One C Nothing Nothing Nothing Nothing
+                                          , Note Two C Nothing Nothing Nothing Nothing
+                                          , Note Three D Nothing Nothing (Just $ Separee Nothing Nothing) Nothing
+                                          , Note Six D Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(S)X4" (Chord Nothing [ Note One C Nothing Nothing (Just $ Separee Nothing Nothing) Nothing
+                                                , Note (Bass 4) A Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b3(Sd)d4\n" (Chord Nothing [ Note Three B Nothing Nothing (Just $ Separee (Just SepareeDown) Nothing) Nothing
+                                                  , Note Four D Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b3(Su)d4\n" (Chord Nothing [ Note Three B Nothing Nothing (Just $ Separee (Just SepareeUp) Nothing) Nothing
+                                                  , Note Four D Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b3(Sd:l)d4\n" (Chord Nothing [ Note Three B Nothing Nothing (Just $ Separee (Just SepareeDown) (Just SepareeLeft)) Nothing
+                                                  , Note Four D Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b3(Su:r)d4\n" (Chord Nothing [ Note Three B Nothing Nothing (Just $ Separee (Just SepareeUp) (Just SepareeRight)) Nothing
+                                                  , Note Four D Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "Hc1(E)c2d3(S)d6\n" (Chord (Just (RhythmSign Minim Simple NoDot Nothing))
+                                            [ Note One C Nothing Nothing (Just Ensemble) Nothing
+                                            , Note Two C Nothing Nothing Nothing Nothing
+                                            , Note Three D Nothing Nothing (Just $ Separee Nothing Nothing) Nothing
+                                            , Note Six D Nothing Nothing Nothing Nothing ])
   ]
