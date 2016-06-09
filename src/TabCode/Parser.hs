@@ -188,7 +188,7 @@ meter = do
     mkMensur Nothing    _            _          = error "Invalid mensuration sign"
 
 note :: GenParser Char st Note
-note = trebNote <|> bassNote
+note = (try trebNote) <|> (try bassNote) <|> bassNoteOpenAbbr
 
 trebNote :: GenParser Char st Note
 trebNote = do
@@ -250,6 +250,18 @@ bassCourse :: GenParser Char st Course
 bassCourse = do
   c <- many (char '/')
   return $ Bass $ (length c) + 1
+
+bassNoteOpenAbbr :: GenParser Char st Note
+bassNoteOpenAbbr = do
+  char 'X'
+
+  c <- int
+  fng <- fingering
+  orn <- ornament
+  art <- articulation
+  con <- connecting
+
+  return $ Note (Bass c) A fng orn art con
 
 fingering :: GenParser Char st (Maybe Fingering)
 fingering = option Nothing $ abbr <|> full
