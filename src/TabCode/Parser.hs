@@ -433,10 +433,9 @@ curved = option Nothing $ do
 
 comment :: GenParser Char st TabWord
 comment = do
-  c <- braces (many1 anyChar)
+  char '{'
+  c <- manyTill anyChar (try $ char '}')
   return $ Comment c
-  where
-    braces = between (char '{') (char '}')
 
 systemBreak :: GenParser Char st TabWord
 systemBreak = string "{^}" >> return SystemBreak
