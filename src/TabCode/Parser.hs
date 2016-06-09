@@ -352,16 +352,16 @@ ornament = option Nothing $ do
       _   -> error $ "Invalid ornament: " ++ (show t)
 
 articulation :: GenParser Char st (Maybe Articulation)
-articulation = option Nothing (ensemble <|> separee)
+articulation = option Nothing $ separee <|> ensemble
 
 ensemble :: GenParser Char st (Maybe Articulation)
-ensemble = option Nothing $ do
+ensemble = try $ do
   between (char '(') (char ')') $ do
     char 'E'
     return $ Just Ensemble
 
 separee :: GenParser Char st (Maybe Articulation)
-separee = option Nothing $ do
+separee = try $ do
   between (char '(') (char ')') $ do
     char 'S'
     dir <- direction
@@ -370,9 +370,9 @@ separee = option Nothing $ do
     return $ Just $ Separee dir pos
 
     where
-      direction = do
+      direction = option Nothing $ do
         d <- oneOf "ud"
-        return $ case d of
+        return $ Just $ case d of
           'u' -> SepareeUp
           'd' -> SepareeDown
           _   -> error $ "Invalid separee direction: " ++ (show d)

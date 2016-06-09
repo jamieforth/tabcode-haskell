@@ -117,7 +117,7 @@ data SepareeDirection = SepareeUp
                       deriving (Eq, Show)
 
 data Articulation = Ensemble
-                  | Separee SepareeDirection (Maybe SepareePosition)
+                  | Separee (Maybe SepareeDirection) (Maybe SepareePosition)
                   deriving (Eq, Show)
 
 data SlurDirection = SlurUp | SlurDown deriving (Eq, Show)
