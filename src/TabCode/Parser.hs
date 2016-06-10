@@ -264,22 +264,24 @@ bassNoteOpenAbbr = do
   return $ Note (Bass c) A fng orn art con
 
 fingering :: GenParser Char st (Maybe Fingering)
-fingering = option Nothing $ abbr <|> full
+fingering = option Nothing $ (try abbr) <|> (try full)
   where
     abbr = do
-      f <- fingeringDots <|> rhThumb <|> rhFinger2
+      f <- (try fingeringDots) <|> (try finger2Abbr) <|> (try rhThumb) <|> rhFinger2
+      -- FIXME You need to set hand when parsing '!' or '!!'
       return $ Just $ Fingering Nothing f Nothing
     full = do
       between (char '(') (char ')') $ do
         char 'F'
         h <- hand
-        f <- finger <|> fingeringDots <|> rhThumb <|> rhFinger2
+        f <- (try finger) <|> (try fingeringDots) <|> (try rhThumb) <|> rhFinger2
         a <- attachment
 
+        -- FIXME You need to set hand when parsing '!' or '!!'
         return $ Just $ Fingering h f a
 
 hand :: GenParser Char st (Maybe Hand)
-hand = option Nothing (left <|> right)
+hand = option Nothing $ (try left) <|> right
   where
     left  = do { char 'l'; return $ Just LH }
     right = do { char 'r'; return $ Just RH }
@@ -303,6 +305,9 @@ fingeringDots = do
     3 -> FingerThree
     4 -> FingerFour
     _ -> error $ "Invalid fingering dots: " ++ (show d)
+
+finger2Abbr :: GenParser Char st Finger
+finger2Abbr = char ':' >> return FingerTwo
 
 rhThumb :: GenParser Char st Finger
 rhThumb = char '!' >> (notFollowedBy $ char '!') >> return Thumb
