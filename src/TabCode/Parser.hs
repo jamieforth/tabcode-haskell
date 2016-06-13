@@ -439,6 +439,7 @@ curved = option Nothing $ do
 comment :: GenParser Char st TabWord
 comment = do
   char '{'
+  notFollowedBy $ (try $ string "^}") <|> (try $ string ">}{^}")
   c <- manyTill anyChar (try $ char '}')
   return $ Comment c
 
