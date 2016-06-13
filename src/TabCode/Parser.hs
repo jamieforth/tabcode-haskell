@@ -315,10 +315,10 @@ rhThumb = char '!' >> (notFollowedBy $ char '!') >> return Thumb
 rhFinger2 :: GenParser Char st Finger
 rhFinger2 = string "!!" >> return FingerTwo
 
-attachmentNoColon :: GenParser Char st (Maybe Attachment)
-attachmentNoColon = option Nothing $ do
+attachmentNoColon :: GenParser Char st Attachment
+attachmentNoColon = do
   pos <- oneOf "12345678"
-  return $ Just $ case pos of
+  return $ case pos of
     '1' -> PosAboveLeft
     '2' -> PosAbove
     '3' -> PosAboveRight
@@ -330,7 +330,10 @@ attachmentNoColon = option Nothing $ do
     _   -> error $ "Invalid attachment position: " ++ (show pos)
 
 attachment :: GenParser Char st (Maybe Attachment)
-attachment = char ':' >> attachmentNoColon
+attachment = option Nothing $ do
+  char ':'
+  a <- attachmentNoColon
+  return $ Just a
 
 --modifier :: GenParser Char st
 
@@ -425,7 +428,7 @@ curved = option Nothing $ do
     cid <- int
     char ':'
     dir <- oneOf "ud"
-    pos <- attachmentNoColon
+    pos <- optionMaybe attachmentNoColon
 
     return $ mkCurved cid dir pos
 
