@@ -41,8 +41,12 @@ tablature = do
 
 rules :: GenParser Char st [Rule]
 rules = do
-  rls <- between (string "{<rules>") (string "</rules>}") $ do
+  -- FIXME We need to allow files to start with comments but also not
+  -- suppress errors in incorrect <rules>
+  rls <- option [] $ try $ between (string "{<rules>") (string "</rules>}") $ do
     many1 $ (try $ rule "notation") <|> (try $ rule "title") <|> (try $ rule "tuning_named")
+      <|> (try $ rule "rhythm-font") <|> (try $ rule "pitch") <|> (try $ rule "bass_tuning")
+      <|> (try $ rule "tuning") <|> (try $ rule "rhythm_noteheads")
   spaces
   return rls
 
