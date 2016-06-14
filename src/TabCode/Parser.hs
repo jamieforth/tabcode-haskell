@@ -194,12 +194,13 @@ trebNote :: GenParser Char st Note
 trebNote = do
   f   <- fret
   c   <- course
-  fng <- fingering
+  fngl <- fingeringLeft
+  fngr <- fingeringRight
   orn <- ornament
   art <- articulation
   con <- connecting
 
-  return $ Note c f fng orn art con
+  return $ Note c f fngl fngr orn art con
 
 fret :: GenParser Char st Fret
 fret = do
@@ -239,12 +240,13 @@ bassNote = do
 
   f   <- fret
   c   <- bassCourse
-  fng <- fingering
+  fngl <- fingeringLeft
+  fngr <- fingeringRight
   orn <- ornament
   art <- articulation
   con <- connecting
 
-  return $ Note c f fng orn art con
+  return $ Note c f fngl fngr orn art con
 
 bassCourse :: GenParser Char st Course
 bassCourse = do
@@ -255,36 +257,41 @@ bassNoteOpenAbbr :: GenParser Char st Note
 bassNoteOpenAbbr = do
   char 'X'
 
-  c <- int
-  fng <- fingering
+  c   <- int
+  fngl <- fingeringLeft
+  fngr <- fingeringRight
   orn <- ornament
   art <- articulation
   con <- connecting
 
-  return $ Note (Bass c) A fng orn art con
+  return $ Note (Bass c) A fngl fngr orn art con
 
-fingering :: GenParser Char st (Maybe Fingering)
-fingering = option Nothing $ (try abbr) <|> (try full)
+fingeringLeft :: GenParser Char st (Maybe FingeringLeft)
+fingeringLeft = option Nothing $ (try abbr) <|> (try full)
   where
     abbr = do
-      f <- (try fingeringDots) <|> (try finger2Abbr) <|> (try rhThumb) <|> rhFinger2
-      -- FIXME You need to set hand when parsing '!' or '!!'
-      return $ Just $ Fingering Nothing f Nothing
+      f <- (try fingeringDots) <|> finger2Abbr
+      return $ Just $ FingeringLeft f Nothing
     full = do
-      between (char '(') (char ')') $ do
-        char 'F'
-        h <- hand
-        f <- (try finger) <|> (try fingeringDots) <|> (try rhThumb) <|> rhFinger2
-        a <- attachment
+      string "(F"
+      optional $ char 'l'
+      f <- (try finger) <|> fingeringDots
+      a <- attachment
+      char ')'
+      return $ Just $ FingeringLeft f a
 
-        -- FIXME You need to set hand when parsing '!' or '!!'
-        return $ Just $ Fingering h f a
-
-hand :: GenParser Char st (Maybe Hand)
-hand = option Nothing $ (try left) <|> right
+fingeringRight :: GenParser Char st (Maybe FingeringRight)
+fingeringRight = option Nothing $ (try abbr) <|> (try full)
   where
-    left  = do { char 'l'; return $ Just LH }
-    right = do { char 'r'; return $ Just RH }
+    abbr = do
+      f <- (try rhThumb) <|> rhFinger2
+      return $ Just $ FingeringRight f Nothing
+    full = do
+      string "(Fr"
+      f <- (try finger) <|> (try fingeringDots) <|> (try rhThumb) <|> rhFinger2
+      a <- attachment
+      char ')'
+      return $ Just $ FingeringRight f a
 
 finger :: GenParser Char st Finger
 finger = do

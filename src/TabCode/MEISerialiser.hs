@@ -64,11 +64,12 @@ rhythmSign (RhythmSign dur _ dt _) =
   xelemQ mei "rhythmGlyph" $ durSymbAttr dur
 
 note :: [Rule] -> Note -> Xml Elem
-note rls (Note crs frt fngrg orn artic conn) =
+note rls (Note crs frt fngl fngr orn artic conn) =
   xelemQ mei "note" $ xattrs [ (tabCourseAttr crs)
                              , (tabFretAttr frt) ]
                     <#> (xelems $ catMaybes [ (fretGlyph rls frt)
-                                            , (fingering <$> fngrg)
+                                            , (fingeringL <$> fngl)
+                                            , (fingeringR <$> fngr)
                                             , (ornament <$> orn)
                                             , (articulation <$> artic)
                                             , (connectingLine <$> conn) ])
@@ -82,20 +83,15 @@ fretGlyph rls frt = el <$> glyph
       Just "french"  -> Just $ fretGlyphFr frt
       _              -> Nothing
 
-fingering :: Fingering -> Xml Elem
-fingering (Fingering (Just hnd) fngr _) =
-  xelemQ mei "fingering" $ xattrs [ (playingHandAttr hnd)
+fingeringL :: FingeringLeft -> Xml Elem
+fingeringL (FingeringLeft fngr _) =
+  xelemQ mei "fingering" $ xattrs [ (xattr "playingHand" "left")
                                   , (playingFingerAttr fngr) ]
 
-fingering (Fingering Nothing fngr _) =
-  xelemQ mei "fingering" $ xattr "playingFinger" (finger fngr)
-
-playingHandAttr :: Hand -> Xml Attr
-playingHandAttr hnd = xattr "playingHand" (hand hnd)
-
-hand :: Hand -> Text
-hand RH = pack "right"
-hand LH = pack "left"
+fingeringR :: FingeringRight -> Xml Elem
+fingeringR (FingeringRight fngr _) =
+  xelemQ mei "fingering" $ xattrs [ (xattr "playingHand" "right")
+                                  , (playingFingerAttr fngr) ]
 
 playingFingerAttr :: Finger -> Xml Attr
 playingFingerAttr fngr = xattr "playingFinger" (finger fngr)
