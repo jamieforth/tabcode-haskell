@@ -86,8 +86,9 @@ data Finger = FingerOne
             | FingerFour
             | Thumb deriving (Eq, Show)
 
-data FingeringLeft = FingeringLeft Finger (Maybe Attachment) deriving (Eq, Show)
-data FingeringRight = FingeringRight Finger (Maybe Attachment) deriving (Eq, Show)
+data Fingering = FingeringLeft Finger (Maybe Attachment)
+               | FingeringRight Finger (Maybe Attachment)
+               deriving (Eq, Show)
 
 type OrnSubtype = Int
 -- FIXME Work out the proper ornament names
@@ -129,7 +130,7 @@ data Connecting = Slur SlurDirection
                 | CurvedDownTo ConnectingId (Maybe Attachment)
                 deriving (Eq, Show)
 
-data Note = Note Course Fret (Maybe FingeringLeft) (Maybe FingeringRight) (Maybe Ornament) (Maybe Articulation) (Maybe Connecting) deriving (Eq, Show)
+data Note = Note Course Fret (Maybe Fingering, Maybe Fingering) (Maybe Ornament) (Maybe Articulation) (Maybe Connecting) deriving (Eq, Show)
 
 duplicateCoursesInNotes :: [Note] -> Bool
 duplicateCoursesInNotes ns =
@@ -187,7 +188,7 @@ data TabWord = Chord (Maybe RhythmSign) [Note]
              deriving (Eq, Show)
 
 coursesFromNotes :: [Note] -> [Course]
-coursesFromNotes ns = map (\(Note crs _ _ _ _ _ _) -> crs) ns
+coursesFromNotes ns = map (\(Note crs _ _ _ _ _) -> crs) ns
 
 courses :: TabWord -> [Course]
 courses (Chord _ ns) = coursesFromNotes ns

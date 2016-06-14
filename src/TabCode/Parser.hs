@@ -190,17 +190,22 @@ meter = do
 note :: GenParser Char st Note
 note = (try trebNote) <|> (try bassNote) <|> bassNoteOpenAbbr
 
+unorderedPair :: GenParser Char st (Maybe a) -> GenParser Char st (Maybe a) -> GenParser Char st (Maybe a, Maybe a)
+unorderedPair p q =
+  p >>= \r -> case r of
+                Just r' -> do { s <- q; return (r, s) }
+                Nothing -> do { t <- q; u <- p; return (t, u) }
+
 trebNote :: GenParser Char st Note
 trebNote = do
   f    <- fret
   c    <- course
-  fngl <- fingeringLeft
-  fngr <- fingeringRight
+  fng  <- unorderedPair fingeringLeft fingeringRight
   orn  <- ornament
   art  <- articulation
   con  <- connecting
 
-  return $ Note c f fngl fngr orn art con
+  return $ Note c f fng orn art con
 
 fret :: GenParser Char st Fret
 fret = do
@@ -240,13 +245,12 @@ bassNote = do
 
   f    <- fret
   c    <- bassCourse
-  fngl <- fingeringLeft
-  fngr <- fingeringRight
+  fng  <- unorderedPair fingeringLeft fingeringRight
   orn  <- ornament
   art  <- articulation
   con  <- connecting
 
-  return $ Note c f fngl fngr orn art con
+  return $ Note c f fng orn art con
 
 bassCourse :: GenParser Char st Course
 bassCourse = do
@@ -258,37 +262,32 @@ bassNoteOpenAbbr = do
   char 'X'
 
   c    <- int
-  fngl <- fingeringLeft
-  fngr <- fingeringRight
+  fng  <- unorderedPair fingeringLeft fingeringRight
   orn  <- ornament
   art  <- articulation
   con  <- connecting
 
-  return $ Note (Bass c) A fngl fngr orn art con
+  return $ Note (Bass c) A fng orn art con
 
-fingeringLeft :: GenParser Char st (Maybe FingeringLeft)
-fingeringLeft = option Nothing $ (try abbr) <|> (try full)
-  where
-    abbr = do
-      f <- (try fingeringDots) <|> finger2Abbr
-      return $ Just $ FingeringLeft f Nothing
-    full = do
-      string "(F"
-      optional $ char 'l'
-      f <- (try finger) <|> fingeringDots
-      a <- attachment
-      char ')'
-      return $ Just $ FingeringLeft f a
+fingeringLeft :: GenParser Char st (Maybe Fingering)
+fingeringLeft = option Nothing $ try $ do
+  string "(F"
+  optional $ char 'l'
+  f <- finger
+  a <- attachment
+  char ')'
+  return $ Just $ FingeringLeft f a
 
-fingeringRight :: GenParser Char st (Maybe FingeringRight)
+fingeringRight :: GenParser Char st (Maybe Fingering)
 fingeringRight = option Nothing $ (try abbr) <|> (try full)
   where
     abbr = do
-      f <- (try rhThumb) <|> rhFinger2
+      f <- (try fingeringDots) <|> (try finger2Abbr) <|> (try rhThumb) <|> rhFinger2
       return $ Just $ FingeringRight f Nothing
     full = do
-      string "(Fr"
-      f <- (try finger) <|> (try fingeringDots) <|> (try rhThumb) <|> rhFinger2
+      string "(F"
+      optional $ char 'r'
+      f <- (try finger) <|> (try fingeringDots) <|> (try finger2Abbr) <|> (try rhThumb) <|> rhFinger2
       a <- attachment
       char ')'
       return $ Just $ FingeringRight f a
@@ -319,10 +318,10 @@ finger2Abbr :: GenParser Char st Finger
 finger2Abbr = char ':' >> return FingerTwo
 
 rhThumb :: GenParser Char st Finger
-rhThumb = char '!' >> (notFollowedBy $ char '!') >> return Thumb
+rhThumb = char '!' >> return Thumb
 
 rhFinger2 :: GenParser Char st Finger
-rhFinger2 = string "!!" >> return FingerTwo
+rhFinger2 = char '"' >> return FingerTwo
 
 attachmentNoColon :: GenParser Char st Attachment
 attachmentNoColon = do
