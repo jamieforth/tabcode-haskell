@@ -67,6 +67,7 @@ tests = return $ meterSigns
   ++ chordsWithBass
   ++ failChords
   ++ articulations
+  ++ fingerings
 
 meterSigns :: [Test]
 meterSigns =
@@ -257,4 +258,23 @@ articulations =
                                             , Note Two C Nothing Nothing Nothing Nothing Nothing
                                             , Note Three D Nothing Nothing Nothing (Just $ Separee Nothing Nothing) Nothing
                                             , Note Six D Nothing Nothing Nothing Nothing Nothing ])
+  ]
+
+fingerings :: [Test]
+fingerings =
+  [ Test $ mkParseTest "c1(Fr...:7)\n" (Chord Nothing [ Note One C Nothing (Just $ FingeringRight FingerThree (Just PosBelow)) Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(Fl..:7)\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo (Just PosBelow)) Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(F...)\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerThree Nothing) Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(F...:6)\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerThree (Just PosBelowLeft)) Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(F2:6)\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo (Just PosBelowLeft)) Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(F2)\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo Nothing) Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(Fl2:6)\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo (Just PosBelowLeft)) Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(Fr2:6)\n" (Chord Nothing [ Note One C Nothing (Just $ FingeringRight FingerTwo (Just PosBelowLeft)) Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(Fr2)\n" (Chord Nothing [ Note One C Nothing (Just $ FingeringRight FingerTwo Nothing) Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1.\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerOne Nothing) Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1:\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo Nothing) Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1!\n" (Chord Nothing [ Note One C Nothing (Just $ FingeringRight Thumb Nothing) Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1!!\n" (Chord Nothing [ Note One C Nothing (Just $ FingeringRight FingerTwo Nothing) Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(Fl..)!\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo Nothing) (Just $ FingeringRight Thumb Nothing) Nothing Nothing Nothing ])
+  , Test $ mkParseTest "c1(Fl..)!!\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo Nothing) (Just $ FingeringRight FingerTwo Nothing) Nothing Nothing Nothing ])
   ]
