@@ -68,6 +68,7 @@ tests = return $ meterSigns
   ++ failChords
   ++ articulations
   ++ fingerings
+  ++ ornaments
 
 meterSigns :: [Test]
 meterSigns =
@@ -284,4 +285,39 @@ fingerings =
   , Test $ mkInvalidTest "c1!(Fl..)\n"
   , Test $ mkInvalidTest "c1!.\n"
   , Test $ mkInvalidTest "c1!!:\n"
+  ]
+
+ornaments :: [Test]
+ornaments =
+  [ Test $ mkParseTest "b2(Oa)\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnA Nothing Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2(Oa1)\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnA (Just 1) Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2(Oa:1)\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnA Nothing (Just PosAboveLeft)) Nothing Nothing ])
+  , Test $ mkParseTest "b2(Oa2:5)\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnA (Just 2) (Just PosRight)) Nothing Nothing ])
+  , Test $ mkParseTest "b2,\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnA (Just 1) Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2(C)\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnB Nothing Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2u\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnC (Just 1) Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2<\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnC (Just 2) Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2#\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnE Nothing Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2x\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnF Nothing Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2~\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnH Nothing Nothing) Nothing Nothing ])
+  , Test $ mkParseTest "b2(Oa)a3\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnA Nothing Nothing) Nothing Nothing
+                                                   , Note Three A Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b2,a3\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnA (Just 1) Nothing) Nothing Nothing
+                                                , Note Three A Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b2(C)a3\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnB Nothing Nothing) Nothing Nothing
+                                                  , Note Three A Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b2ua3\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnC (Just 1) Nothing) Nothing Nothing
+                                                , Note Three A Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b2<a3\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnC (Just 2) Nothing) Nothing Nothing
+                                                , Note Three A Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b2#a3\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnE Nothing Nothing) Nothing Nothing
+                                                , Note Three A Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b2xa3\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnF Nothing Nothing) Nothing Nothing
+                                                , Note Three A Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkParseTest "b2~a3\n" (Chord Nothing [ Note Two B Nothing Nothing (Just $ OrnH Nothing Nothing) Nothing Nothing
+                                                , Note Three A Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkInvalidTest "b2(Om)\n"
+  , Test $ mkInvalidTest "b2(Oa)(Ob)\n"
+  , Test $ mkInvalidTest "b2(Oa),\n"
+  , Test $ mkInvalidTest "b2,u\n"
   ]
