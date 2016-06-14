@@ -69,6 +69,7 @@ tests = return $ meterSigns
   ++ articulations
   ++ fingerings
   ++ ornaments
+  ++ comments
 
 meterSigns :: [Test]
 meterSigns =
@@ -322,4 +323,14 @@ ornaments =
   , Test $ mkInvalidTest "b2(Oa)(Ob)\n"
   , Test $ mkInvalidTest "b2(Oa),\n"
   , Test $ mkInvalidTest "b2,u\n"
+  ]
+
+comments :: [Test]
+comments =
+  [ Test $ mkParseTest "{foo bar}\n" (Comment "foo bar")
+  , Test $ mkParseTest "{foo {bar}\n" (Comment "foo {bar")
+  , Test $ mkParseTest "{Qc1a2}" (Comment "Qc1a2")
+  , Test $ mkParseTest "{}" (Comment "")
+  , Test $ mkParseTest "{\n}" (Comment "\n")
+  , Test $ mkParseTest "{foo\nbar}" (Comment "foo\nbar")
   ]
