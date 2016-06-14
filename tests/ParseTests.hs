@@ -219,10 +219,6 @@ failChords =
   , Test $ mkInvalidTest "Sa1\no1\n"
   , Test $ mkInvalidTest "So1\na1\n"
   , Test $ mkInvalidTest "E.p1\n"
-  , Test $ mkInvalidTest "b3(E)(S)d4\n"
-  , Test $ mkInvalidTest "b3(S)(E)d4\n"
-  , Test $ mkInvalidTest "b3(E)(Su)d4\n"
-  , Test $ mkInvalidTest "b3(Su)(E)d4\n"
   ]
 
 articulations :: [Test]
@@ -258,6 +254,10 @@ articulations =
                                             , Note Two C Nothing Nothing Nothing Nothing Nothing
                                             , Note Three D Nothing Nothing Nothing (Just $ Separee Nothing Nothing) Nothing
                                             , Note Six D Nothing Nothing Nothing Nothing Nothing ])
+  , Test $ mkInvalidTest "b3(E)(S)d4\n"
+  , Test $ mkInvalidTest "b3(S)(E)d4\n"
+  , Test $ mkInvalidTest "b3(E)(Su)d4\n"
+  , Test $ mkInvalidTest "b3(Su)(E)d4\n"
   ]
 
 fingerings :: [Test]
@@ -277,4 +277,11 @@ fingerings =
   , Test $ mkParseTest "c1!!\n" (Chord Nothing [ Note One C Nothing (Just $ FingeringRight FingerTwo Nothing) Nothing Nothing Nothing ])
   , Test $ mkParseTest "c1(Fl..)!\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo Nothing) (Just $ FingeringRight Thumb Nothing) Nothing Nothing Nothing ])
   , Test $ mkParseTest "c1(Fl..)!!\n" (Chord Nothing [ Note One C (Just $ FingeringLeft FingerTwo Nothing) (Just $ FingeringRight FingerTwo Nothing) Nothing Nothing Nothing ])
+  , Test $ mkInvalidTest "c1(Fr...:9)\n"
+  , Test $ mkInvalidTest "c1(F.....)\n"
+  , Test $ mkInvalidTest "c1(F5)\n"
+  , Test $ mkInvalidTest "c1(Fx1)\n"
+  , Test $ mkInvalidTest "c1!(Fl..)\n"
+  , Test $ mkInvalidTest "c1!.\n"
+  , Test $ mkInvalidTest "c1!!:\n"
   ]
