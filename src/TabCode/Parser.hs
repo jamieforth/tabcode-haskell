@@ -306,12 +306,14 @@ finger = do
 fingeringDots :: GenParser Char st Finger
 fingeringDots = do
   d <- many1 $ char '.'
-  return $ case (length d) of
-    1 -> FingerOne
-    2 -> FingerTwo
-    3 -> FingerThree
-    4 -> FingerFour
-    _ -> error $ "Invalid fingering dots: " ++ (show d)
+  if (length d) > 4
+    then fail $ "Invalid fingering dots: " ++ (show d)
+    else return $ case (length d) of
+                    1 -> FingerOne
+                    2 -> FingerTwo
+                    3 -> FingerThree
+                    4 -> FingerFour
+                    _ -> error $ "Invalid fingering dots: " ++ (show d)
 
 finger2Abbr :: GenParser Char st Finger
 finger2Abbr = char ':' >> return FingerTwo
