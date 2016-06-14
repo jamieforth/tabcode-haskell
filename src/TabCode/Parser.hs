@@ -192,13 +192,13 @@ note = (try trebNote) <|> (try bassNote) <|> bassNoteOpenAbbr
 
 trebNote :: GenParser Char st Note
 trebNote = do
-  f   <- fret
-  c   <- course
+  f    <- fret
+  c    <- course
   fngl <- fingeringLeft
   fngr <- fingeringRight
-  orn <- ornament
-  art <- articulation
-  con <- connecting
+  orn  <- ornament
+  art  <- articulation
+  con  <- connecting
 
   return $ Note c f fngl fngr orn art con
 
@@ -238,13 +238,13 @@ bassNote :: GenParser Char st Note
 bassNote = do
   char 'X'
 
-  f   <- fret
-  c   <- bassCourse
+  f    <- fret
+  c    <- bassCourse
   fngl <- fingeringLeft
   fngr <- fingeringRight
-  orn <- ornament
-  art <- articulation
-  con <- connecting
+  orn  <- ornament
+  art  <- articulation
+  con  <- connecting
 
   return $ Note c f fngl fngr orn art con
 
@@ -257,12 +257,12 @@ bassNoteOpenAbbr :: GenParser Char st Note
 bassNoteOpenAbbr = do
   char 'X'
 
-  c   <- int
+  c    <- int
   fngl <- fingeringLeft
   fngr <- fingeringRight
-  orn <- ornament
-  art <- articulation
-  con <- connecting
+  orn  <- ornament
+  art  <- articulation
+  con  <- connecting
 
   return $ Note (Bass c) A fngl fngr orn art con
 
@@ -343,8 +343,6 @@ attachment = option Nothing $ do
   char ':'
   a <- attachmentNoColon
   return $ Just a
-
---modifier :: GenParser Char st
 
 ornament :: GenParser Char st (Maybe Ornament)
 ornament = option Nothing $ (try abbr) <|> (try full)
