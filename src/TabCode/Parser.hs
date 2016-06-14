@@ -377,6 +377,7 @@ ornament = option Nothing $ (try abbr) <|> (try full)
           'j' -> OrnJ s pos
           'k' -> OrnK s pos
           'l' -> OrnL s pos
+          'm' -> OrnM s pos
           _   -> error $ "Invalid ornament: " ++ (show t)
 
 articulation :: GenParser Char st (Maybe Articulation)

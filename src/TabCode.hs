@@ -104,6 +104,7 @@ data Ornament = OrnA (Maybe OrnSubtype) (Maybe Attachment)
               | OrnJ (Maybe OrnSubtype) (Maybe Attachment)
               | OrnK (Maybe OrnSubtype) (Maybe Attachment)
               | OrnL (Maybe OrnSubtype) (Maybe Attachment)
+              | OrnM (Maybe OrnSubtype) (Maybe Attachment)
               deriving (Eq, Show)
 
 data SepareePosition = SepareeLeft
