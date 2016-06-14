@@ -42,7 +42,7 @@ tablature = do
 rules :: GenParser Char st [Rule]
 rules = do
   rls <- between (string "{<rules>") (string "</rules>}") $ do
-    many1 $ (try $ rule "notation") <|> (try $ rule "title")
+    many1 $ (try $ rule "notation") <|> (try $ rule "title") <|> (try $ rule "tuning_named")
   spaces
   return rls
 
