@@ -347,26 +347,40 @@ attachment = option Nothing $ do
 --modifier :: GenParser Char st
 
 ornament :: GenParser Char st (Maybe Ornament)
-ornament = option Nothing $ do
-  between (char '(') (char ')') $ do
-    char 'O'
-    t   <- oneOf "abcdefghijkl"
-    s   <- option Nothing $ int >>= return . Just
-    pos <- option Nothing $ attachment
-    return $ Just $ case t of
-      'a' -> OrnA s pos
-      'b' -> OrnB s pos
-      'c' -> OrnC s pos
-      'd' -> OrnD s pos
-      'e' -> OrnE s pos
-      'f' -> OrnF s pos
-      'g' -> OrnG s pos
-      'h' -> OrnH s pos
-      'i' -> OrnI s pos
-      'j' -> OrnJ s pos
-      'k' -> OrnK s pos
-      'l' -> OrnL s pos
-      _   -> error $ "Invalid ornament: " ++ (show t)
+ornament = option Nothing $ (try abbr) <|> (try full)
+  where
+    abbr = do
+      o <- oA1 <|> oB <|> oC1 <|> oC2 <|> oE <|> oF <|> oH
+      return $ Just o
+
+    oA1 = do { (try $ char ',')    ; return $ OrnA (Just 1) Nothing }
+    oB  = do { (try $ string "(C)"); return $ OrnB Nothing Nothing }
+    oC1 = do { (try $ char 'u')    ; return $ OrnC (Just 1) Nothing }
+    oC2 = do { (try $ char '<')    ; return $ OrnC (Just 2) Nothing }
+    oE  = do { (try $ char '#')    ; return $ OrnE Nothing Nothing }
+    oF  = do { (try $ char 'x')    ; return $ OrnF Nothing Nothing }
+    oH  = do { (try $ char '~')    ; return $ OrnH Nothing Nothing }
+
+    full = do
+      between (char '(') (char ')') $ do
+        char 'O'
+        t   <- oneOf "abcdefghijkl"
+        s   <- optionMaybe int
+        pos <- option Nothing $ attachment
+        return $ Just $ case t of
+          'a' -> OrnA s pos
+          'b' -> OrnB s pos
+          'c' -> OrnC s pos
+          'd' -> OrnD s pos
+          'e' -> OrnE s pos
+          'f' -> OrnF s pos
+          'g' -> OrnG s pos
+          'h' -> OrnH s pos
+          'i' -> OrnI s pos
+          'j' -> OrnJ s pos
+          'k' -> OrnK s pos
+          'l' -> OrnL s pos
+          _   -> error $ "Invalid ornament: " ++ (show t)
 
 articulation :: GenParser Char st (Maybe Articulation)
 articulation = option Nothing $ separee <|> ensemble
