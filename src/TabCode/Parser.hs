@@ -365,7 +365,7 @@ ornament = option Nothing $ (try abbr) <|> (try full)
     full = do
       between (char '(') (char ')') $ do
         char 'O'
-        t   <- oneOf "abcdefghijkl"
+        t   <- oneOf "abcdefghijklm"
         s   <- optionMaybe int
         pos <- option Nothing $ attachment
         return $ Just $ case t of

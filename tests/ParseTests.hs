@@ -319,7 +319,7 @@ ornaments =
                                                 , Note Three A (Nothing, Nothing) Nothing Nothing Nothing ])
   , Test $ mkParseTest "b2~a3\n" (Chord Nothing [ Note Two B (Nothing, Nothing) (Just $ OrnH Nothing Nothing) Nothing Nothing
                                                 , Note Three A (Nothing, Nothing) Nothing Nothing Nothing ])
-  , Test $ mkInvalidTest "b2(Om)\n"
+  , Test $ mkInvalidTest "b2(On)\n"
   , Test $ mkInvalidTest "b2(Oa)(Ob)\n"
   , Test $ mkInvalidTest "b2(Oa),\n"
   , Test $ mkInvalidTest "b2,u\n"
