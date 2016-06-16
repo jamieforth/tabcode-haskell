@@ -1,6 +1,6 @@
 -- TabCode - A parser for the Tabcode lute tablature language
 --
--- Copyright (C) 2015, 2016 Richard Lewis, Goldsmiths' College
+-- Copyright (C) 2016 Richard Lewis, Goldsmiths' College
 -- Author: Richard Lewis <richard.lewis@gold.ac.uk>
 
 -- This file is part of TabCode
@@ -18,22 +18,19 @@
 -- You should have received a copy of the GNU General Public License
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
-module Main where
+module TabCode.Options where
 
 import Options.Applicative
-import TabCode
-import TabCode.Options
-import TabCode.Parser (parseTabcodeStdIn)
 
-opts :: ParserInfo TCOptions
-opts = info ( helper <*> config )
-       ( fullDesc
-         <> progDesc "TabCode checker"
-         <> header "tccheck" )
+data ParseMode = Strict
+               | Permissive
+               deriving (Eq, Show)
 
-main :: IO ()
-main = execParser opts >>= runChecker
-  where
-    runChecker o = do
-      (TabCode rls wrds) <- parseTabcodeStdIn o
-      return ()
+data TCOptions = TCOptions {
+  parseMode :: ParseMode } deriving (Eq)
+
+config :: Parser TCOptions
+config = TCOptions
+  <$> flag Strict Permissive
+    ( long "permissive"
+      <> help "Ignore invalid tabwords" )

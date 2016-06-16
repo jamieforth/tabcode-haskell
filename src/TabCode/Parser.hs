@@ -25,17 +25,19 @@ module TabCode.Parser ( parseTabcode
                       , parseTabcodeFile ) where
 
 import TabCode
-import Text.Parsec (ParsecT)
+import TabCode.Options
+import Text.Parsec (ParsecT,  getPosition)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Number
+import Text.ParserCombinators.Parsec.Pos (SourcePos, sourceLine, sourceColumn, sourceName)
 import Prelude hiding (words)
 import System.IO (hPutStrLn, stderr)
 import System.Exit (exitFailure)
 
-tablature :: GenParser Char st TabCode
-tablature = do
+tablature :: ParseMode -> GenParser Char st TabCode
+tablature mode = do
   rls   <- option [] rules
-  words <- tabword `endBy` spaces
+  words <- (tabword mode) `sepEndBy` (skipMany1 space)
   eof
   return $ TabCode rls words
 
@@ -57,13 +59,26 @@ rule r = do
   spaces
   return $ Rule r nt
 
-tabword :: GenParser Char st TabWord
-tabword = (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak) <|> chord
+tabword :: ParseMode -> GenParser Char st TabWord
+tabword Strict     = (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak) <|> chord
+tabword Permissive = (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak) <|> (try chord) <|> (try invalid)
+
+endOfWord :: GenParser Char st ()
+endOfWord = (lookAhead $ try (do { space; return () })) <|> eof--try (do { c <- try eof; unexpected (show c) } <|> return "")
+
+invalid :: GenParser Char st TabWord
+invalid = do
+  pos <- getPosition
+  wrd <- manyTill anyChar endOfWord
+  if (length wrd) > 0
+    then return $ Invalid (sourceName pos) (sourceLine pos) (sourceColumn pos) wrd
+    else fail "FIXME Just consume any trailing whitespace"
 
 chord :: GenParser Char st TabWord
 chord = do
   rs <- option Nothing $ do { r <- rhythmSign; return $ Just r }
   ns <- uniqueNotes $ many1 note
+  endOfWord
   return $ Chord rs ns
 
 uniqueNotes :: ParsecT s u m [Note] -> ParsecT s u m [Note]
@@ -119,7 +134,7 @@ duration = do
 rest :: GenParser Char st TabWord
 rest = do
   rs <- rhythmSign
-  try $ many1 space
+  endOfWord
   return $ Rest rs
 
 barLine :: GenParser Char st TabWord
@@ -131,6 +146,7 @@ barLine = do
   dash     <- option NotDashed $ do { char '='; return Dashed }
   rep      <- option Nothing addition
 
+  endOfWord
   if line == "|"
     then return $ BarLine $ SingleBar (combineRepeat leftRpt rightRpt) rep dash nonC
     else return $ BarLine $ DoubleBar (combineRepeat leftRpt rightRpt) rep dash nonC
@@ -154,16 +170,18 @@ barLine = do
 meter :: GenParser Char st TabWord
 meter = do
   char 'M'
-  between (char '(') (char ')') $ do
-    m1  <- do { m <- digit <|> mensurSign; return $ Just m }
-    c1  <- cuts
-    p1  <- prol
-    arr <- option Nothing $ do { a <- char ':' <|> char ';'; return $ Just a }
-    m2  <- option Nothing $ do { t <- digit <|> mensurSign; return $ Just t }
-    c2  <- cuts
-    p2  <- prol
+  char '('
+  m1  <- do { m <- digit <|> mensurSign; return $ Just m }
+  c1  <- cuts
+  p1  <- prol
+  arr <- option Nothing $ do { a <- char ':' <|> char ';'; return $ Just a }
+  m2  <- option Nothing $ do { t <- digit <|> mensurSign; return $ Just t }
+  c2  <- cuts
+  p2  <- prol
+  char ')'
 
-    return $ mkMS arr m1 c1 p1 m2 c2 p2
+  endOfWord
+  return $ mkMS arr m1 c1 p1 m2 c2 p2
 
   where
     mensurSign = char 'O' <|> char 'C' <|> char 'D'
@@ -469,22 +487,23 @@ comment = do
   char '{'
   notFollowedBy $ (try $ string "^}") <|> (try $ string ">}{^}")
   c <- manyTill anyChar (try $ char '}')
+  endOfWord
   return $ Comment c
 
 systemBreak :: GenParser Char st TabWord
-systemBreak = string "{^}" >> return SystemBreak
+systemBreak = string "{^}" >> endOfWord >> return SystemBreak
 
 pageBreak :: GenParser Char st TabWord
-pageBreak = string "{>}{^}" >> return PageBreak
+pageBreak = string "{>}{^}" >> endOfWord >> return PageBreak
 
-parseTabcode :: String -> Either ParseError TabCode
-parseTabcode = parse tablature ""
+parseTabcode :: TCOptions -> String -> Either ParseError TabCode
+parseTabcode opts s = parse (tablature $ parseMode opts) "" s
 
-parseTabcodeStdIn :: IO TabCode
-parseTabcodeStdIn = getContents >>= (return . parseTabcode) >>= either reportErr return
+parseTabcodeStdIn :: TCOptions -> IO TabCode
+parseTabcodeStdIn opts = getContents >>= (return . (parseTabcode opts)) >>= either reportErr return
 
-parseTabcodeFile :: FilePath -> IO TabCode
-parseTabcodeFile fileName = parseFromFile tablature fileName >>= either reportErr return
+parseTabcodeFile :: TCOptions -> FilePath -> IO TabCode
+parseTabcodeFile opts fileName = parseFromFile (tablature $ parseMode opts) fileName >>= either reportErr return
 
 reportErr :: ParseError -> IO a
 reportErr err = do

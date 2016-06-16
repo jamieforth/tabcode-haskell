@@ -64,6 +64,14 @@ Or to put it into a file:
 
     $ cat tabcodefile.tc | tc2mei | xmllint --format - > tabcodefile.xml
 
+When `tc2mei` encounters an error in the TabCode input it will abort
+immediately with an error message. You can optionally supply the
+`--permissive` command line switch which will cause it instead to
+continue parsing the rest of the input and then report any unparsable
+tabwords in the XML output as comments, e.g.:
+
+    $ cat tabcodefile-with-errors.tc | tc2mei --permissive | xmllint --format - > tabcodefile-with-errors.xml
+
 ### Limitations
 
 * `tc2mei` currently produces just a single `<mei:staff>` element and

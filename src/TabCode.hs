@@ -21,6 +21,7 @@
 module TabCode where
 
 import Data.Set (size, fromList)
+import Text.ParserCombinators.Parsec.Pos (Line, Column)
 
 data Duration = Fermata
               | Breve
@@ -186,6 +187,7 @@ data TabWord = Chord (Maybe RhythmSign) [Note]
              | Comment String
              | SystemBreak
              | PageBreak
+             | Invalid String Line Column String
              deriving (Eq, Show)
 
 coursesFromNotes :: [Note] -> [Course]

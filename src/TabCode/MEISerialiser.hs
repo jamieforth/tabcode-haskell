@@ -59,6 +59,9 @@ tabWord rls SystemBreak =
 tabWord rls PageBreak =
   xelemQEmpty mei "pb"
 
+tabWord rls (Invalid src line col word) =
+  xcomment $ " Invalid tabword in source '" ++ src ++ "' (line: " ++ (show line) ++ "; col: " ++ (show col) ++ "): \"" ++ word ++ "\" "
+
 rhythmSign :: RhythmSign -> Xml Elem
 rhythmSign (RhythmSign dur _ dt _) =
   xelemQ mei "rhythmGlyph" $ durSymbAttr dur

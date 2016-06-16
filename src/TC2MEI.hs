@@ -21,12 +21,22 @@
 module Main where
 
 import Data.ByteString.Char8 (putStrLn)
+import Options.Applicative
 import Prelude hiding (putStrLn)
 import TabCode.MEISerialiser (staff)
+import TabCode.Options
 import TabCode.Parser (parseTabcodeStdIn)
 import Text.XML.Generator
 
+opts :: ParserInfo TCOptions
+opts = info ( helper <*> config )
+       ( fullDesc
+         <> progDesc "TabCode MEI XML converter"
+         <> header "tc2mei" )
+
 main :: IO ()
-main = do
-  tc <- parseTabcodeStdIn
-  putStrLn $ xrender $ doc defaultDocInfo $ staff tc
+main = execParser opts >>= runSerialiser
+  where
+    runSerialiser o = do
+      tc <- parseTabcodeStdIn o
+      putStrLn $ xrender $ doc defaultDocInfo $ staff tc

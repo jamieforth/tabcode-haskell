@@ -23,11 +23,12 @@ module ParseTests where
 import Distribution.TestSuite
 
 import TabCode
+import TabCode.Options (TCOptions(..), ParseMode(..))
 import TabCode.Parser (parseTabcode)
 
 tryParseWord :: String -> TabWord -> Result
 tryParseWord tc tw =
-  case parseTabcode tc of
+  case parseTabcode (TCOptions { parseMode = Strict }) tc of
     Right (TabCode rls wrds) -> check wrds tw
     Left err                 -> Fail $ show err
   where
@@ -46,7 +47,7 @@ mkParseTest tc tw = TestInstance {
 
 tryParseInvalidWord :: String -> Result
 tryParseInvalidWord tc =
-  case parseTabcode tc of
+  case parseTabcode (TCOptions { parseMode = Strict }) tc of
     Right (TabCode rls wrds) -> Fail $ show wrds
     Left err                 -> Pass
 
