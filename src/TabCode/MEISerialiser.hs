@@ -51,7 +51,7 @@ tabWord rls (Meter ms) =
   xelemQEmpty mei "timeSig"
 
 tabWord rls (Comment c) =
-  xelemQ mei "comment" $ xtext $ pack c
+  xcomment c
 
 tabWord rls SystemBreak =
   xelemQEmpty mei "sb"
