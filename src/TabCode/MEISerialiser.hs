@@ -36,10 +36,10 @@ staff (TabCode rls tws) =
 
 tabWord :: [Rule] -> TabWord -> Xml Elem
 tabWord rls (Chord (Just rs) ns) =
-  xelemQ mei "chord" $ (durAttr rs) <#> ((rhythmSign rs) <> (xelems $ map (note rls) ns))
+  xelemQ mei "chord" $ (durAttr rs) <#> ((rhythmSign rs) <> (xelems $ concat $ map (note rls) ns))
 
 tabWord rls (Chord Nothing ns) =
-  xelemQ mei "chord" $ xelems $ map (note rls) ns
+  xelemQ mei "chord" $ xelems $ concat $ map (note rls) ns
 
 tabWord rls (Rest rs) =
   xelemQ mei "rest" $ (durAttr rs) <#> (rhythmSign rs)
@@ -66,16 +66,16 @@ rhythmSign :: RhythmSign -> Xml Elem
 rhythmSign (RhythmSign dur _ dt _) =
   xelemQ mei "rhythmGlyph" $ durSymbAttr dur
 
-note :: [Rule] -> Note -> Xml Elem
+note :: [Rule] -> Note -> [Xml Elem]
 note rls (Note crs frt (fng1, fng2) orn artic conn) =
-  xelemQ mei "note" $ xattrs [ (tabCourseAttr crs)
-                             , (tabFretAttr frt) ]
-                    <#> (xelems $ catMaybes [ (fretGlyph rls frt)
-                                            , (fingering <$> fng1)
-                                            , (fingering <$> fng2)
-                                            , (ornament <$> orn)
-                                            , (articulation <$> artic)
-                                            , (connectingLine <$> conn) ])
+  [ xelemQ mei "note" $ xattrs [ (tabCourseAttr crs)
+                               , (tabFretAttr frt) ]
+    <#> (xelems $ catMaybes [ (fretGlyph rls frt)
+                            , (fingering <$> fng1)
+                            , (fingering <$> fng2) ]) ]
+  <> catMaybes [ (ornament <$> orn)
+               , (articulation <$> artic)
+               , (connectingLine <$> conn) ]
 
 fretGlyph :: [Rule] -> Fret -> Maybe (Xml Elem)
 fretGlyph rls frt = el <$> glyph
