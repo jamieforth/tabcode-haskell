@@ -101,7 +101,25 @@ tc :: Namespace
 tc = namespace "tc" "http://data.t-mus.org/ns/tabcode"
 
 ornament :: Ornament -> Xml Elem
-ornament _ = xelemQEmpty tc "ornament"
+ornament o =
+  case o of
+    (OrnA s _) -> orn "a" s
+    (OrnB s _) -> orn "b" s
+    (OrnC s _) -> orn "c" s
+    (OrnD s _) -> orn "d" s
+    (OrnE s _) -> orn "e" s
+    (OrnF s _) -> orn "f" s
+    (OrnG s _) -> orn "g" s
+    (OrnH s _) -> orn "h" s
+    (OrnI s _) -> orn "i" s
+    (OrnJ s _) -> orn "j" s
+    (OrnK s _) -> orn "k" s
+    (OrnL s _) -> orn "l" s
+    (OrnM s _) -> orn "m" s
+
+  where
+    orn t s  = xelemQ tc "ornament" $ xattrs $ catMaybes [ ( Just $ xattr "type" t ), ornST <$> s ]
+    ornST st = xattr "sub-type" (pack $ show st)
 
 articulation :: Articulation -> Xml Elem
 articulation _ = xelemQEmpty mei "artic"
