@@ -32,3 +32,10 @@ test-suite parse-tests
   build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers, optparse-applicative
   hs-source-dirs: src, tests
   other-modules: TabCode, TabCode.Parser, TabCode.Options
+
+test-suite mei-tests
+  type: detailed-0.9
+  test-module: MEITests
+  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers, optparse-applicative, bytestring, text, xmlgen, HaXml
+  hs-source-dirs: src, tests
+  other-modules: TabCode, TabCode.Parser, TabCode.Options, TabCode.MEISerialiser

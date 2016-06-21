@@ -24,10 +24,17 @@ lute tablature, and tools for checking and converting Tabcode files to
         $ cabal configure
 
 4. Ensure your Cabal package database is up-to-date and install
-   `tabcode-haskell`'s dependencies:
+   `tabcode-haskell`'s dependencies (and optionally the test suite's
+   dependencies):
 
         $ cabal update
         $ cabal install --only-dependencies
+    
+    Or:
+    
+        $ cabal install --only-dependencies --enable-tests
+    
+    to install dependencies for the tests.
 
 5. Optionally enable the tests:
 
