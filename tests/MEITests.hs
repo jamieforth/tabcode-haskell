@@ -60,5 +60,8 @@ tryMEISerialise tcStrIn meiStrIn =
     equal (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
     equal _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
 
+asStaff :: String -> String
+asStaff s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><staff xmlns='http://www.music-encoding.org/ns/mei'>" ++ s ++ "</staff>"
+
 tests :: IO [Test]
 tests = return $ []
