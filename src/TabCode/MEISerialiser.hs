@@ -24,7 +24,7 @@ module TabCode.MEISerialiser ( meiDoc
                              , staff ) where
 
 import Data.Maybe (catMaybes)
-import Data.Text (pack, Text)
+import Data.Text (pack, unpack, Text)
 import TabCode
 import Text.XML.Generator
 
@@ -46,6 +46,37 @@ staff :: TabCode -> Xml Elem
 staff (TabCode rls tws) =
   xelemQ mei "staff" $ xelemQ mei "layer" $ xelems $ map (tabWord rls) tws
 
+boundedIntAttr :: Int -> (Int, Int) -> Text -> Xml Attr
+boundedIntAttr i (l, u) n | i >= l && i <= u = xattr n (pack $ show i)
+                          | otherwise        = error $ "Invalid " ++ (unpack n) ++ ": " ++ (show i)
+
+prolation :: Int -> Xml Attr
+prolation p = boundedIntAttr p (2,3) "prolatio"
+
+tempus :: Int -> Xml Attr
+tempus t = boundedIntAttr t (2,3) "tempus"
+
+slash :: Int -> Xml Attr
+slash n = xattr "mensur.slash" (pack $ show n)
+
+staffDef :: [Xml Attr] -> Xml Elem -> Xml Elem
+staffDef attrs cs = xelemQ mei "staffDef" $ (xattrs attrs, cs)
+
+sign :: Char -> Xml Attr
+sign 'O' = xattr "sign" "O"
+sign 'C' = xattr "sign" "C"
+sign c   = error $ "Invalid mensuration symbol: " ++ (show c)
+
+dot :: Bool -> Xml Attr
+dot True  = xattr "dot" "true"
+dot False = xattr "dot" "false"
+
+cut :: Int -> Xml Attr
+cut n = boundedIntAttr n (1,6) "slash"
+
+mensur :: [Xml Attr] -> Xml Elem
+mensur attrs = xelemQ mei "mensur" $ xattrs attrs
+
 tabWord :: [Rule] -> TabWord -> Xml Elem
 tabWord rls (Chord (Just rs) ns) =
   xelemQ mei "chord" $ (durAttr rs) <#> ((rhythmSign rs) <> (xelems $ concat $ map (note rls) ns))
@@ -59,8 +90,31 @@ tabWord rls (Rest rs) =
 tabWord rls (BarLine b) =
   xelemQEmpty mei "barLine"
 
-tabWord rls (Meter ms) =
-  xelemQEmpty mei "timeSig"
+tabWord rls (Meter (SingleMeterSign PerfectMajor)) =
+  staffDef [ prolation 3 , tempus 3 ] $ mensur [ sign 'O' , dot True ]
+
+tabWord rls (Meter (SingleMeterSign PerfectMinor)) =
+  staffDef [ prolation 3 , tempus 2 ] $ mensur [ sign 'O' , dot False ]
+
+tabWord rls (Meter (SingleMeterSign ImperfectMajor)) =
+  staffDef [ prolation 2 , tempus 3 ] $ mensur [ sign 'C' , dot True ]
+
+tabWord rls (Meter (SingleMeterSign ImperfectMinor)) =
+  staffDef [ prolation 2 , tempus 2 ] $ mensur [ sign 'C' , dot False ]
+
+tabWord rls (Meter (SingleMeterSign HalfPerfectMajor)) =
+  staffDef [ prolation 3 , tempus 3 , slash 1 ] $ mensur [ sign 'O' , dot True , cut 1 ]
+
+tabWord rls (Meter (SingleMeterSign HalfPerfectMinor)) =
+  staffDef [ prolation 3 , tempus 2 , slash 1 ] $ mensur [ sign 'O' , dot False , cut 1 ]
+
+tabWord rls (Meter (SingleMeterSign HalfImperfectMajor)) =
+  staffDef [ prolation 2 , tempus 3 , slash 1 ] $ mensur [ sign 'C' , dot True , cut 1 ]
+
+tabWord rls (Meter (SingleMeterSign HalfImperfectMinor)) =
+  staffDef [ prolation 2 , tempus 2 , slash 1 ] $ mensur [ sign 'C' , dot False , cut 1 ]
+
+tabWord rls (Meter m) = xcomment $ "Un-implemented mensuration sign: " ++ (show m)
 
 tabWord rls (Comment c) =
   xcomment c
