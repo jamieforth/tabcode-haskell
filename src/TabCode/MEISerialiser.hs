@@ -99,6 +99,9 @@ tabWord rls (Chord (Just rs) ns) =
 tabWord rls (Chord Nothing ns) =
   xelemQ mei "chord" $ xelems $ concat $ map (note rls) ns
 
+tabWord rls (Rest (RhythmSign Fermata _ _ _)) =
+  xelemQEmpty mei "fermata"
+
 tabWord rls (Rest rs) =
   xelemQ mei "rest" $ (durAttr rs) <#> (rhythmSign rs)
 
@@ -150,8 +153,11 @@ tabWord rls (Invalid src line col word) =
   xcomment $ " tc2mei: Invalid tabword in source '" ++ src ++ "' (line: " ++ (show line) ++ "; col: " ++ (show col) ++ "): \"" ++ word ++ "\" "
 
 rhythmSign :: RhythmSign -> Xml Elem
+rhythmSign (RhythmSign Fermata _ _ _) =
+  xelemQEmpty mei "fermata"
+
 rhythmSign (RhythmSign dur _ dt _) =
-  xelemQ mei "rhythmGlyph" $ durSymbAttr dur
+  xelemQ mei "rhythmGlyph" $ durSymbAttr dur dt
 
 note :: [Rule] -> Note -> [Xml Elem]
 note rls (Note crs frt (fng1, fng2) orn artic conn) =
@@ -272,42 +278,46 @@ fretGlyphFr L = pack "l"
 fretGlyphFr M = pack "m"
 fretGlyphFr N = pack "n"
 
-durSymbAttr :: Duration -> Xml Attr
-durSymbAttr dur = xattr "symbol" (durSymb dur)
+durSymbAttr :: Duration -> Dot -> Xml Attr
+durSymbAttr dur Dot   = xattrs [ xattr "symbol" (durSymb dur Dot)
+                               , xattr "dots" "1" ]
+durSymbAttr dur NoDot = xattr "symbol" (durSymb dur NoDot)
 
-durSymb :: Duration -> Text
-durSymb Fermata = pack "F"
-durSymb Breve = pack "B"
-durSymb Semibreve = pack "W"
-durSymb Minim = pack "H"
-durSymb Crotchet = pack "Q"
-durSymb Quaver = pack "E"
-durSymb Semiquaver = pack "S"
-durSymb Demisemiquaver = pack "T"
-durSymb Hemidemisemiquaver = pack "Y"
-durSymb Semihemidemisemiquaver = pack "Z"
+durSymb :: Duration -> Dot -> Text
+durSymb Fermata Dot = error "Dotted fermata not allowed"
+durSymb Fermata NoDot = pack "F"
+durSymb Breve Dot = pack "B."
+durSymb Breve NoDot = pack "B"
+durSymb Semibreve Dot = pack "W."
+durSymb Semibreve NoDot = pack "W"
+durSymb Minim Dot = pack "H."
+durSymb Minim NoDot = pack "H"
+durSymb Crotchet Dot = pack "Q."
+durSymb Crotchet NoDot = pack "Q"
+durSymb Quaver Dot = pack "E."
+durSymb Quaver NoDot = pack "E"
+durSymb Semiquaver Dot = pack "S."
+durSymb Semiquaver NoDot = pack "S"
+durSymb Demisemiquaver Dot = pack "T."
+durSymb Demisemiquaver NoDot = pack "T"
+durSymb Hemidemisemiquaver Dot = pack "Y."
+durSymb Hemidemisemiquaver NoDot = pack "Y"
+durSymb Semihemidemisemiquaver Dot = pack "Z."
+durSymb Semihemidemisemiquaver NoDot = pack "Z"
 
 durAttr :: RhythmSign -> Xml Attr
-durAttr rs = xattr "dur" (rsMEIDur rs)
+durAttr (RhythmSign s _ Dot _)   = xattrs $ [ xattr "dur" (meiDur s)
+                                            , xattr "dots" "1" ]
+durAttr (RhythmSign s _ NoDot _) = xattr "dur" (meiDur s)
 
-rsMEIDur :: RhythmSign -> Text
-rsMEIDur (RhythmSign Fermata _ dot _) =
-  if dot == Dot then (error "Dotted fermata not allowed.") else pack "fermata"
-rsMEIDur (RhythmSign Breve _ dot _) =
-  if dot == Dot then pack "breve." else pack "breve"
-rsMEIDur (RhythmSign Semibreve _ dot _) =
-  if dot == Dot then pack "1." else pack "1"
-rsMEIDur (RhythmSign Minim _ dot _) =
-  if dot == Dot then pack "2." else pack "2"
-rsMEIDur (RhythmSign Crotchet _ dot _) =
-  if dot == Dot then pack "4." else pack "4"
-rsMEIDur (RhythmSign Quaver _ dot _) =
-  if dot == Dot then pack "8." else pack "8"
-rsMEIDur (RhythmSign Semiquaver _ dot _) =
-  if dot == Dot then pack "16." else pack "16"
-rsMEIDur (RhythmSign Demisemiquaver _ dot _) =
-  if dot == Dot then pack "32." else pack "32"
-rsMEIDur (RhythmSign Hemidemisemiquaver _ dot _) =
-  if dot == Dot then pack "64." else pack "64"
-rsMEIDur (RhythmSign Semihemidemisemiquaver _ dot _) =
-  if dot == Dot then pack "128." else pack "128"
+meiDur :: Duration -> Text
+meiDur Fermata = pack "fermata"
+meiDur Breve = pack "breve"
+meiDur Semibreve = pack "1"
+meiDur Minim = pack "2"
+meiDur Crotchet = pack "4"
+meiDur Quaver = pack "8"
+meiDur Semiquaver = pack "16"
+meiDur Demisemiquaver = pack "32"
+meiDur Hemidemisemiquaver = pack "64"
+meiDur Semihemidemisemiquaver = pack "128"
