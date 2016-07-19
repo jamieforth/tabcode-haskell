@@ -20,7 +20,8 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module TabCode.MEISerialiser (staff) where
+module TabCode.MEISerialiser ( meiDoc
+                             , staff ) where
 
 import Data.Maybe (catMaybes)
 import Data.Text (pack, Text)
@@ -30,9 +31,20 @@ import Text.XML.Generator
 mei :: Namespace
 mei = namespace "" "http://www.music-encoding.org/ns/mei"
 
+meiDoc :: TabCode -> Xml Elem
+meiDoc tc =
+  xelemQ mei "mei" $ (xattr "meiversion" "3.0.0") <#>
+  ( xelemQEmpty mei "meiHead" <>
+    ( xelemQ mei "music" $
+      xelemQ mei "body" $
+      xelemQ mei "mdiv" $
+      xelemQ mei "parts" $
+      xelemQ mei "part" $
+      xelemQ mei "section" $ staff tc ) )
+
 staff :: TabCode -> Xml Elem
 staff (TabCode rls tws) =
-  xelemQ mei "staff" $ xelems $ map (tabWord rls) tws
+  xelemQ mei "staff" $ xelemQ mei "layer" $ xelems $ map (tabWord rls) tws
 
 tabWord :: [Rule] -> TabWord -> Xml Elem
 tabWord rls (Chord (Just rs) ns) =

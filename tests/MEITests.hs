@@ -61,7 +61,7 @@ tryMEISerialise tcStrIn meiStrIn =
     equal _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
 
 asStaff :: String -> String
-asStaff s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><staff xmlns='http://www.music-encoding.org/ns/mei'>" ++ s ++ "</staff>"
+asStaff s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><staff xmlns='http://www.music-encoding.org/ns/mei'><layer>" ++ s ++ "</layer></staff>"
 
 tests :: IO [Test]
 tests = return $ []

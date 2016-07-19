@@ -23,7 +23,7 @@ module Main where
 import Data.ByteString.Char8 (putStrLn)
 import Options.Applicative
 import Prelude hiding (putStrLn)
-import TabCode.MEISerialiser (staff)
+import TabCode.MEISerialiser (meiDoc)
 import TabCode.Options
 import TabCode.Parser (parseTabcodeStdIn)
 import Text.XML.Generator
@@ -39,4 +39,4 @@ main = execParser opts >>= runSerialiser
   where
     runSerialiser o = do
       tc <- parseTabcodeStdIn o
-      putStrLn $ xrender $ doc defaultDocInfo $ staff tc
+      putStrLn $ xrender $ doc defaultDocInfo $ meiDoc tc
