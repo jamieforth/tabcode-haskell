@@ -91,5 +91,22 @@ meterSigns =
     "M(3)\n" $ asStaff "<staffDef tempus='3'/>"
   ]
 
+rests :: [Test]
+rests =
+  [ Test $ mkMEITest
+    "F\n" $ asStaff "<fermata/>"
+  , Test $ mkMEITest
+    "B\n" $ asStaff "<rest dur='breve'><rhythmGlyph symbol='B'/></rest>"
+  , Test $ mkMEITest
+    "W\n" $ asStaff "<rest dur='1'><rhythmGlyph symbol='W'/></rest>"
+  , Test $ mkMEITest
+    "W.\n" $ asStaff "<rest dur='1' dots='1'><rhythmGlyph symbol='W.' dots='1'/></rest>"
+  , Test $ mkMEITest
+    "H\n" $ asStaff "<rest dur='2'><rhythmGlyph symbol='H'/></rest>"
+  , Test $ mkMEITest
+    "H.\n" $ asStaff "<rest dur='2' dots='1'><rhythmGlyph symbol='H.' dots='1'/></rest>"
+  ]
+
 tests :: IO [Test]
 tests = return $ meterSigns
+  ++ rests
