@@ -63,5 +63,29 @@ tryMEISerialise tcStrIn meiStrIn =
 asStaff :: String -> String
 asStaff s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><staff xmlns='http://www.music-encoding.org/ns/mei'><layer>" ++ s ++ "</layer></staff>"
 
+meterSigns :: [Test]
+meterSigns =
+  [ Test $ mkMEITest
+    "M(O.)\n" $ asStaff "<staffDef prolatio='3' tempus='3'><mensur sign='O' dot='true'/></staffDef>"
+  , Test $ mkMEITest
+    "M(O)\n" $ asStaff "<staffDef prolatio='3' tempus='2'><mensur sign='O' dot='false'/></staffDef>"
+  , Test $ mkMEITest
+    "M(C.)\n" $ asStaff "<staffDef prolatio='2' tempus='3'><mensur sign='C' dot='true'/></staffDef>"
+  , Test $ mkMEITest
+    "M(C)\n" $ asStaff "<staffDef prolatio='2' tempus='2'><mensur sign='C' dot='false'/></staffDef>"
+  , Test $ mkMEITest
+    "M(O/.)\n" $ asStaff "<staffDef prolatio='3' tempus='3' mensur.slash='1'><mensur sign='O' dot='true' slash='1'/></staffDef>"
+  , Test $ mkMEITest
+    "M(O/)\n" $ asStaff "<staffDef prolatio='3' tempus='2' mensur.slash='1'><mensur sign='O' dot='false' slash='1'/></staffDef>"
+  , Test $ mkMEITest
+    "M(C/.)\n" $ asStaff "<staffDef prolatio='2' tempus='3' mensur.slash='1'><mensur sign='C' dot='true' slash='1'/></staffDef>"
+  , Test $ mkMEITest
+    "M(C/)\n" $ asStaff "<staffDef prolatio='2' tempus='2' mensur.slash='1'><mensur sign='C' dot='false' slash='1'/></staffDef>"
+  , Test $ mkMEITest
+    "M(D.)\n" $ asStaff "<staffDef prolatio='2' tempus='3' mensur.slash='1'><mensur sign='C' dot='true' slash='1'/></staffDef>"
+  , Test $ mkMEITest
+    "M(D)\n" $ asStaff "<staffDef prolatio='2' tempus='2' mensur.slash='1'><mensur sign='C' dot='false' slash='1'/></staffDef>"
+  ]
+
 tests :: IO [Test]
-tests = return $ []
+tests = return $ meterSigns
