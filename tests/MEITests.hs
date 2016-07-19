@@ -85,6 +85,10 @@ meterSigns =
     "M(D.)\n" $ asStaff "<staffDef prolatio='2' tempus='3' mensur.slash='1'><mensur sign='C' dot='true' slash='1'/></staffDef>"
   , Test $ mkMEITest
     "M(D)\n" $ asStaff "<staffDef prolatio='2' tempus='2' mensur.slash='1'><mensur sign='C' dot='false' slash='1'/></staffDef>"
+  , Test $ mkMEITest
+    "M(3:4)\n" $ asStaff "<staffDef num.default='3' numbase.default='4'><meterSig count='3' unit='4'/></staffDef>"
+  , Test $ mkMEITest
+    "M(3)\n" $ asStaff "<staffDef tempus='3'/>"
   ]
 
 tests :: IO [Test]
