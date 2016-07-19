@@ -129,13 +129,13 @@ tabWord rls (Meter (SingleMeterSign HalfImperfectMajor)) =
 tabWord rls (Meter (SingleMeterSign HalfImperfectMinor)) =
   staffDef [ prolation 2 , tempus 2 , slash 1 ] $ mensur [ sign 'C' , dot False , cut 1 ]
 
-tabWord rls (Meter m) = xcomment $ "Un-implemented mensuration sign: " ++ (show m)
-
 tabWord rls (Meter (VerticalMeterSign (Beats n) (Beats b))) =
   staffDef [ num n , base b ] $ meterSig [ count n , unit b ]
 
 tabWord rls (Meter (SingleMeterSign (Beats 3))) =
   staffDef [ tempus 3 ] $ noElems
+
+tabWord rls (Meter m) = xcomment $ " tc2mei: Un-implemented mensuration sign: " ++ (show m) ++ " "
 
 tabWord rls (Comment c) =
   xcomment c
@@ -147,7 +147,7 @@ tabWord rls PageBreak =
   xelemQEmpty mei "pb"
 
 tabWord rls (Invalid src line col word) =
-  xcomment $ " Invalid tabword in source '" ++ src ++ "' (line: " ++ (show line) ++ "; col: " ++ (show col) ++ "): \"" ++ word ++ "\" "
+  xcomment $ " tc2mei: Invalid tabword in source '" ++ src ++ "' (line: " ++ (show line) ++ "; col: " ++ (show col) ++ "): \"" ++ word ++ "\" "
 
 rhythmSign :: RhythmSign -> Xml Elem
 rhythmSign (RhythmSign dur _ dt _) =
