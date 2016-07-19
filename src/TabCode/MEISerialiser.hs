@@ -77,6 +77,21 @@ cut n = boundedIntAttr n (1,6) "slash"
 mensur :: [Xml Attr] -> Xml Elem
 mensur attrs = xelemQ mei "mensur" $ xattrs attrs
 
+num :: Int -> Xml Attr
+num n = xattr "num.default" (pack $ show n)
+
+base :: Int -> Xml Attr
+base b = xattr "numbase.default" (pack $ show b)
+
+count :: Int -> Xml Attr
+count c = xattr "count" (pack $ show c)
+
+unit :: Int -> Xml Attr
+unit u = xattr "unit" (pack $ show u)
+
+meterSig :: [Xml Attr] -> Xml Elem
+meterSig attrs = xelemQ mei "meterSig" $ xattrs attrs
+
 tabWord :: [Rule] -> TabWord -> Xml Elem
 tabWord rls (Chord (Just rs) ns) =
   xelemQ mei "chord" $ (durAttr rs) <#> ((rhythmSign rs) <> (xelems $ concat $ map (note rls) ns))
@@ -115,6 +130,12 @@ tabWord rls (Meter (SingleMeterSign HalfImperfectMinor)) =
   staffDef [ prolation 2 , tempus 2 , slash 1 ] $ mensur [ sign 'C' , dot False , cut 1 ]
 
 tabWord rls (Meter m) = xcomment $ "Un-implemented mensuration sign: " ++ (show m)
+
+tabWord rls (Meter (VerticalMeterSign (Beats n) (Beats b))) =
+  staffDef [ num n , base b ] $ meterSig [ count n , unit b ]
+
+tabWord rls (Meter (SingleMeterSign (Beats 3))) =
+  staffDef [ tempus 3 ] $ noElems
 
 tabWord rls (Comment c) =
   xcomment c
