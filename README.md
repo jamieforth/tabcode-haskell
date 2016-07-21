@@ -81,9 +81,6 @@ tabwords in the XML output as comments, e.g.:
 
 ### Limitations
 
-* `tc2mei` currently produces just a single `<mei:staff>` element and
-  none of the required containers (e.g. `<mei:mei>`, `<mei:meiHead>`,
-  `<mei:body>`, etc.)
 * Various features of Tabcode are not yet converted to MEI by
   `tc2mei`, including: ornaments, articulation markings, and
   connecting lines.
