@@ -76,10 +76,11 @@ invalid = do
 
 chord :: GenParser Char st TabWord
 chord = do
+  pos <- getPosition
   rs <- option Nothing $ do { r <- rhythmSign; return $ Just r }
   ns <- uniqueNotes $ many1 note
   endOfWord
-  return $ Chord rs ns
+  return $ Chord (sourceLine pos) (sourceColumn pos) rs ns
 
 uniqueNotes :: ParsecT s u m [Note] -> ParsecT s u m [Note]
 uniqueNotes parser = do
@@ -133,12 +134,14 @@ duration = do
 
 rest :: GenParser Char st TabWord
 rest = do
+  pos <- getPosition
   rs <- rhythmSign
   endOfWord
-  return $ Rest rs
+  return $ Rest (sourceLine pos) (sourceColumn pos) rs
 
 barLine :: GenParser Char st TabWord
 barLine = do
+  pos <- getPosition
   leftRpt  <- option False $ do { char ':'; return True }
   line     <- (try dbl) <|> (try sgl)
   rightRpt <- option False $ do { char ':'; return True }
@@ -148,8 +151,8 @@ barLine = do
 
   endOfWord
   if line == "|"
-    then return $ BarLine $ SingleBar (combineRepeat leftRpt rightRpt) rep dash nonC
-    else return $ BarLine $ DoubleBar (combineRepeat leftRpt rightRpt) rep dash nonC
+    then return $ BarLine (sourceLine pos) (sourceColumn pos) $ SingleBar (combineRepeat leftRpt rightRpt) rep dash nonC
+    else return $ BarLine (sourceLine pos) (sourceColumn pos) $ DoubleBar (combineRepeat leftRpt rightRpt) rep dash nonC
 
   where
     sgl     = string "|"
@@ -169,6 +172,7 @@ barLine = do
 
 meter :: GenParser Char st TabWord
 meter = do
+  pos <- getPosition
   char 'M'
   char '('
   m1  <- do { m <- digit <|> mensurSign; return $ Just m }
@@ -181,19 +185,19 @@ meter = do
   char ')'
 
   endOfWord
-  return $ mkMS arr m1 c1 p1 m2 c2 p2
+  return $ mkMS pos arr m1 c1 p1 m2 c2 p2
 
   where
     mensurSign = char 'O' <|> char 'C' <|> char 'D'
     cuts       = option Nothing $ do { cs <- many1 $ char '/'; return $ Just cs }
     prol       = option Nothing $ do { ds <- char '.'; return $ Just ds }
 
-    mkMS (Just arrangement) mensur1 cut1 prolation1 mensur2 cut2 prolation2
-      | arrangement == ':' = Meter $ VerticalMeterSign (mkMensur mensur1 cut1 prolation1) (mkMensur mensur2 cut2 prolation2)
-      | arrangement == ';' = Meter $ HorizontalMeterSign (mkMensur mensur1 cut1 prolation1) (mkMensur mensur2 cut2 prolation2)
-    mkMS (Just _) _ _ _ _ _ _ = error "Invalid meter arrangement symbol"
-    mkMS Nothing mensur1 cut1 prolation1 _ _ _
-      = Meter $ SingleMeterSign (mkMensur mensur1 cut1 prolation1)
+    mkMS pos (Just arrangement) mensur1 cut1 prolation1 mensur2 cut2 prolation2
+      | arrangement == ':' = Meter (sourceLine pos) (sourceColumn pos) $ VerticalMeterSign (mkMensur mensur1 cut1 prolation1) (mkMensur mensur2 cut2 prolation2)
+      | arrangement == ';' = Meter (sourceLine pos) (sourceColumn pos) $ HorizontalMeterSign (mkMensur mensur1 cut1 prolation1) (mkMensur mensur2 cut2 prolation2)
+    mkMS _ (Just _) _ _ _ _ _ _ = error "Invalid meter arrangement symbol"
+    mkMS pos Nothing mensur1 cut1 prolation1 _ _ _
+      = Meter (sourceLine pos) (sourceColumn pos) $ SingleMeterSign (mkMensur mensur1 cut1 prolation1)
 
     mkMensur (Just 'O') Nothing      (Just '.') = PerfectMajor
     mkMensur (Just 'O') Nothing      Nothing    = PerfectMinor
@@ -484,17 +488,26 @@ curved = option Nothing $ do
 
 comment :: GenParser Char st TabWord
 comment = do
+  pos <- getPosition
   char '{'
   notFollowedBy $ (try $ string "^}") <|> (try $ string ">}{^}")
   c <- manyTill anyChar (try $ char '}')
   endOfWord
-  return $ Comment c
+  return $ Comment (sourceLine pos) (sourceColumn pos) c
 
 systemBreak :: GenParser Char st TabWord
-systemBreak = string "{^}" >> endOfWord >> return SystemBreak
+systemBreak = do
+  pos <- getPosition
+  string "{^}"
+  endOfWord
+  return $ SystemBreak (sourceLine pos) (sourceColumn pos)
 
 pageBreak :: GenParser Char st TabWord
-pageBreak = string "{>}{^}" >> endOfWord >> return PageBreak
+pageBreak = do
+  pos <- getPosition
+  string "{>}{^}"
+  endOfWord
+  return $ PageBreak (sourceLine pos) (sourceColumn pos)
 
 parseTabcode :: TCOptions -> String -> Either ParseError TabCode
 parseTabcode opts s = parse (tablature $ parseMode opts) "" s

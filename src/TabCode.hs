@@ -140,7 +140,7 @@ duplicateCoursesInNotes ns =
   where cs = coursesFromNotes ns
 
 duplicateCourses :: TabWord -> Bool
-duplicateCourses (Chord _ ns) = duplicateCoursesInNotes ns
+duplicateCourses (Chord _ _ _ ns) = duplicateCoursesInNotes ns
 duplicateCourses _ = False
 
 data Counting = Counting
@@ -180,13 +180,13 @@ data MeterSign = SingleMeterSign Mensuration
                | HorizontalMeterSign Mensuration Mensuration
                deriving (Eq, Show)
 
-data TabWord = Chord (Maybe RhythmSign) [Note]
-             | Rest RhythmSign
-             | BarLine Bar
-             | Meter MeterSign
-             | Comment String
-             | SystemBreak
-             | PageBreak
+data TabWord = Chord Line Column (Maybe RhythmSign) [Note]
+             | Rest Line Column RhythmSign
+             | BarLine Line Column Bar
+             | Meter Line Column MeterSign
+             | Comment Line Column String
+             | SystemBreak Line Column
+             | PageBreak Line Column
              | Invalid String Line Column String
              deriving (Eq, Show)
 
@@ -194,7 +194,7 @@ coursesFromNotes :: [Note] -> [Course]
 coursesFromNotes ns = map (\(Note crs _ _ _ _ _) -> crs) ns
 
 courses :: TabWord -> [Course]
-courses (Chord _ ns) = coursesFromNotes ns
+courses (Chord _ _ _ ns) = coursesFromNotes ns
 courses _ = []
 
 data Rule = Rule String String deriving (Eq, Show)

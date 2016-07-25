@@ -93,60 +93,60 @@ meterSig :: [Xml Attr] -> Xml Elem
 meterSig attrs = xelemQ mei "meterSig" $ xattrs attrs
 
 tabWord :: [Rule] -> TabWord -> Xml Elem
-tabWord rls (Chord (Just rs) ns) =
+tabWord rls (Chord _ _ (Just rs) ns) =
   xelemQ mei "chord" $ (durAttr rs) <#> ((rhythmSign rs) <> (xelems $ concat $ map (note rls) ns))
 
-tabWord rls (Chord Nothing ns) =
+tabWord rls (Chord _ _ Nothing ns) =
   xelemQ mei "chord" $ xelems $ concat $ map (note rls) ns
 
-tabWord rls (Rest (RhythmSign Fermata _ _ _)) =
+tabWord rls (Rest _ _ (RhythmSign Fermata _ _ _)) =
   xelemQEmpty mei "fermata"
 
-tabWord rls (Rest rs) =
+tabWord rls (Rest _ _ rs) =
   xelemQ mei "rest" $ (durAttr rs) <#> (rhythmSign rs)
 
-tabWord rls (BarLine b) =
+tabWord rls (BarLine _ _ b) =
   xelemQEmpty mei "barLine"
 
-tabWord rls (Meter (SingleMeterSign PerfectMajor)) =
+tabWord rls (Meter _ _ (SingleMeterSign PerfectMajor)) =
   staffDef [ prolation 3 , tempus 3 ] $ mensur [ sign 'O' , dot True ]
 
-tabWord rls (Meter (SingleMeterSign PerfectMinor)) =
+tabWord rls (Meter _ _ (SingleMeterSign PerfectMinor)) =
   staffDef [ prolation 3 , tempus 2 ] $ mensur [ sign 'O' , dot False ]
 
-tabWord rls (Meter (SingleMeterSign ImperfectMajor)) =
+tabWord rls (Meter _ _ (SingleMeterSign ImperfectMajor)) =
   staffDef [ prolation 2 , tempus 3 ] $ mensur [ sign 'C' , dot True ]
 
-tabWord rls (Meter (SingleMeterSign ImperfectMinor)) =
+tabWord rls (Meter _ _ (SingleMeterSign ImperfectMinor)) =
   staffDef [ prolation 2 , tempus 2 ] $ mensur [ sign 'C' , dot False ]
 
-tabWord rls (Meter (SingleMeterSign HalfPerfectMajor)) =
+tabWord rls (Meter _ _ (SingleMeterSign HalfPerfectMajor)) =
   staffDef [ prolation 3 , tempus 3 , slash 1 ] $ mensur [ sign 'O' , dot True , cut 1 ]
 
-tabWord rls (Meter (SingleMeterSign HalfPerfectMinor)) =
+tabWord rls (Meter _ _ (SingleMeterSign HalfPerfectMinor)) =
   staffDef [ prolation 3 , tempus 2 , slash 1 ] $ mensur [ sign 'O' , dot False , cut 1 ]
 
-tabWord rls (Meter (SingleMeterSign HalfImperfectMajor)) =
+tabWord rls (Meter _ _ (SingleMeterSign HalfImperfectMajor)) =
   staffDef [ prolation 2 , tempus 3 , slash 1 ] $ mensur [ sign 'C' , dot True , cut 1 ]
 
-tabWord rls (Meter (SingleMeterSign HalfImperfectMinor)) =
+tabWord rls (Meter _ _ (SingleMeterSign HalfImperfectMinor)) =
   staffDef [ prolation 2 , tempus 2 , slash 1 ] $ mensur [ sign 'C' , dot False , cut 1 ]
 
-tabWord rls (Meter (VerticalMeterSign (Beats n) (Beats b))) =
+tabWord rls (Meter _ _ (VerticalMeterSign (Beats n) (Beats b))) =
   staffDef [ num n , base b ] $ meterSig [ count n , unit b ]
 
-tabWord rls (Meter (SingleMeterSign (Beats 3))) =
+tabWord rls (Meter _ _ (SingleMeterSign (Beats 3))) =
   staffDef [ tempus 3 ] $ noElems
 
-tabWord rls (Meter m) = xcomment $ " tc2mei: Un-implemented mensuration sign: " ++ (show m) ++ " "
+tabWord rls (Meter _ _ m) = xcomment $ " tc2mei: Un-implemented mensuration sign: " ++ (show m) ++ " "
 
-tabWord rls (Comment c) =
+tabWord rls (Comment _ _ c) =
   xcomment c
 
-tabWord rls SystemBreak =
+tabWord rls (SystemBreak _ _) =
   xelemQEmpty mei "sb"
 
-tabWord rls PageBreak =
+tabWord rls (PageBreak _ _) =
   xelemQEmpty mei "pb"
 
 tabWord rls (Invalid src line col word) =
