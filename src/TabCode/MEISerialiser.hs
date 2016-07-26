@@ -23,12 +23,12 @@
 module TabCode.MEISerialiser ( meiDoc
                              , staff ) where
 
-import Data.Maybe (catMaybes)
-import Data.Text (pack, unpack, Text)
-import Data.Traversable (Traversable)
+import           Data.Maybe (catMaybes)
+import           Data.Text (pack, unpack, Text)
+import           Data.Traversable (Traversable)
 import qualified Data.Vector as V
-import TabCode
-import Text.XML.Generator
+import           TabCode
+import           Text.XML.Generator
 
 mei :: Namespace
 mei = namespace "" "http://www.music-encoding.org/ns/mei"

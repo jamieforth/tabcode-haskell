@@ -24,17 +24,17 @@ module TabCode.Parser ( parseTabcode
                       , parseTabcodeStdIn
                       , parseTabcodeFile ) where
 
-import Data.Vector (Vector)
+import           Data.Vector (Vector)
 import qualified Data.Vector as V
-import TabCode
-import TabCode.Options
-import Text.Parsec (ParsecT,  getPosition)
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Number
-import Text.ParserCombinators.Parsec.Pos (SourcePos, sourceLine, sourceColumn, sourceName)
-import Prelude hiding (words)
-import System.IO (hPutStrLn, stderr)
-import System.Exit (exitFailure)
+import           Prelude hiding (words)
+import           System.IO (hPutStrLn, stderr)
+import           System.Exit (exitFailure)
+import           TabCode
+import           TabCode.Options
+import           Text.Parsec (ParsecT,  getPosition)
+import           Text.ParserCombinators.Parsec
+import           Text.ParserCombinators.Parsec.Number
+import           Text.ParserCombinators.Parsec.Pos (SourcePos, sourceLine, sourceColumn, sourceName)
 
 tablature :: ParseMode -> GenParser Char st TabCode
 tablature mode = do

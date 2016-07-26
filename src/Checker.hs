@@ -35,5 +35,5 @@ main :: IO ()
 main = execParser opts >>= runChecker
   where
     runChecker o = do
-      (TabCode rls wrds) <- parseTabcodeStdIn o
+      _ <- parseTabcodeStdIn o
       return ()

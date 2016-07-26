@@ -7,35 +7,85 @@ build-type: Simple
 cabal-version: >= 1.9.2
 
 library
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring, containers, optparse-applicative, vector
-  exposed-modules: TabCode, TabCode.Parser, TabCode.MEISerialiser, TabCode.Options
+  build-depends: base >= 4 && < 5
+               , bytestring
+               , containers
+               , optparse-applicative
+               , parsec
+               , parsec-numbers
+               , text
+               , vector
+               , xmlgen
+  exposed-modules: TabCode
+                 , TabCode.MEISerialiser
+                 , TabCode.Options
+                 , TabCode.Parser
   hs-source-dirs: src
   ghc-options: -O2
 
 executable tccheck
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers, containers, optparse-applicative, vector
+  build-depends: base >= 4 && < 5
+               , containers
+               , optparse-applicative
+               , parsec
+               , parsec-numbers
+               , vector
   main-is: Checker.hs
   hs-source-dirs: src
-  other-modules: TabCode.Parser, TabCode, TabCode.Options
+  other-modules: TabCode
+               , TabCode.Options
+               , TabCode.Parser
   ghc-options: -O2
 
 executable tc2mei
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring, containers, optparse-applicative, vector
+  build-depends: base >= 4 && < 5
+               , bytestring
+               , containers
+               , optparse-applicative
+               , parsec
+               , parsec-numbers
+               , text
+               , vector
+               , xmlgen
   main-is: TC2MEI.hs
   hs-source-dirs: src
-  other-modules: TabCode.MEISerialiser, TabCode.Parser, TabCode, TabCode.Options
+  other-modules: TabCode
+               , TabCode.MEISerialiser
+               , TabCode.Options
+               , TabCode.Parser
   ghc-options: -O2
 
 test-suite parse-tests
   type: detailed-0.9
   test-module: ParseTests
-  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers, optparse-applicative, vector
+  build-depends: base >= 4 && < 5
+               , Cabal >= 1.9.2
+               , containers
+               , optparse-applicative
+               , parsec
+               , parsec-numbers
+               , vector
   hs-source-dirs: src, tests
-  other-modules: TabCode, TabCode.Parser, TabCode.Options
+  other-modules: TabCode
+               , TabCode.Options
+               , TabCode.Parser
 
 test-suite mei-tests
   type: detailed-0.9
   test-module: MEITests
-  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers, optparse-applicative, bytestring, text, xmlgen, HaXml, vector
+  build-depends: base >= 4 && < 5
+               , bytestring
+               , Cabal >= 1.9.2
+               , containers
+               , HaXml
+               , optparse-applicative
+               , parsec
+               , parsec-numbers
+               , text
+               , vector
+               , xmlgen
   hs-source-dirs: src, tests
-  other-modules: TabCode, TabCode.Parser, TabCode.Options, TabCode.MEISerialiser
+  other-modules: TabCode
+               , TabCode.MEISerialiser
+               , TabCode.Options
+               , TabCode.Parser
