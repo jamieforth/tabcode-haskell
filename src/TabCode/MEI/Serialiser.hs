@@ -20,8 +20,8 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module TabCode.MEISerialiser ( meiDoc
-                             , staff ) where
+module TabCode.MEI.Serialiser ( meiDoc
+                              , staff ) where
 
 import           Data.Maybe (catMaybes)
 import           Data.Text (pack, unpack, Text)

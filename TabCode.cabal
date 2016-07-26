@@ -17,7 +17,7 @@ library
                , vector
                , xmlgen
   exposed-modules: TabCode
-                 , TabCode.MEISerialiser
+                 , TabCode.MEI.Serialiser
                  , TabCode.Options
                  , TabCode.Parser
   hs-source-dirs: src
@@ -50,7 +50,7 @@ executable tc2mei
   main-is: TC2MEI.hs
   hs-source-dirs: src
   other-modules: TabCode
-               , TabCode.MEISerialiser
+               , TabCode.MEI.Serialiser
                , TabCode.Options
                , TabCode.Parser
   ghc-options: -O2

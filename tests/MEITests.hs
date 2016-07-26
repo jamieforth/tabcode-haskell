@@ -24,7 +24,7 @@ import Distribution.TestSuite
 
 import qualified Data.ByteString.Char8 as C
 import           TabCode
-import           TabCode.MEISerialiser
+import           TabCode.MEI.Serialiser
 import           TabCode.Options (TCOptions(..), ParseMode(..))
 import           TabCode.Parser (parseTabcode)
 import           Text.XML.Generator

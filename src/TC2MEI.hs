@@ -23,7 +23,7 @@ module Main where
 import Data.ByteString.Char8 (putStrLn)
 import Options.Applicative
 import Prelude hiding (putStrLn)
-import TabCode.MEISerialiser (meiDoc)
+import TabCode.MEI.Serialiser (meiDoc)
 import TabCode.Options
 import TabCode.Parser (parseTabcodeStdIn)
 import Text.XML.Generator
