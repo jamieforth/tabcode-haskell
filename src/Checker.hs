@@ -21,7 +21,6 @@
 module Main where
 
 import Options.Applicative
-import TabCode
 import TabCode.Options
 import TabCode.Parser (parseTabcodeStdIn)
 

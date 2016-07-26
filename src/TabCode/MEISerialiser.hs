@@ -25,7 +25,7 @@ module TabCode.MEISerialiser ( meiDoc
 
 import           Data.Maybe (catMaybes)
 import           Data.Text (pack, unpack, Text)
-import           Data.Traversable (Traversable)
+import           Data.Traversable()
 import qualified Data.Vector as V
 import           TabCode
 import           Text.XML.Generator
@@ -104,57 +104,57 @@ tabWord rls (Chord _ _ (Just rs) ns) =
 tabWord rls (Chord _ _ Nothing ns) =
   xelemQ mei "chord" $ xelems $ concat $ map (note rls) ns
 
-tabWord rls (Rest _ _ (RhythmSign Fermata _ _ _)) =
+tabWord _ (Rest _ _ (RhythmSign Fermata _ _ _)) =
   xelemQEmpty mei "fermata"
 
-tabWord rls (Rest _ _ rs) =
+tabWord _ (Rest _ _ rs) =
   xelemQ mei "rest" $ (durAttr rs) <#> (rhythmSign rs)
 
-tabWord rls (BarLine _ _ b) =
+tabWord _ (BarLine _ _ b) =
   xelemQEmpty mei "barLine"
 
-tabWord rls (Meter _ _ (SingleMeterSign PerfectMajor)) =
+tabWord _ (Meter _ _ (SingleMeterSign PerfectMajor)) =
   staffDef [ prolation 3 , tempus 3 ] $ mensur [ sign 'O' , dot True ]
 
-tabWord rls (Meter _ _ (SingleMeterSign PerfectMinor)) =
+tabWord _ (Meter _ _ (SingleMeterSign PerfectMinor)) =
   staffDef [ prolation 3 , tempus 2 ] $ mensur [ sign 'O' , dot False ]
 
-tabWord rls (Meter _ _ (SingleMeterSign ImperfectMajor)) =
+tabWord _ (Meter _ _ (SingleMeterSign ImperfectMajor)) =
   staffDef [ prolation 2 , tempus 3 ] $ mensur [ sign 'C' , dot True ]
 
-tabWord rls (Meter _ _ (SingleMeterSign ImperfectMinor)) =
+tabWord _ (Meter _ _ (SingleMeterSign ImperfectMinor)) =
   staffDef [ prolation 2 , tempus 2 ] $ mensur [ sign 'C' , dot False ]
 
-tabWord rls (Meter _ _ (SingleMeterSign HalfPerfectMajor)) =
+tabWord _ (Meter _ _ (SingleMeterSign HalfPerfectMajor)) =
   staffDef [ prolation 3 , tempus 3 , slash 1 ] $ mensur [ sign 'O' , dot True , cut 1 ]
 
-tabWord rls (Meter _ _ (SingleMeterSign HalfPerfectMinor)) =
+tabWord _ (Meter _ _ (SingleMeterSign HalfPerfectMinor)) =
   staffDef [ prolation 3 , tempus 2 , slash 1 ] $ mensur [ sign 'O' , dot False , cut 1 ]
 
-tabWord rls (Meter _ _ (SingleMeterSign HalfImperfectMajor)) =
+tabWord _ (Meter _ _ (SingleMeterSign HalfImperfectMajor)) =
   staffDef [ prolation 2 , tempus 3 , slash 1 ] $ mensur [ sign 'C' , dot True , cut 1 ]
 
-tabWord rls (Meter _ _ (SingleMeterSign HalfImperfectMinor)) =
+tabWord _ (Meter _ _ (SingleMeterSign HalfImperfectMinor)) =
   staffDef [ prolation 2 , tempus 2 , slash 1 ] $ mensur [ sign 'C' , dot False , cut 1 ]
 
-tabWord rls (Meter _ _ (VerticalMeterSign (Beats n) (Beats b))) =
+tabWord _ (Meter _ _ (VerticalMeterSign (Beats n) (Beats b))) =
   staffDef [ num n , base b ] $ meterSig [ count n , unit b ]
 
-tabWord rls (Meter _ _ (SingleMeterSign (Beats 3))) =
+tabWord _ (Meter _ _ (SingleMeterSign (Beats 3))) =
   staffDef [ tempus 3 ] $ noElems
 
-tabWord rls (Meter _ _ m) = xcomment $ " tc2mei: Un-implemented mensuration sign: " ++ (show m) ++ " "
+tabWord _ (Meter _ _ m) = xcomment $ " tc2mei: Un-implemented mensuration sign: " ++ (show m) ++ " "
 
-tabWord rls (Comment _ _ c) =
+tabWord _ (Comment _ _ c) =
   xcomment c
 
-tabWord rls (SystemBreak _ _) =
+tabWord _ (SystemBreak _ _) =
   xelemQEmpty mei "sb"
 
-tabWord rls (PageBreak _ _) =
+tabWord _ (PageBreak _ _) =
   xelemQEmpty mei "pb"
 
-tabWord rls (Invalid src line col word) =
+tabWord _ (Invalid src line col word) =
   xcomment $ " tc2mei: Invalid tabword in source '" ++ src ++ "' (line: " ++ (show line) ++ "; col: " ++ (show col) ++ "): \"" ++ word ++ "\" "
 
 rhythmSign :: RhythmSign -> Xml Elem
