@@ -7,20 +7,20 @@ build-type: Simple
 cabal-version: >= 1.9.2
 
 library
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring, containers, optparse-applicative
+  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring, containers, optparse-applicative, vector
   exposed-modules: TabCode, TabCode.Parser, TabCode.MEISerialiser, TabCode.Options
   hs-source-dirs: src
   ghc-options: -O2
 
 executable tccheck
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers, containers, optparse-applicative
+  build-depends: base >= 4 && < 5, parsec, parsec-numbers, containers, optparse-applicative, vector
   main-is: Checker.hs
   hs-source-dirs: src
   other-modules: TabCode.Parser, TabCode, TabCode.Options
   ghc-options: -O2
 
 executable tc2mei
-  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring, containers, optparse-applicative
+  build-depends: base >= 4 && < 5, parsec, parsec-numbers, xmlgen, text, bytestring, containers, optparse-applicative, vector
   main-is: TC2MEI.hs
   hs-source-dirs: src
   other-modules: TabCode.MEISerialiser, TabCode.Parser, TabCode, TabCode.Options
@@ -29,13 +29,13 @@ executable tc2mei
 test-suite parse-tests
   type: detailed-0.9
   test-module: ParseTests
-  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers, optparse-applicative
+  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers, optparse-applicative, vector
   hs-source-dirs: src, tests
   other-modules: TabCode, TabCode.Parser, TabCode.Options
 
 test-suite mei-tests
   type: detailed-0.9
   test-module: MEITests
-  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers, optparse-applicative, bytestring, text, xmlgen, HaXml
+  build-depends: base >= 4 && < 5, Cabal >= 1.9.2, parsec, parsec-numbers, containers, optparse-applicative, bytestring, text, xmlgen, HaXml, vector
   hs-source-dirs: src, tests
   other-modules: TabCode, TabCode.Parser, TabCode.Options, TabCode.MEISerialiser

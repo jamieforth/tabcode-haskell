@@ -21,6 +21,7 @@
 module TabCode where
 
 import Data.Set (size, fromList)
+import Data.Vector (Vector)
 import Text.ParserCombinators.Parsec.Pos (Line, Column)
 
 data Duration = Fermata
@@ -210,4 +211,4 @@ notation = (flip ruleLkup) "notation"
 title :: [Rule] -> Maybe String
 title = (flip ruleLkup) "title"
 
-data TabCode = TabCode [Rule] [TabWord]
+data TabCode = TabCode [Rule] (Vector TabWord)

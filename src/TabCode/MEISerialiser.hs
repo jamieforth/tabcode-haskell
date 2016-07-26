@@ -25,6 +25,8 @@ module TabCode.MEISerialiser ( meiDoc
 
 import Data.Maybe (catMaybes)
 import Data.Text (pack, unpack, Text)
+import Data.Traversable (Traversable)
+import qualified Data.Vector as V
 import TabCode
 import Text.XML.Generator
 
@@ -42,9 +44,12 @@ meiDoc tc =
       xelemQ mei "part" $
       xelemQ mei "section" $ staff tc ) )
 
+txelems :: Traversable t => t (Xml Elem) -> Xml Elem
+txelems = foldr mappend mempty
+
 staff :: TabCode -> Xml Elem
 staff (TabCode rls tws) =
-  xelemQ mei "staff" $ xelemQ mei "layer" $ xelems $ map (tabWord rls) tws
+  xelemQ mei "staff" $ xelemQ mei "layer" $ txelems $ V.map (tabWord rls) tws
 
 boundedIntAttr :: Int -> (Int, Int) -> Text -> Xml Attr
 boundedIntAttr i (l, u) n | i >= l && i <= u = xattr n (pack $ show i)

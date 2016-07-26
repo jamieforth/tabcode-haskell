@@ -24,6 +24,8 @@ module TabCode.Parser ( parseTabcode
                       , parseTabcodeStdIn
                       , parseTabcodeFile ) where
 
+import Data.Vector (Vector)
+import qualified Data.Vector as V
 import TabCode
 import TabCode.Options
 import Text.Parsec (ParsecT,  getPosition)
@@ -39,7 +41,7 @@ tablature mode = do
   rls   <- option [] rules
   words <- (tabword mode) `sepEndBy` (skipMany1 space)
   eof
-  return $ TabCode rls words
+  return $ TabCode rls (V.fromList words)
 
 rules :: GenParser Char st [Rule]
 rules = do

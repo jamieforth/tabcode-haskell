@@ -22,6 +22,7 @@ module ParseTests where
 
 import Distribution.TestSuite
 
+import qualified Data.Vector as V
 import TabCode
 import TabCode.Options (TCOptions(..), ParseMode(..))
 import TabCode.Parser (parseTabcode)
@@ -32,9 +33,10 @@ tryParseWord tc tw =
     Right (TabCode rls wrds) -> check wrds tw
     Left err                 -> Fail $ show err
   where
-    check [] twExp = Error $ "Could not parse " ++ tc ++ " as " ++ (show twExp)
-    check (twAct:_) twExp | twExp == twAct = Pass
-                          | otherwise      = Fail $ "For \"" ++ tc ++ "\", expected " ++ (show twExp) ++ "; got " ++ (show twAct)
+    check ws twExp | V.length ws == 0 = Error $ "Could not parse " ++ tc ++ " as " ++ (show twExp)
+                   | otherwise        = if V.head ws == twExp
+                                        then Pass
+                                        else Fail $ "For \"" ++ tc ++ "\", expected " ++ (show twExp) ++ "; got " ++ (show $ V.head ws)
 
 mkParseTest :: String -> TabWord -> TestInstance
 mkParseTest tc tw = TestInstance {
