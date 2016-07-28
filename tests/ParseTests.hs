@@ -22,10 +22,10 @@ module ParseTests where
 
 import Distribution.TestSuite
 
-import qualified Data.Vector as V
+import qualified Data.Vector     as V
 import           TabCode
 import           TabCode.Options (TCOptions(..), ParseMode(..))
-import           TabCode.Parser (parseTabcode)
+import           TabCode.Parser  (parseTabcode)
 
 tryParseWord :: String -> TabWord -> Result
 tryParseWord tc tw =

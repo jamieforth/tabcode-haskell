@@ -22,7 +22,7 @@ module Main where
 
 import Options.Applicative
 import TabCode.Options
-import TabCode.Parser (parseTabcodeStdIn)
+import TabCode.Parser      (parseTabcodeStdIn)
 
 opts :: ParserInfo TCOptions
 opts = info ( helper <*> config )

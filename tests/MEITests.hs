@@ -22,14 +22,14 @@ module MEITests where
 
 import Distribution.TestSuite
 
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Char8  as C
 import           TabCode
 import           TabCode.MEI.Serialiser
-import           TabCode.Options (TCOptions(..), ParseMode(..))
-import           TabCode.Parser (parseTabcode)
+import           TabCode.Options        (TCOptions(..), ParseMode(..))
+import           TabCode.Parser         (parseTabcode)
 import           Text.XML.Generator
-import           Text.XML.HaXml.Parse (xmlParse', xmlParse)
-import           Text.XML.HaXml.Pretty (document)
+import           Text.XML.HaXml.Parse   (xmlParse', xmlParse)
+import           Text.XML.HaXml.Pretty  (document)
 
 mkMEITest :: String -> String -> TestInstance
 mkMEITest tc xml = TestInstance {

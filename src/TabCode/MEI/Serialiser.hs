@@ -20,13 +20,14 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module TabCode.MEI.Serialiser ( meiDoc
-                              , staff ) where
+module TabCode.MEI.Serialiser
+  ( meiDoc
+  , staff ) where
 
-import           Data.Maybe (catMaybes)
-import           Data.Text (pack, unpack, Text)
+import           Data.Maybe         (catMaybes)
+import           Data.Text          (pack, unpack, Text)
 import           Data.Traversable()
-import qualified Data.Vector as V
+import qualified Data.Vector        as V
 import           TabCode
 import           Text.XML.Generator
 

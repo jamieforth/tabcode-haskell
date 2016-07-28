@@ -20,18 +20,19 @@
 
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 
-module TabCode.Parser ( parseTabcode
-                      , parseTabcodeStdIn
-                      , parseTabcodeFile ) where
+module TabCode.Parser
+  ( parseTabcode
+  , parseTabcodeStdIn
+  , parseTabcodeFile ) where
 
 import           Data.Vector()
-import qualified Data.Vector as V
-import           Prelude hiding (words)
-import           System.IO (hPutStrLn, stderr)
-import           System.Exit (exitFailure)
+import qualified Data.Vector                          as V
+import           Prelude                              hiding (words)
+import           System.IO                            (hPutStrLn, stderr)
+import           System.Exit                          (exitFailure)
 import           TabCode
 import           TabCode.Options
-import           Text.Parsec (ParsecT)
+import           Text.Parsec                          (ParsecT)
 import           Text.ParserCombinators.Parsec
 import           Text.ParserCombinators.Parsec.Number
 

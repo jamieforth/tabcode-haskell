@@ -22,9 +22,10 @@ module TabCode.Options where
 
 import Options.Applicative
 
-data ParseMode = Strict
-               | Permissive
-               deriving (Eq, Show)
+data ParseMode
+  = Strict
+  | Permissive
+  deriving (Eq, Show)
 
 data TCOptions = TCOptions {
   parseMode :: ParseMode } deriving (Eq)
