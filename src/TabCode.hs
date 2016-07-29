@@ -217,6 +217,22 @@ data TabWord
   | Invalid String Line Column String
   deriving (Eq, Show)
 
+twPos :: TabWord -> (Line, Column)
+twPos (Chord l c _ _)   = (l, c)
+twPos (Rest l c _)      = (l, c)
+twPos (BarLine l c _)   = (l, c)
+twPos (Meter l c _)     = (l, c)
+twPos (Comment l c _)   = (l, c)
+twPos (SystemBreak l c) = (l, c)
+twPos (PageBreak l c)   = (l, c)
+twPos (Invalid _ l c _) = (l, c)
+
+twLine :: TabWord -> Line
+twLine = fst . twPos
+
+twColumn :: TabWord -> Column
+twColumn = snd . twPos
+
 coursesFromNotes :: [Note] -> [Course]
 coursesFromNotes ns = map (\(Note crs _ _ _ _ _) -> crs) ns
 
