@@ -55,10 +55,10 @@ atDur :: RhythmSign -> MEIAttrs
 atDur (RhythmSign s _ Dot _)   = [("dur", meiDur s), ("dots", "1")]
 atDur (RhythmSign s _ NoDot _) = [("dur", meiDur s)]
 
-atDurSymb :: Duration -> Dot -> MEIAttrs
-atDurSymb dur Dot   = [ ("symbol", durSymb dur Dot)
-                      , ("dots", "1") ]
-atDurSymb dur NoDot = [("symbol", durSymb dur NoDot)]
+atDurSymb :: Duration -> Beat -> Dot -> MEIAttrs
+atDurSymb dur bt Dot   = [ ("symbol", durSymb dur bt Dot)
+                         , ("dots", "1") ]
+atDurSymb dur bt NoDot = [("symbol", durSymb dur bt NoDot)]
 
 atDot :: Bool -> MEIAttrs
 atDot True  = [("dot", "true")]
@@ -153,7 +153,7 @@ elOrnament o =
 
 elRhythmSign :: RhythmSign -> [MEI]
 elRhythmSign (RhythmSign Fermata _ _ _) = [ MEIFermata noMEIAttrs [] ]
-elRhythmSign (RhythmSign dur _ dt _)    = [ MEIRhythmSign ( atDurSymb dur dt ) [] ]
+elRhythmSign (RhythmSign dur bt dt _)    = [ MEIRhythmSign ( atDurSymb dur bt dt ) [] ]
 
 course :: Course -> Text
 course One = pack "1"
@@ -207,27 +207,45 @@ fretGlyphFr L = pack "l"
 fretGlyphFr M = pack "m"
 fretGlyphFr N = pack "n"
 
-durSymb :: Duration -> Dot -> Text
-durSymb Fermata Dot = error "Dotted fermata not allowed"
-durSymb Fermata NoDot = pack "F"
-durSymb Breve Dot = pack "B."
-durSymb Breve NoDot = pack "B"
-durSymb Semibreve Dot = pack "W."
-durSymb Semibreve NoDot = pack "W"
-durSymb Minim Dot = pack "H."
-durSymb Minim NoDot = pack "H"
-durSymb Crotchet Dot = pack "Q."
-durSymb Crotchet NoDot = pack "Q"
-durSymb Quaver Dot = pack "E."
-durSymb Quaver NoDot = pack "E"
-durSymb Semiquaver Dot = pack "S."
-durSymb Semiquaver NoDot = pack "S"
-durSymb Demisemiquaver Dot = pack "T."
-durSymb Demisemiquaver NoDot = pack "T"
-durSymb Hemidemisemiquaver Dot = pack "Y."
-durSymb Hemidemisemiquaver NoDot = pack "Y"
-durSymb Semihemidemisemiquaver Dot = pack "Z."
-durSymb Semihemidemisemiquaver NoDot = pack "Z"
+durSymb :: Duration -> Beat -> Dot -> Text
+durSymb Fermata _ Dot = error "Dotted fermata not allowed"
+durSymb Fermata _ NoDot = pack "F"
+durSymb Breve Simple Dot = pack "B."
+durSymb Breve Simple NoDot = pack "B"
+durSymb Breve Compound Dot = pack "B3."
+durSymb Breve Compound NoDot = pack "B3"
+durSymb Semibreve Simple Dot = pack "W."
+durSymb Semibreve Simple NoDot = pack "W"
+durSymb Semibreve Compound Dot = pack "W3."
+durSymb Semibreve Compound NoDot = pack "W3"
+durSymb Minim Simple Dot = pack "H."
+durSymb Minim Simple NoDot = pack "H"
+durSymb Minim Compound Dot = pack "H3."
+durSymb Minim Compound NoDot = pack "H3"
+durSymb Crotchet Simple Dot = pack "Q."
+durSymb Crotchet Simple NoDot = pack "Q"
+durSymb Crotchet Compound Dot = pack "Q3."
+durSymb Crotchet Compound NoDot = pack "Q3"
+durSymb Quaver Simple Dot = pack "E."
+durSymb Quaver Simple NoDot = pack "E"
+durSymb Quaver Compound Dot = pack "E3."
+durSymb Quaver Compound NoDot = pack "E3"
+durSymb Semiquaver Simple Dot = pack "S."
+durSymb Semiquaver Simple NoDot = pack "S"
+durSymb Semiquaver Compound Dot = pack "S3."
+durSymb Semiquaver Compound NoDot = pack "S3"
+durSymb Demisemiquaver Simple Dot = pack "T."
+durSymb Demisemiquaver Simple NoDot = pack "T"
+durSymb Demisemiquaver Compound Dot = pack "T3."
+durSymb Demisemiquaver Compound NoDot = pack "T3"
+durSymb Hemidemisemiquaver Simple Dot = pack "Y."
+durSymb Hemidemisemiquaver Simple NoDot = pack "Y"
+durSymb Hemidemisemiquaver Compound Dot = pack "Y3."
+durSymb Hemidemisemiquaver Compound NoDot = pack "Y3"
+durSymb Semihemidemisemiquaver Simple Dot = pack "Z."
+durSymb Semihemidemisemiquaver Simple NoDot = pack "Z"
+durSymb Semihemidemisemiquaver Compound Dot = pack "Z3."
+durSymb Semihemidemisemiquaver Compound NoDot = pack "Z3"
 
 meiDur :: Duration -> Text
 meiDur Fermata = pack "fermata"
