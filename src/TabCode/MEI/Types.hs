@@ -46,6 +46,7 @@ data MEI
   | MEIMeterSig MEIAttrs [MEI]
   | MEIMusic MEIAttrs [MEI]
   | MEINote MEIAttrs [MEI]
+  | TCOrnament MEIAttrs [MEI]
   | MEIPart MEIAttrs [MEI]
   | MEIParts MEIAttrs [MEI]
   | MEIRest MEIAttrs [MEI]

@@ -22,7 +22,6 @@
 
 module TabCode.MEI.Elements where
 
-import Data.Maybe  (catMaybes)
 import Data.Monoid (mempty, (<>))
 import Data.Text   (Text, pack, unpack)
 import TabCode
@@ -126,7 +125,25 @@ elNote rls (Note crs frt (fng1, fng2) orn artic conn) =
                 <> (elConnectingLine <$> conn ) )
 
 elOrnament :: Ornament -> [MEI]
-elOrnament orn = [XMLComment ""]
+elOrnament o =
+  case o of
+    (OrnA s _) -> orn "a" s
+    (OrnB s _) -> orn "b" s
+    (OrnC s _) -> orn "c" s
+    (OrnD s _) -> orn "d" s
+    (OrnE s _) -> orn "e" s
+    (OrnF s _) -> orn "f" s
+    (OrnG s _) -> orn "g" s
+    (OrnH s _) -> orn "h" s
+    (OrnI s _) -> orn "i" s
+    (OrnJ s _) -> orn "j" s
+    (OrnK s _) -> orn "k" s
+    (OrnL s _) -> orn "l" s
+    (OrnM s _) -> orn "m" s
+
+  where
+    orn t s  = [ TCOrnament ([("type", t)] <> (ornST <$:> s)) [] ]
+    ornST st = [("sub-type", pack $ show st)]
 
 elRhythmSign :: RhythmSign -> [MEI]
 elRhythmSign (RhythmSign Fermata _ _ _) = [ MEIFermata noMEIAttrs [] ]
