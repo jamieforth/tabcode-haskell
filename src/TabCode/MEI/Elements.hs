@@ -45,9 +45,6 @@ boundedIntAttr :: Int -> (Int, Int) -> Text -> MEIAttrs
 boundedIntAttr i (l, u) n | i >= l && i <= u = [(n, (pack $ show i))]
                           | otherwise        = error $ "Invalid " ++ (unpack n) ++ ": " ++ (show i)
 
-atBase :: Int -> MEIAttrs
-atBase b = [("numbase.default", (pack $ show b))]
-
 atCount :: Int -> MEIAttrs
 atCount c = [("count", (pack $ show c))]
 
@@ -68,7 +65,16 @@ atDot True  = [("dot", "true")]
 atDot False = [("dot", "false")]
 
 atNum :: Int -> MEIAttrs
-atNum n = [("num.default", (pack $ show n))]
+atNum n = [("num", (pack $ show n))]
+
+atNumDef :: Int -> MEIAttrs
+atNumDef n = [("num.default", (pack $ show n))]
+
+atNumbase :: Int -> MEIAttrs
+atNumbase b = [("numbase", (pack $ show b))]
+
+atNumbaseDef :: Int -> MEIAttrs
+atNumbaseDef b = [("numbase.default", (pack $ show b))]
 
 atPlayingFinger :: Finger -> MEIAttrs
 atPlayingFinger fngr = [("playingFinger", finger fngr)]

@@ -76,7 +76,7 @@ tuple :: TabWordsToMEI
 tuple = do
   c  <- chordCompound
   cs <- many chordNoRS
-  return $ MEITuple noMEIAttrs $ c : cs
+  return $ MEITuple ( atNum 3 <> atNumbase 2 ) $ c : cs
 
 chord :: TabWordsToMEI
 chord = tokenPrim show updatePos getChord
@@ -130,7 +130,7 @@ meter = tokenPrim show updatePos getMeter
       (SingleMeterSign HalfImperfectMinor)
         -> Just $ MEIStaffDef ( atProlation 2 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot False <> atCut 1 ) [] ]
       (VerticalMeterSign (Beats n) (Beats b))
-        -> Just $ MEIStaffDef ( atNum n <> atBase b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
+        -> Just $ MEIStaffDef ( atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
       (SingleMeterSign (Beats 3))
         -> Just $ MEIStaffDef ( atTempus 3 ) []
       _
