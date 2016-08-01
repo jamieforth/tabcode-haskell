@@ -71,6 +71,9 @@ atDot False = [("dot", "false")]
 atNum :: Int -> MEIAttrs
 atNum n = [("num.default", (pack $ show n))]
 
+atPlayingFinger :: Finger -> MEIAttrs
+atPlayingFinger fngr = [("playingFinger", finger fngr)]
+
 atProlation :: Int -> MEIAttrs
 atProlation p = boundedIntAttr p (2,3) "prolatio"
 
@@ -101,7 +104,8 @@ elConnectingLine :: Connecting -> [MEI]
 elConnectingLine conn = [XMLComment ""]
 
 elFingering :: Fingering -> [MEI]
-elFingering fng = [XMLComment ""]
+elFingering (FingeringLeft fngr _)  = [ MEIFingering ([("playingHand", "left")]  <> (atPlayingFinger fngr)) [] ]
+elFingering (FingeringRight fngr _) = [ MEIFingering ([("playingHand", "right")] <> (atPlayingFinger fngr)) [] ]
 
 elFretGlyph :: [Rule] -> Fret -> Maybe [MEI]
 elFretGlyph rls frt = m <$> glyph
@@ -136,6 +140,13 @@ course Four = pack "4"
 course Five = pack "5"
 course Six = pack "6"
 course (Bass n) = pack $ show $ 6 + n
+
+finger :: Finger -> Text
+finger FingerOne = pack "1"
+finger FingerTwo = pack "2"
+finger FingerThree = pack "3"
+finger FingerFour = pack "4"
+finger Thumb = pack "t"
 
 fretNo :: Fret -> Text
 fretNo A = pack "o"
