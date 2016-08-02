@@ -36,9 +36,8 @@ import           Data.Vector                   (Vector)
 import           TabCode
 import           TabCode.MEI.Elements
 import           TabCode.MEI.Types
-import           Text.Parsec.Prim
+import           Text.Parsec
 import           Text.Parsec.Combinator
-import           Text.ParserCombinators.Parsec
 
 instance (Monad m) => Stream (Vector a) m a where
   uncons v | V.null v  = return Nothing
@@ -47,7 +46,7 @@ instance (Monad m) => Stream (Vector a) m a where
 -- Now let's consider trying HXT again for the conversion. That way,
 -- you get an (partial) MEI parser for "free".
 
-type TabWordsToMEI = Parsec (Vector TabWord) () MEI
+type TabWordsToMEI = Parsec (Vector TabWord) [Rule] MEI
 
 defaultDoc :: [MEI] -> MEI
 defaultDoc staves = MEIMusic noMEIAttrs [body]
@@ -59,7 +58,7 @@ defaultDoc staves = MEIMusic noMEIAttrs [body]
     section = MEISection noMEIAttrs staves
 
 mei :: ([MEI] -> MEI) -> String -> TabCode -> Either ParseError MEI
-mei doc source (TabCode rls tws) = parse (containers doc) source tws
+mei doc source (TabCode rls tws) = runParser (containers doc) rls source tws
 
 containers :: ([MEI] -> MEI) -> TabWordsToMEI
 containers doc = do
@@ -84,29 +83,32 @@ tuple = do
   return $ MEITuple ( atNum 3 <> atNumbase 2 ) $ c : cs
 
 chord :: TabWordsToMEI
-chord = tokenPrim show updatePos getChord
+chord = do
+  rules <- getState
+  tokenPrim show updatePos (getChord rules)
   where
-    getChord ch@(Chord l c r ns) =
+    getChord rls ch@(Chord l c r ns) =
       Just $ MEIChord ( atDur <$:> r ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
-    getChord _ = Nothing
-    rls = []
+    getChord _ _ = Nothing
 
 chordCompound :: TabWordsToMEI
-chordCompound = tokenPrim show updatePos getChord
+chordCompound = do
+  rules <- getState
+  tokenPrim show updatePos (getChord rules)
   where
-    getChord ch@(Chord l c r@(Just (RhythmSign _ Compound _ _)) ns) =
+    getChord rls ch@(Chord l c r@(Just (RhythmSign _ Compound _ _)) ns) =
       Just $ MEIChord ( atDur <$:> r ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
-    getChord _ = Nothing
-    rls = []
+    getChord _ _ = Nothing
 
 chordNoRS :: TabWordsToMEI
-chordNoRS = tokenPrim show updatePos getChord
+chordNoRS = do
+  rules <- getState
+  tokenPrim show updatePos (getChord rules)
   where
-    getChord ch@(Chord l c Nothing ns) =
+    getChord rls ch@(Chord l c Nothing ns) =
       -- FIXME We need the duration from the previous chord here
       Just $ MEIChord noMEIAttrs $ ( concat $ (elNote rls) <$> ns )
-    getChord _ = Nothing
-    rls = []
+    getChord _ _ = Nothing
 
 rest :: TabWordsToMEI
 rest = tokenPrim show updatePos getRest
