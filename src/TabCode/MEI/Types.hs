@@ -24,12 +24,6 @@ module TabCode.MEI.Types
 
 import Data.Text
 
--- This is a sub-set of MEI! FIXME We really need a library which
--- generates a complete ADT for MEI from the ODD schema. But anyway,
--- the justification of this is that it's a type-safe version of what
--- you've started doing in MEI.Serialiser (which is not type-safe in
--- that it just works with Xml Elem and Xml Attr)
-
 type MEIAttrs = [(Text, Text)]
 
 data MEI

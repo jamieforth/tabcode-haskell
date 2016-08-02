@@ -43,9 +43,6 @@ instance (Monad m) => Stream (Vector a) m a where
   uncons v | V.null v  = return Nothing
            | otherwise = return $ Just (V.unsafeHead v, V.unsafeTail v)
 
--- Now let's consider trying HXT again for the conversion. That way,
--- you get an (partial) MEI parser for "free".
-
 type TabWordsToMEI = Parsec (Vector TabWord) [Rule] MEI
 
 defaultDoc :: [MEI] -> MEI
