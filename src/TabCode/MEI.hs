@@ -63,14 +63,19 @@ mei doc source (TabCode rls tws) = parse (containers doc) source tws
 
 containers :: ([MEI] -> MEI) -> TabWordsToMEI
 containers doc = do
-  s <- staff
+  s <- staff <|> justChords
   return $ doc $ [s]
 
 staff :: TabWordsToMEI
 staff = do
   staffDef <- meter
-  chords   <- many1 $ tuple <|> chord <|> rest
+  chords   <- many $ tuple <|> chord <|> rest
   return $ MEIStaff noMEIAttrs $ staffDef : chords
+
+justChords :: TabWordsToMEI
+justChords = do
+  chords <- many1 $ tuple <|> chord <|> rest
+  return $ MEIStaff noMEIAttrs $ chords
 
 tuple :: TabWordsToMEI
 tuple = do
@@ -106,8 +111,11 @@ chordNoRS = tokenPrim show updatePos getChord
 rest :: TabWordsToMEI
 rest = tokenPrim show updatePos getRest
   where
-    getRest re@(Rest l c rs) = Just $ MEIRest noMEIAttrs []
-    getRest _                = Nothing
+    getRest re@(Rest l c (RhythmSign Fermata _ _ _)) =
+      Just $ MEIFermata noMEIAttrs []
+    getRest re@(Rest l c r) =
+      Just $ MEIRest ( atDur r ) $ ( elRhythmSign r )
+    getRest _ = Nothing
 
 meter :: TabWordsToMEI
 meter = tokenPrim show updatePos getMeter
