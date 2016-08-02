@@ -24,6 +24,7 @@ import Distribution.TestSuite
 
 import qualified Data.ByteString.Char8  as C
 import           TabCode
+import           TabCode.MEI
 import           TabCode.MEI.Serialiser
 import           TabCode.Options        (TCOptions(..), ParseMode(..))
 import           TabCode.Parser         (parseTabcode)
@@ -52,10 +53,13 @@ tryMEISerialise tcStrIn meiStrIn =
                                                          ++ "; got: " ++ (show $ document tcXML)
       where
         tcXML      = tcMEI . tcMEIStr $ tc
-        tcMEIStr t = xrender $ doc defaultDocInfo $ staff t
+        tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc $ meiXml t
+        meiXml t   = case mei defaultDoc ("input: " ++ tcStrIn) t of
+                       Right m  -> m
+                       Left err -> error $ "Could not generate MEI tree for " ++ tcStrIn
         tcMEI xml  = case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xml of
-                       Right mei -> mei
-                       Left _    -> xmlParse "fail" "<empty/>"
+                       Right m -> m
+                       Left _  -> xmlParse "fail" "<empty/>"
 
     equal (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
     equal _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
@@ -63,48 +67,51 @@ tryMEISerialise tcStrIn meiStrIn =
 asStaff :: String -> String
 asStaff s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><staff xmlns='http://www.music-encoding.org/ns/mei'><layer>" ++ s ++ "</layer></staff>"
 
+asMEIDoc :: String -> String
+asMEIDoc s = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><music xmlns=\"http://www.music-encoding.org/ns/mei\"><body><mdiv><parts><part><section><staff>" ++ s ++ "</staff></section></part></parts></mdiv></body></music>"
+
 meterSigns :: [Test]
 meterSigns =
   [ Test $ mkMEITest
-    "M(O.)\n" $ asStaff "<staffDef prolatio='3' tempus='3'><mensur sign='O' dot='true'/></staffDef>"
+    "M(O.)\n" $ asMEIDoc "<staffDef prolatio='3' tempus='3'><mensur sign='O' dot='true'/></staffDef>"
   , Test $ mkMEITest
-    "M(O)\n" $ asStaff "<staffDef prolatio='3' tempus='2'><mensur sign='O' dot='false'/></staffDef>"
+    "M(O)\n" $ asMEIDoc "<staffDef prolatio='3' tempus='2'><mensur sign='O' dot='false'/></staffDef>"
   , Test $ mkMEITest
-    "M(C.)\n" $ asStaff "<staffDef prolatio='2' tempus='3'><mensur sign='C' dot='true'/></staffDef>"
+    "M(C.)\n" $ asMEIDoc "<staffDef prolatio='2' tempus='3'><mensur sign='C' dot='true'/></staffDef>"
   , Test $ mkMEITest
-    "M(C)\n" $ asStaff "<staffDef prolatio='2' tempus='2'><mensur sign='C' dot='false'/></staffDef>"
+    "M(C)\n" $ asMEIDoc "<staffDef prolatio='2' tempus='2'><mensur sign='C' dot='false'/></staffDef>"
   , Test $ mkMEITest
-    "M(O/.)\n" $ asStaff "<staffDef prolatio='3' tempus='3' mensur.slash='1'><mensur sign='O' dot='true' slash='1'/></staffDef>"
+    "M(O/.)\n" $ asMEIDoc "<staffDef prolatio='3' tempus='3' mensur.slash='1'><mensur sign='O' dot='true' slash='1'/></staffDef>"
   , Test $ mkMEITest
-    "M(O/)\n" $ asStaff "<staffDef prolatio='3' tempus='2' mensur.slash='1'><mensur sign='O' dot='false' slash='1'/></staffDef>"
+    "M(O/)\n" $ asMEIDoc "<staffDef prolatio='3' tempus='2' mensur.slash='1'><mensur sign='O' dot='false' slash='1'/></staffDef>"
   , Test $ mkMEITest
-    "M(C/.)\n" $ asStaff "<staffDef prolatio='2' tempus='3' mensur.slash='1'><mensur sign='C' dot='true' slash='1'/></staffDef>"
+    "M(C/.)\n" $ asMEIDoc "<staffDef prolatio='2' tempus='3' mensur.slash='1'><mensur sign='C' dot='true' slash='1'/></staffDef>"
   , Test $ mkMEITest
-    "M(C/)\n" $ asStaff "<staffDef prolatio='2' tempus='2' mensur.slash='1'><mensur sign='C' dot='false' slash='1'/></staffDef>"
+    "M(C/)\n" $ asMEIDoc "<staffDef prolatio='2' tempus='2' mensur.slash='1'><mensur sign='C' dot='false' slash='1'/></staffDef>"
   , Test $ mkMEITest
-    "M(D.)\n" $ asStaff "<staffDef prolatio='2' tempus='3' mensur.slash='1'><mensur sign='C' dot='true' slash='1'/></staffDef>"
+    "M(D.)\n" $ asMEIDoc "<staffDef prolatio='2' tempus='3' mensur.slash='1'><mensur sign='C' dot='true' slash='1'/></staffDef>"
   , Test $ mkMEITest
-    "M(D)\n" $ asStaff "<staffDef prolatio='2' tempus='2' mensur.slash='1'><mensur sign='C' dot='false' slash='1'/></staffDef>"
+    "M(D)\n" $ asMEIDoc "<staffDef prolatio='2' tempus='2' mensur.slash='1'><mensur sign='C' dot='false' slash='1'/></staffDef>"
   , Test $ mkMEITest
-    "M(3:4)\n" $ asStaff "<staffDef num.default='3' numbase.default='4'><meterSig count='3' unit='4'/></staffDef>"
+    "M(3:4)\n" $ asMEIDoc "<staffDef num.default='3' numbase.default='4'><meterSig count='3' unit='4'/></staffDef>"
   , Test $ mkMEITest
-    "M(3)\n" $ asStaff "<staffDef tempus='3'/>"
+    "M(3)\n" $ asMEIDoc "<staffDef tempus='3'/>"
   ]
 
 rests :: [Test]
 rests =
   [ Test $ mkMEITest
-    "F\n" $ asStaff "<fermata/>"
+    "F\n" $ asMEIDoc "<fermata/>"
   , Test $ mkMEITest
-    "B\n" $ asStaff "<rest dur='breve'><rhythmGlyph symbol='B'/></rest>"
+    "B\n" $ asMEIDoc "<rest dur='breve'><rhythmGlyph symbol='B'/></rest>"
   , Test $ mkMEITest
-    "W\n" $ asStaff "<rest dur='1'><rhythmGlyph symbol='W'/></rest>"
+    "W\n" $ asMEIDoc "<rest dur='1'><rhythmGlyph symbol='W'/></rest>"
   , Test $ mkMEITest
-    "W.\n" $ asStaff "<rest dur='1' dots='1'><rhythmGlyph symbol='W.' dots='1'/></rest>"
+    "W.\n" $ asMEIDoc "<rest dur='1' dots='1'><rhythmGlyph symbol='W.' dots='1'/></rest>"
   , Test $ mkMEITest
-    "H\n" $ asStaff "<rest dur='2'><rhythmGlyph symbol='H'/></rest>"
+    "H\n" $ asMEIDoc "<rest dur='2'><rhythmGlyph symbol='H'/></rest>"
   , Test $ mkMEITest
-    "H.\n" $ asStaff "<rest dur='2' dots='1'><rhythmGlyph symbol='H.' dots='1'/></rest>"
+    "H.\n" $ asMEIDoc "<rest dur='2' dots='1'><rhythmGlyph symbol='H.' dots='1'/></rest>"
   ]
 
 tests :: IO [Test]

@@ -20,9 +20,10 @@
 
 module Main where
 
-import Data.ByteString.Char8  (putStrLn)
+import Data.ByteString.Char8  (pack, putStrLn)
 import Options.Applicative
 import Prelude                hiding (putStrLn)
+import TabCode.MEI
 import TabCode.MEI.Serialiser (meiDoc)
 import TabCode.Options
 import TabCode.Parser         (parseTabcodeStdIn)
@@ -39,4 +40,7 @@ main = execParser opts >>= runSerialiser
   where
     runSerialiser o = do
       tc <- parseTabcodeStdIn o
-      putStrLn $ xrender $ doc defaultDocInfo $ meiDoc tc
+      m  <- case mei defaultDoc "stdin" tc of
+        Right m  -> return m
+        Left err -> do { putStrLn $ pack $ "Could not construct MEI tree: " ++ (show err); return $ MEIMusic [] [] }
+      putStrLn $ xrender $ doc defaultDocInfo $ meiDoc m
