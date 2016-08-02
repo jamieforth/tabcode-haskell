@@ -17,7 +17,10 @@ library
                , vector
                , xmlgen
   exposed-modules: TabCode
+                 , TabCode.MEI
+                 , TabCode.MEI.Elements
                  , TabCode.MEI.Serialiser
+                 , TabCode.MEI.Types
                  , TabCode.Options
                  , TabCode.Parser
   hs-source-dirs: src
@@ -25,34 +28,20 @@ library
 
 executable tccheck
   build-depends: base >= 4 && < 5
-               , containers
                , optparse-applicative
-               , parsec
-               , parsec-numbers
-               , vector
+               , TabCode
   main-is: Checker.hs
-  hs-source-dirs: src
-  other-modules: TabCode
-               , TabCode.Options
-               , TabCode.Parser
+  hs-source-dirs: prog
   ghc-options: -O2
 
 executable tc2mei
   build-depends: base >= 4 && < 5
                , bytestring
-               , containers
                , optparse-applicative
-               , parsec
-               , parsec-numbers
-               , text
-               , vector
+               , TabCode
                , xmlgen
   main-is: TC2MEI.hs
-  hs-source-dirs: src
-  other-modules: TabCode
-               , TabCode.MEI.Serialiser
-               , TabCode.Options
-               , TabCode.Parser
+  hs-source-dirs: prog
   ghc-options: -O2
 
 test-suite parse-tests
@@ -60,15 +49,9 @@ test-suite parse-tests
   test-module: ParseTests
   build-depends: base >= 4 && < 5
                , Cabal >= 1.9.2
-               , containers
-               , optparse-applicative
-               , parsec
-               , parsec-numbers
+               , TabCode
                , vector
-  hs-source-dirs: src, tests
-  other-modules: TabCode
-               , TabCode.Options
-               , TabCode.Parser
+  hs-source-dirs: tests
 
 test-suite mei-tests
   type: detailed-0.9
@@ -76,16 +59,8 @@ test-suite mei-tests
   build-depends: base >= 4 && < 5
                , bytestring
                , Cabal >= 1.9.2
-               , containers
                , HaXml
-               , optparse-applicative
-               , parsec
-               , parsec-numbers
+               , TabCode
                , text
-               , vector
                , xmlgen
-  hs-source-dirs: src, tests
-  other-modules: TabCode
-               , TabCode.MEISerialiser
-               , TabCode.Options
-               , TabCode.Parser
+  hs-source-dirs: tests
