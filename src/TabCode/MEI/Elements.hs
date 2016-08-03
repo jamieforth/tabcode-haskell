@@ -22,6 +22,7 @@
 
 module TabCode.MEI.Elements where
 
+import Data.Maybe  (catMaybes)
 import Data.Monoid (mempty, (<>))
 import Data.Text   (Text, pack, unpack)
 import TabCode
@@ -29,6 +30,18 @@ import TabCode.MEI.Types
 
 noMEIAttrs :: MEIAttrs
 noMEIAttrs = mempty
+
+someAttrs :: [Text] -> MEIAttrs -> MEIAttrs
+someAttrs keys meiAttrs = zip keys $ catMaybes $ lkUp keys meiAttrs
+  where
+    lkUp (k:ks) attrs = lookup k attrs : lkUp ks attrs
+    lkUp []     _     = []
+
+updateAttrs :: MEIAttrs -> MEIAttrs -> MEIAttrs
+updateAttrs initial new =
+  (filter (\(k,_) -> k `notElem` nKeys) initial) ++ new
+  where
+    nKeys = map fst new
 
 children :: Maybe [a] -> [a]
 children (Just xs) = xs
