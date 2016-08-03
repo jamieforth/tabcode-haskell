@@ -127,9 +127,9 @@ barLineRptB = tokenPrim show updatePos getBarLine
 
 tuple :: TabWordsToMEI
 tuple = do
-  c  <- chordCompound
+  c  <- many1 chordCompound
   cs <- many chordNoRS
-  return $ MEITuple ( atNum 3 <> atNumbase 2 ) $ c : cs
+  return $ MEITuple ( atNum 3 <> atNumbase 2 ) $ c ++ cs
 
 chord :: TabWordsToMEI
 chord = do
