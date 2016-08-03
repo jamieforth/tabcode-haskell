@@ -82,6 +82,9 @@ atPlayingFinger fngr = [("playingFinger", finger fngr)]
 atProlation :: Int -> MEIAttrs
 atProlation p = boundedIntAttr p (2,3) "prolatio"
 
+atRight :: String -> MEIAttrs
+atRight s = [("right", pack s)]
+
 atSign :: Char -> MEIAttrs
 atSign 'O' = [("sign", "O")]
 atSign 'C' = [("sign", "C")]

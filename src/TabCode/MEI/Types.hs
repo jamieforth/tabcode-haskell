@@ -27,7 +27,8 @@ import Data.Text
 type MEIAttrs = [(Text, Text)]
 
 data MEI
-  = MEIBeam MEIAttrs [MEI]
+  = MEIBarLine MEIAttrs [MEI]
+  | MEIBeam MEIAttrs [MEI]
   | MEIBody MEIAttrs [MEI]
   | MEIChord MEIAttrs [MEI]
   | MEIFermata MEIAttrs [MEI]

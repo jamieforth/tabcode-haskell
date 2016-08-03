@@ -18,6 +18,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -65,13 +66,64 @@ containers doc = do
 staff :: TabWordsToMEI
 staff = do
   staffDef <- meter
-  chords   <- many $ tuple <|> chord <|> rest
-  return $ MEIStaff noMEIAttrs $ staffDef : chords
+  ms       <- many anyMeasure
+  trailing <- many $ tuple <|> chord <|> rest
+  eof
+  return $ MEIStaff noMEIAttrs $ staffDef : ms ++ trailing
 
 justChords :: TabWordsToMEI
 justChords = do
+  ms       <- many anyMeasure
+  trailing <- many $ tuple <|> chord <|> rest
+  eof
+  return $ MEIStaff noMEIAttrs $ ms ++ trailing
+
+measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
+measureP barlineP attrs = do
   chords <- many1 $ tuple <|> chord <|> rest
-  return $ MEIStaff noMEIAttrs $ chords
+  barlineP
+  return $ MEIMeasure attrs chords
+
+measureSng    = measureP barLineSng ( atRight "single" )
+measureDbl    = measureP barLineDbl ( atRight "double" )
+measureRptEnd = measureP barLineRptL ( atRight "rptend" )
+measureRptStr = measureP barLineRptR ( atRight "rptstart" )
+measureRptBth = measureP barLineRptB ( atRight "rptboth" )
+
+anyMeasure = (try measureSng) <|> (try measureDbl) <|> (try measureRptEnd) <|> (try measureRptStr) <|> (try measureRptBth)
+
+barLineSng :: TabWordsToMEI
+barLineSng = tokenPrim show updatePos getBarLine
+  where
+    getBarLine bl@(BarLine l c (SingleBar Nothing Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine _ = Nothing
+
+barLineDbl :: TabWordsToMEI
+barLineDbl = tokenPrim show updatePos getBarLine
+  where
+    getBarLine bl@(BarLine l c (DoubleBar Nothing Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine _ = Nothing
+
+barLineRptL :: TabWordsToMEI
+barLineRptL = tokenPrim show updatePos getBarLine
+  where
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatLeft) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatLeft) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine _ = Nothing
+
+barLineRptR :: TabWordsToMEI
+barLineRptR = tokenPrim show updatePos getBarLine
+  where
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatRight) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatRight) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine _ = Nothing
+
+barLineRptB :: TabWordsToMEI
+barLineRptB = tokenPrim show updatePos getBarLine
+  where
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatBoth) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatBoth) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine _ = Nothing
 
 tuple :: TabWordsToMEI
 tuple = do
