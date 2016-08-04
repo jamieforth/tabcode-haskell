@@ -77,7 +77,7 @@ withBarLines doc = do
 
 measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
 measureP barlineP attrs = do
-  chords <- many1 $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
+  chords <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
   return $ MEIMeasure attrs [ MEIStaff noMEIAttrs [ MEILayer noMEIAttrs chords ] ]
 
