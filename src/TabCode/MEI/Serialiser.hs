@@ -50,6 +50,8 @@ tcXml_ :: Text -> MEIAttrs -> Xml Elem
 tcXml_ n as = xelemQ tc n $ xattrs $ map (\(n,v) -> xattr n v) as
 
 meiDoc :: MEI -> Xml Elem
+meiDoc (MEI             attrs [])       = meiXml_ "mei" attrs
+meiDoc (MEI             attrs children) = meiXml  "mei" attrs children
 meiDoc (MEIBarLine      attrs [])       = meiXml_ "barLine" attrs
 meiDoc (MEIBarLine      attrs children) = meiXml  "barLine" attrs children
 meiDoc (MEIBeam         attrs [])       = meiXml_ "beam" attrs
@@ -64,6 +66,8 @@ meiDoc (MEIFingering    attrs [])       = meiXml_ "fingering" attrs
 meiDoc (MEIFingering    attrs children) = meiXml  "fingering" attrs children
 meiDoc (MEIFretGlyph    attrs [])       = meiXml_ "fretGlyph" attrs
 meiDoc (MEIFretGlyph    attrs children) = meiXml  "fretGlyph" attrs children
+meiDoc (MEIHead         attrs [])       = meiXml_ "meiHead" attrs
+meiDoc (MEIHead         attrs children) = meiXml  "meiHead" attrs children
 meiDoc (MEILayer        attrs [])       = meiXml_ "layer" attrs
 meiDoc (MEILayer        attrs children) = meiXml  "layer" attrs children
 meiDoc (MEIMDiv         attrs [])       = meiXml_ "mdiv" attrs

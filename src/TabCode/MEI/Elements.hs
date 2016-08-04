@@ -80,6 +80,9 @@ atDot False = [("dot", "false")]
 atForm :: String -> MEIAttrs
 atForm s = [("form", pack s)]
 
+atMeiVersion :: MEIAttrs
+atMeiVersion = [("meiversion", "3.0.0")]
+
 atNum :: Int -> MEIAttrs
 atNum n = [("num", (pack $ show n))]
 

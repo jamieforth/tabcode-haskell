@@ -27,13 +27,15 @@ import Data.Text
 type MEIAttrs = [(Text, Text)]
 
 data MEI
-  = MEIBarLine MEIAttrs [MEI]
+  = MEI MEIAttrs [MEI]
+  | MEIBarLine MEIAttrs [MEI]
   | MEIBeam MEIAttrs [MEI]
   | MEIBody MEIAttrs [MEI]
   | MEIChord MEIAttrs [MEI]
   | MEIFermata MEIAttrs [MEI]
   | MEIFingering MEIAttrs [MEI]
   | MEIFretGlyph MEIAttrs [MEI]
+  | MEIHead MEIAttrs [MEI]
   | MEILayer MEIAttrs [MEI]
   | MEIMDiv MEIAttrs [MEI]
   | MEIMeasure MEIAttrs [MEI]

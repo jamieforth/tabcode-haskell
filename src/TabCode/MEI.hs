@@ -48,8 +48,10 @@ instance (Monad m) => Stream (Vector a) m a where
 type TabWordsToMEI = Parsec (Vector TabWord) ([Rule], MEIAttrs) MEI
 
 defaultDoc :: [MEI] -> MEI
-defaultDoc staves = MEIMusic noMEIAttrs [body]
+defaultDoc staves = MEI ( atMeiVersion ) [head, music]
   where
+    head    = MEIHead    noMEIAttrs []
+    music   = MEIMusic   noMEIAttrs [body]
     body    = MEIBody    noMEIAttrs [mdiv]
     mdiv    = MEIMDiv    noMEIAttrs [parts]
     parts   = MEIParts   noMEIAttrs [part]
