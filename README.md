@@ -45,10 +45,19 @@ lute tablature, and tools for checking and converting Tabcode files to
         $ cabal build
         $ cabal test
 
+7. Install:
+
+        $ cabal install
+   
+   This step installs the executalbes into the sandbox in
+   `tabcode-haskell/.cabal-sandbox/bin`. It's not strictly necessary
+   as the executables are already available in
+   `tabcode-haskell/dist/build/`.
+
 ### Usage
 
 Following the build process, you have two executables in
-`tabcode-haskell/dist`: `tc2mei` and `tccheck`. Both read Tabcode data
+`tabcode-haskell/.cabal-sandbox/bin`: `tc2mei` and `tccheck`. Both read Tabcode data
 from standard in. `tc2mei` then writes an MEI XML version of its input
 to standard out. `tccheck` will either report errors in parsing the
 input and return exit code `1` or, if the input was valid, just return
@@ -57,7 +66,13 @@ exit code `0`.
 It may be useful to copy the `tc2mei` and/or `tccheck` executables
 into a directory on your `PATH`, e.g.:
 
+    $ sudo cp tabcode-haskell/.cabal-sandbox/bin/tc2mei /usr/local/bin
+
+(Or:
+
     $ sudo cp tabcode-haskell/dist/build/tc2mei/tc2mei /usr/local/bin
+
+if you didn't both the `cabal install` step.)
 
 This way, you can use `tc2mei` from anywhere.
 
@@ -71,6 +86,9 @@ Or to put it into a file:
 
     $ cat tabcodefile.tc | tc2mei | xmllint --format - > tabcodefile.xml
 
+Run `tc2mei` with the `-h` (or `--help`) switch to see the available
+options.
+
 When `tc2mei` encounters an error in the TabCode input it will abort
 immediately with an error message. You can optionally supply the
 `--permissive` command line switch which will cause it instead to
@@ -78,6 +96,12 @@ continue parsing the rest of the input and then report any unparsable
 tabwords in the XML output as comments, e.g.:
 
     $ cat tabcodefile-with-errors.tc | tc2mei --permissive | xmllint --format - > tabcodefile-with-errors.xml
+
+`tc2mei` accepts a `--with-measures` switch to change the structure of
+the resulting MEI from a single `<staff>` with interspersed
+`<barLine>` elements to a series of `<measure>` elements, each
+containing a slice of the `<staff>`. The barline-structure is the
+default and has no explicit corresponding switch.
 
 ### Limitations
 
@@ -88,6 +112,7 @@ tabwords in the XML output as comments, e.g.:
 ### License
 
 Copyright (C) 2015, 2016 Richard Lewis, Goldsmiths' College
+
 Author: Richard Lewis <richard.lewis@gold.ac.uk>
 
 This file is part of TabCode
