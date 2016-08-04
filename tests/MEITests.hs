@@ -95,6 +95,8 @@ meterSigns =
   , Test $ mkMEITest
     "M(3:4)\n" $ asMEIDoc "<staffDef num.default='3' numbase.default='4'><meterSig count='3' unit='4'/></staffDef>"
   , Test $ mkMEITest
+    "M(3;4)\n" $ asMEIDoc "<staffDef num.default='3' numbase.default='4'><meterSig count='3' unit='4'/></staffDef>"
+  , Test $ mkMEITest
     "M(3)\n" $ asMEIDoc "<staffDef tempus='3'/>"
   ]
 
