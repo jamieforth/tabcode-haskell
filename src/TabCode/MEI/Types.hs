@@ -51,7 +51,7 @@ data MEI
   | MEIStaff MEIAttrs [MEI]
   | MEIStaffDef MEIAttrs [MEI]
   | MEISystemBreak MEIAttrs [MEI]
-  | MEITuple MEIAttrs [MEI]
+  | MEITuplet MEIAttrs [MEI]
   | XMLText Text
   | XMLComment Text
   deriving (Eq, Show)

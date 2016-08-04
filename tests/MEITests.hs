@@ -127,7 +127,7 @@ chords =
   , Test $ mkMEITest
     "Q.c1\n" $ asMEIDoc "<chord dur='4' dots='1'><rhythmGlyph symbol='Q.' dots='1'/><note tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "E3c1\nc1\nc1\n" $ asMEIDoc "<tuple num='3' numbase='2'><chord dur='8'><rhythmGlyph symbol='E3'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord></tuple>"
+    "E3c1\nc1\nc1\n" $ asMEIDoc "<tuplet num='3' numbase='2'><chord dur='8'><rhythmGlyph symbol='E3'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord></tuplet>"
   ]
 
 tests :: IO [Test]

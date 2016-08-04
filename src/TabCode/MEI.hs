@@ -61,19 +61,19 @@ mei doc source (TabCode rls tws) = runParser (withBarLines doc) (rls, noMEIAttrs
 withMeasures :: ([MEI] -> MEI) -> TabWordsToMEI
 withMeasures doc = do
   ms       <- many1 $ anyMeasure
-  trailing <- many $ tuple <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
+  trailing <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
   return $ doc ( ms ++ trailing )
 
 withBarLines :: ([MEI] -> MEI) -> TabWordsToMEI
 withBarLines doc = do
-  cs <- many1 $ tuple <|> chord <|> rest <|> barLine <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
+  cs <- many1 $ tuplet <|> chord <|> rest <|> barLine <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
   return $ doc [ MEIStaff noMEIAttrs [ MEILayer noMEIAttrs cs ] ]
 
 measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
 measureP barlineP attrs = do
-  chords <- many1 $ tuple <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
+  chords <- many1 $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
   return $ MEIMeasure attrs [ MEIStaff noMEIAttrs [ MEILayer noMEIAttrs chords ] ]
 
@@ -121,11 +121,11 @@ barLineRptB = tokenPrim show updatePos getBarLine
 barLine :: TabWordsToMEI
 barLine = barLineSng <|> barLineDbl <|> barLineRptL <|> barLineRptR <|> barLineRptB
 
-tuple :: TabWordsToMEI
-tuple = do
+tuplet :: TabWordsToMEI
+tuplet = do
   c  <- many1 chordCompound
   cs <- many chordNoRS
-  return $ MEITuple ( atNum 3 <> atNumbase 2 ) $ c ++ cs
+  return $ MEITuplet ( atNum 3 <> atNumbase 2 ) $ c ++ cs
 
 chordLike :: ([Rule] -> MEIAttrs -> TabWord -> Maybe MEI) -> TabWordsToMEI
 chordLike getChord = do
