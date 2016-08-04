@@ -194,6 +194,8 @@ meter = tokenPrim show updatePos getMeter
         -> Just $ MEIStaffDef ( atProlation 2 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot False <> atCut 1 ) [] ]
       (VerticalMeterSign (Beats n) (Beats b))
         -> Just $ MEIStaffDef ( atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
+      (HorizontalMeterSign (Beats n) (Beats b))
+        -> Just $ MEIStaffDef ( atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
       (SingleMeterSign (Beats 3))
         -> Just $ MEIStaffDef ( atTempus 3 ) []
       _
