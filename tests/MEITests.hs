@@ -68,7 +68,7 @@ asStaff :: String -> String
 asStaff s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><staff xmlns='http://www.music-encoding.org/ns/mei'><layer>" ++ s ++ "</layer></staff>"
 
 asMEIDoc :: String -> String
-asMEIDoc s = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><music xmlns=\"http://www.music-encoding.org/ns/mei\"><body><mdiv><parts><part><section><staff>" ++ s ++ "</staff></section></part></parts></mdiv></body></music>"
+asMEIDoc s = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><music xmlns=\"http://www.music-encoding.org/ns/mei\"><body><mdiv><parts><part><section><staff><layer>" ++ s ++ "</layer></staff></section></part></parts></mdiv></body></music>"
 
 meterSigns :: [Test]
 meterSigns =

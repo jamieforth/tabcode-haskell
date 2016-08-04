@@ -77,6 +77,9 @@ atDot :: Bool -> MEIAttrs
 atDot True  = [("dot", "true")]
 atDot False = [("dot", "false")]
 
+atForm :: String -> MEIAttrs
+atForm s = [("form", pack s)]
+
 atNum :: Int -> MEIAttrs
 atNum n = [("num", (pack $ show n))]
 

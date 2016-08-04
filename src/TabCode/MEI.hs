@@ -56,33 +56,26 @@ defaultDoc staves = MEIMusic noMEIAttrs [body]
     section = MEISection noMEIAttrs staves
 
 mei :: ([MEI] -> MEI) -> String -> TabCode -> Either ParseError MEI
-mei doc source (TabCode rls tws) = runParser (containers doc) (rls, noMEIAttrs) source tws
+mei doc source (TabCode rls tws) = runParser (withBarLines doc) (rls, noMEIAttrs) source tws
 
-containers :: ([MEI] -> MEI) -> TabWordsToMEI
-containers doc = do
-  s <- staff <|> justChords
-  return $ doc $ [s]
-
-staff :: TabWordsToMEI
-staff = do
-  staffDef <- meter
-  ms       <- many anyMeasure
-  trailing <- many $ tuple <|> chord <|> rest <|> systemBreak <|> pageBreak <|> comment <|> invalid
+withMeasures :: ([MEI] -> MEI) -> TabWordsToMEI
+withMeasures doc = do
+  ms       <- many1 $ anyMeasure
+  trailing <- many $ tuple <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
-  return $ MEIStaff noMEIAttrs $ staffDef : ms ++ trailing
+  return $ doc ( ms ++ trailing )
 
-justChords :: TabWordsToMEI
-justChords = do
-  ms       <- many anyMeasure
-  trailing <- many $ tuple <|> chord <|> rest <|> systemBreak <|> pageBreak <|> comment <|> invalid
+withBarLines :: ([MEI] -> MEI) -> TabWordsToMEI
+withBarLines doc = do
+  cs <- many1 $ tuple <|> chord <|> rest <|> barLine <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
-  return $ MEIStaff noMEIAttrs $ ms ++ trailing
+  return $ doc [ MEIStaff noMEIAttrs [ MEILayer noMEIAttrs cs ] ]
 
 measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
 measureP barlineP attrs = do
-  chords <- many1 $ tuple <|> chord <|> rest <|> systemBreak <|> pageBreak <|> comment <|> invalid
+  chords <- many1 $ tuple <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
-  return $ MEIMeasure attrs chords
+  return $ MEIMeasure attrs [ MEIStaff noMEIAttrs [ MEILayer noMEIAttrs chords ] ]
 
 measureSng    = measureP barLineSng ( atRight "single" )
 measureDbl    = measureP barLineDbl ( atRight "double" )
@@ -95,35 +88,38 @@ anyMeasure = (try measureSng) <|> (try measureDbl) <|> (try measureRptEnd) <|> (
 barLineSng :: TabWordsToMEI
 barLineSng = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (SingleBar Nothing Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine bl@(BarLine l c (SingleBar Nothing Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "single" ) []
     getBarLine _ = Nothing
 
 barLineDbl :: TabWordsToMEI
 barLineDbl = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (DoubleBar Nothing Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine bl@(BarLine l c (DoubleBar Nothing Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "double" ) []
     getBarLine _ = Nothing
 
 barLineRptL :: TabWordsToMEI
 barLineRptL = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (SingleBar (Just RepeatLeft) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
-    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatLeft) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatLeft) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "single-rptend" ) []
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatLeft) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "double-rptend" ) []
     getBarLine _ = Nothing
 
 barLineRptR :: TabWordsToMEI
 barLineRptR = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (SingleBar (Just RepeatRight) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
-    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatRight) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatRight) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "single-rptstart" ) []
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatRight) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "double-rptstart" ) []
     getBarLine _ = Nothing
 
 barLineRptB :: TabWordsToMEI
 barLineRptB = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (SingleBar (Just RepeatBoth) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
-    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatBoth) Nothing NotDashed _)) = Just $ MEIBarLine noMEIAttrs []
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatBoth) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "single-rptboth" ) []
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatBoth) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "double-rptboth" ) []
     getBarLine _ = Nothing
+
+barLine :: TabWordsToMEI
+barLine = barLineSng <|> barLineDbl <|> barLineRptL <|> barLineRptR <|> barLineRptB
 
 tuple :: TabWordsToMEI
 tuple = do
