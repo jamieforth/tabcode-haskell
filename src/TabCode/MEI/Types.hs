@@ -42,6 +42,7 @@ data MEI
   | MEIMusic MEIAttrs [MEI]
   | MEINote MEIAttrs [MEI]
   | TCOrnament MEIAttrs [MEI]
+  | MEIPageBreak MEIAttrs [MEI]
   | MEIPart MEIAttrs [MEI]
   | MEIParts MEIAttrs [MEI]
   | MEIRest MEIAttrs [MEI]
@@ -49,6 +50,7 @@ data MEI
   | MEISection MEIAttrs [MEI]
   | MEIStaff MEIAttrs [MEI]
   | MEIStaffDef MEIAttrs [MEI]
+  | MEISystemBreak MEIAttrs [MEI]
   | MEITuple MEIAttrs [MEI]
   | XMLText Text
   | XMLComment Text

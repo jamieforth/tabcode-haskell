@@ -67,20 +67,20 @@ staff :: TabWordsToMEI
 staff = do
   staffDef <- meter
   ms       <- many anyMeasure
-  trailing <- many $ tuple <|> chord <|> rest
+  trailing <- many $ tuple <|> chord <|> rest <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
   return $ MEIStaff noMEIAttrs $ staffDef : ms ++ trailing
 
 justChords :: TabWordsToMEI
 justChords = do
   ms       <- many anyMeasure
-  trailing <- many $ tuple <|> chord <|> rest
+  trailing <- many $ tuple <|> chord <|> rest <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
   return $ MEIStaff noMEIAttrs $ ms ++ trailing
 
 measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
 measureP barlineP attrs = do
-  chords <- many1 $ tuple <|> chord <|> rest
+  chords <- many1 $ tuple <|> chord <|> rest <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
   return $ MEIMeasure attrs chords
 
@@ -201,6 +201,31 @@ meter = tokenPrim show updatePos getMeter
 
     getMeter _ = Nothing
 
+systemBreak :: TabWordsToMEI
+systemBreak = tokenPrim show updatePos getSystemBreak
+  where
+    getSystemBreak re@(SystemBreak l c) = Just $ MEISystemBreak noMEIAttrs []
+    getSystemBreak _                    = Nothing
+
+pageBreak :: TabWordsToMEI
+pageBreak = tokenPrim show updatePos getPageBreak
+  where
+    getPageBreak re@(PageBreak l c) = Just $ MEIPageBreak noMEIAttrs []
+    getPageBreak _                  = Nothing
+
+comment :: TabWordsToMEI
+comment = tokenPrim show updatePos getComment
+  where
+    getComment re@(Comment l c cmt) = Just $ XMLComment $ pack cmt
+    getComment _                    = Nothing
+
+invalid :: TabWordsToMEI
+invalid = tokenPrim show updatePos getInvalid
+  where
+    getInvalid re@(Invalid src l c word) =
+      Just $ XMLComment $ pack $ " tc2mei: Invalid tabword in source '" ++ src ++ "' (line: " ++ (show l) ++ "; col: " ++ (show c) ++ "): \"" ++ word ++ "\" "
+    getInvalid _ =
+      Nothing
 
 updatePos :: SourcePos -> TabWord -> Vector TabWord -> SourcePos
 updatePos pos _ v
