@@ -26,7 +26,7 @@ import qualified Data.ByteString.Char8  as C
 import           TabCode
 import           TabCode.MEI
 import           TabCode.MEI.Serialiser
-import           TabCode.Options        (TCOptions(..), ParseMode(..))
+import           TabCode.Options        (TCOptions(..), ParseMode(..), Structure(..))
 import           TabCode.Parser         (parseTabcode)
 import           Text.XML.Generator
 import           Text.XML.HaXml.Parse   (xmlParse', xmlParse)
@@ -44,7 +44,7 @@ mkMEITest tc xml = TestInstance {
 tryMEISerialise :: String -> String -> Result
 tryMEISerialise tcStrIn meiStrIn =
   equal
-    (parseTabcode (TCOptions { parseMode = Strict }) tcStrIn)
+    (parseTabcode (TCOptions { parseMode = Strict, structure = BarLines }) tcStrIn)
     (xmlParse' meiStrIn meiStrIn)
 
   where
@@ -54,7 +54,7 @@ tryMEISerialise tcStrIn meiStrIn =
       where
         tcXML      = tcMEI . tcMEIStr $ tc
         tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc $ meiXml t
-        meiXml t   = case mei defaultDoc ("input: " ++ tcStrIn) t of
+        meiXml t   = case mei BarLines defaultDoc ("input: " ++ tcStrIn) t of
                        Right m  -> m
                        Left err -> error $ "Could not generate MEI tree for " ++ tcStrIn
         tcMEI xml  = case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xml of

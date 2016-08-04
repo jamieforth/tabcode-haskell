@@ -24,12 +24,12 @@ import Distribution.TestSuite
 
 import qualified Data.Vector     as V
 import           TabCode
-import           TabCode.Options (TCOptions(..), ParseMode(..))
+import           TabCode.Options (TCOptions(..), ParseMode(..), Structure(..))
 import           TabCode.Parser  (parseTabcode)
 
 tryParseWord :: String -> TabWord -> Result
 tryParseWord tc tw =
-  case parseTabcode (TCOptions { parseMode = Strict }) tc of
+  case parseTabcode (TCOptions { parseMode = Strict, structure = BarLines }) tc of
     Right (TabCode rls wrds) -> check wrds tw
     Left err                 -> Fail $ show err
   where
@@ -49,7 +49,7 @@ mkParseTest tc tw = TestInstance {
 
 tryParseInvalidWord :: String -> Result
 tryParseInvalidWord tc =
-  case parseTabcode (TCOptions { parseMode = Strict }) tc of
+  case parseTabcode (TCOptions { parseMode = Strict, structure = BarLines }) tc of
     Right (TabCode rls wrds) -> Fail $ show wrds
     Left err                 -> Pass
 

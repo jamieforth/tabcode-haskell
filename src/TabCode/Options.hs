@@ -27,11 +27,20 @@ data ParseMode
   | Permissive
   deriving (Eq, Show)
 
+data Structure
+  = BarLines
+  | Measures
+  deriving (Eq, Show)
+
 data TCOptions = TCOptions {
-  parseMode :: ParseMode } deriving (Eq)
+    parseMode :: ParseMode
+  , structure :: Structure } deriving (Eq)
 
 config :: Parser TCOptions
 config = TCOptions
   <$> flag Strict Permissive
     ( long "permissive"
       <> help "Ignore invalid tabwords" )
+  <*> flag BarLines Measures
+    ( long "with-measures"
+      <> help "Structure the MEI with <measure> elements. The default is to use <barLine>s." )

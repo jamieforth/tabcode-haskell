@@ -40,7 +40,7 @@ main = execParser opts >>= runSerialiser
   where
     runSerialiser o = do
       tc <- parseTabcodeStdIn o
-      m  <- case mei defaultDoc "stdin" tc of
+      m  <- case mei (structure o) defaultDoc "stdin" tc of
         Right m  -> return m
         Left err -> do { putStrLn $ pack $ "Could not construct MEI tree: " ++ (show err); return $ MEIMusic [] [] }
       putStrLn $ xrender $ doc defaultDocInfo $ meiDoc m

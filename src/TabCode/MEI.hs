@@ -35,6 +35,7 @@ import           Data.Text                     (pack)
 import qualified Data.Vector                   as V
 import           Data.Vector                   (Vector)
 import           TabCode
+import           TabCode.Options               (Structure(..))
 import           TabCode.MEI.Elements
 import           TabCode.MEI.Types
 import           Text.Parsec
@@ -55,8 +56,9 @@ defaultDoc staves = MEIMusic noMEIAttrs [body]
     part    = MEIPart    noMEIAttrs [section]
     section = MEISection noMEIAttrs staves
 
-mei :: ([MEI] -> MEI) -> String -> TabCode -> Either ParseError MEI
-mei doc source (TabCode rls tws) = runParser (withBarLines doc) (rls, noMEIAttrs) source tws
+mei :: Structure -> ([MEI] -> MEI) -> String -> TabCode -> Either ParseError MEI
+mei BarLines doc source (TabCode rls tws) = runParser (withBarLines doc) (rls, noMEIAttrs) source tws
+mei Measures doc source (TabCode rls tws) = runParser (withMeasures doc) (rls, noMEIAttrs) source tws
 
 withMeasures :: ([MEI] -> MEI) -> TabWordsToMEI
 withMeasures doc = do
