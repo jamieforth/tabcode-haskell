@@ -24,7 +24,9 @@ module TabCode.MEI.Elements where
 
 import Data.Maybe  (catMaybes)
 import Data.Monoid (mempty, (<>))
-import Data.Text   (Text, pack, unpack)
+import Data.Text   (Text, pack, unpack, replace, append)
+import Data.Text.Read (decimal)
+import Prelude hiding (append)
 import TabCode
 import TabCode.MEI.Types
 
@@ -94,6 +96,16 @@ getChildren (MEITuplet        _ cs) = cs
 getChildren (XMLText _)             = []
 getChildren (XMLComment _)          = []
 
+getAttr :: Text -> MEIAttrs -> MEIAttrs
+getAttr att meiAttrs = case lookup att meiAttrs of
+  (Just v) -> [(att, v)]
+  Nothing  -> []
+
+getAttrAs :: Text -> Text -> MEIAttrs -> MEIAttrs
+getAttrAs att new meiAttrs = case lookup att meiAttrs of
+  (Just v) -> [(new, v)]
+  Nothing  -> []
+
 someAttrs :: [Text] -> MEIAttrs -> MEIAttrs
 someAttrs keys meiAttrs = zip keys $ catMaybes $ lkUp keys meiAttrs
   where
@@ -106,11 +118,36 @@ updateAttrs initial new =
   where
     nKeys = map fst new
 
+mutateAttr :: Text -> (Text -> Text) -> MEIAttrs -> MEIAttrs
+mutateAttr att m meiAttrs = rpl meiAttrs
+  where
+    rpl ((k,v):as) | k == att  = (k, m v) : rpl as
+                   | otherwise = (k, v)   : rpl as
+    rpl [] = []
+
+renameAttr :: Text -> Text -> MEIAttrs -> MEIAttrs
+renameAttr old new meiAttrs = rpl meiAttrs
+  where
+    rpl ((k,v):as) | k == old  = (new,v) : rpl as
+                   | otherwise = (k,  v) : rpl as
+    rpl [] = []
+
 incIntAttr :: MEIAttrs -> Text -> Int -> MEIAttrs
 incIntAttr meiAttrs attr n = updateAttrs meiAttrs [(attr, incN)]
   where
     incN = pack $ show $ n + (asInt $ lookup attr meiAttrs)
-    asInt (Just s) = read $ unpack s
+    asInt (Just s) = case decimal s of
+      Right (d, _) -> d
+      Left _       -> 0
+    asInt Nothing  = 0
+
+incPrefixedIntAttr :: MEIAttrs -> Text -> Text -> Int -> MEIAttrs
+incPrefixedIntAttr meiAttrs attr prefix n = updateAttrs meiAttrs [(attr, incN)]
+  where
+    incN = append prefix $ pack (show $ n + (asInt $ lookup attr meiAttrs))
+    asInt (Just s) = case decimal $ replace prefix (pack "") s of
+      Right (d, _) -> d
+      Left _       -> 0
     asInt Nothing  = 0
 
 children :: Maybe [a] -> [a]
