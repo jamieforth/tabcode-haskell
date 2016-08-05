@@ -82,7 +82,9 @@ measureP barlineP attrs = do
   chords <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
   st     <- getState
-  return $ MEIMeasure attrs [ MEIStaff (stStaff st) [ MEILayer (stLayer st) chords ] ]
+  let nextSt = st { stMeasure = incIntAttr (stMeasure st) (pack "n") 1 }
+  putState nextSt
+  return $ MEIMeasure (stMeasure st) [ MEIStaff (stStaff st) [ MEILayer (stLayer st) chords ] ]
 
 measureSng    = measureP barLineSng ( atRight "single" )
 measureDbl    = measureP barLineDbl ( atRight "double" )

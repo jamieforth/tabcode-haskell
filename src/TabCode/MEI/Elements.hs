@@ -70,6 +70,7 @@ emptyState =
            , stStaff     = noMEIAttrs
            , stStaffDef  = noMEIAttrs
            , stLayer     = noMEIAttrs
+           , stMeasure   = noMEIAttrs
            , stChord     = noMEIAttrs
            }
 
@@ -82,6 +83,7 @@ initialState =
            , stStaff     = [("n","1")]
            , stStaffDef  = noMEIAttrs
            , stLayer     = [("n","1")]
+           , stMeasure   = [("n","1")]
            , stChord     = noMEIAttrs
            }
 
