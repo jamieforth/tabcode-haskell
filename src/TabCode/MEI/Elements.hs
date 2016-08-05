@@ -31,6 +31,69 @@ import TabCode.MEI.Types
 noMEIAttrs :: MEIAttrs
 noMEIAttrs = mempty
 
+
+getAttrs :: MEI -> MEIAttrs
+getAttrs (MEI              attrs _) = attrs
+getAttrs (MEIBarLine       attrs _) = attrs
+getAttrs (MEIBeam          attrs _) = attrs
+getAttrs (MEIBody          attrs _) = attrs
+getAttrs (MEIChord         attrs _) = attrs
+getAttrs (MEIFermata       attrs _) = attrs
+getAttrs (MEIFingering     attrs _) = attrs
+getAttrs (MEIFretGlyph     attrs _) = attrs
+getAttrs (MEIHead          attrs _) = attrs
+getAttrs (MEILayer         attrs _) = attrs
+getAttrs (MEIMDiv          attrs _) = attrs
+getAttrs (MEIMeasure       attrs _) = attrs
+getAttrs (MEIMensur        attrs _) = attrs
+getAttrs (MEIMeterSig      attrs _) = attrs
+getAttrs (MEIMusic         attrs _) = attrs
+getAttrs (MEINote          attrs _) = attrs
+getAttrs (TCOrnament       attrs _) = attrs
+getAttrs (MEIPageBreak     attrs _) = attrs
+getAttrs (MEIPart          attrs _) = attrs
+getAttrs (MEIParts         attrs _) = attrs
+getAttrs (MEIRest          attrs _) = attrs
+getAttrs (MEIRhythmSign    attrs _) = attrs
+getAttrs (MEISection       attrs _) = attrs
+getAttrs (MEIStaff         attrs _) = attrs
+getAttrs (MEIStaffDef      attrs _) = attrs
+getAttrs (MEISystemBreak   attrs _) = attrs
+getAttrs (MEITuplet        attrs _) = attrs
+getAttrs (XMLText _)                = noMEIAttrs
+getAttrs (XMLComment _)             = noMEIAttrs
+
+getChildren :: MEI -> [MEI]
+getChildren (MEI              _ cs) = cs
+getChildren (MEIBarLine       _ cs) = cs
+getChildren (MEIBeam          _ cs) = cs
+getChildren (MEIBody          _ cs) = cs
+getChildren (MEIChord         _ cs) = cs
+getChildren (MEIFermata       _ cs) = cs
+getChildren (MEIFingering     _ cs) = cs
+getChildren (MEIFretGlyph     _ cs) = cs
+getChildren (MEIHead          _ cs) = cs
+getChildren (MEILayer         _ cs) = cs
+getChildren (MEIMDiv          _ cs) = cs
+getChildren (MEIMeasure       _ cs) = cs
+getChildren (MEIMensur        _ cs) = cs
+getChildren (MEIMeterSig      _ cs) = cs
+getChildren (MEIMusic         _ cs) = cs
+getChildren (MEINote          _ cs) = cs
+getChildren (TCOrnament       _ cs) = cs
+getChildren (MEIPageBreak     _ cs) = cs
+getChildren (MEIPart          _ cs) = cs
+getChildren (MEIParts         _ cs) = cs
+getChildren (MEIRest          _ cs) = cs
+getChildren (MEIRhythmSign    _ cs) = cs
+getChildren (MEISection       _ cs) = cs
+getChildren (MEIStaff         _ cs) = cs
+getChildren (MEIStaffDef      _ cs) = cs
+getChildren (MEISystemBreak   _ cs) = cs
+getChildren (MEITuplet        _ cs) = cs
+getChildren (XMLText _)             = []
+getChildren (XMLComment _)          = []
+
 someAttrs :: [Text] -> MEIAttrs -> MEIAttrs
 someAttrs keys meiAttrs = zip keys $ catMaybes $ lkUp keys meiAttrs
   where
