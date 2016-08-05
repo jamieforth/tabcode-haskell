@@ -72,7 +72,7 @@ into a directory on your `PATH`, e.g.:
 
     $ sudo cp tabcode-haskell/dist/build/tc2mei/tc2mei /usr/local/bin
 
-if you didn't both the `cabal install` step.)
+if you didn't bother with the `cabal install` step.)
 
 This way, you can use `tc2mei` from anywhere.
 
