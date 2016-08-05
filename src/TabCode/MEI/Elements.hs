@@ -184,8 +184,8 @@ initialState =
            , stStaff     = [("n","1")]
            , stStaffDef  = [("xml:id","staff-0")]
            , stLayer     = [("n","1")]
-           , stMeasure   = [("n","1")]
-           , stBarLine   = [("n","1")]
+           , stMeasure   = [("n","0")]
+           , stBarLine   = [("n","0")]
            , stChord     = noMEIAttrs
            }
 

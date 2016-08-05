@@ -89,7 +89,7 @@ measureP barlineP attrs = do
   st     <- getState
   let nextSt = st { stMeasure = incIntAttr (stMeasure st) (pack "n") 1 }
   putState nextSt
-  return $ MEIMeasure (stMeasure st) [ MEIStaff (stStaff st <> staffIDAsDef (stStaffDef st)) [ MEILayer (stLayer st) chords ] ]
+  return $ MEIMeasure (stMeasure nextSt) [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ]
 
 measureSng    = measureP barLineSng ( atRight "single" )
 measureDbl    = measureP barLineDbl ( atRight "double" )
@@ -136,7 +136,7 @@ barLine :: TabWordsToMEI
 barLine = do
   bl <- barLineSng <|> barLineDbl <|> barLineRptL <|> barLineRptR <|> barLineRptB
   st <- getState
-  let blWithN = MEIBarLine (updateAttrs (getAttrs bl) (stBarLine st)) (getChildren bl)
+  let blWithN = MEIBarLine (updateAttrs (getAttrs bl) (stBarLine nextSt)) (getChildren bl)
       nextSt  = st { stBarLine = incIntAttr (stBarLine st) (pack "n") 1 }
   putState nextSt
   return $ blWithN
