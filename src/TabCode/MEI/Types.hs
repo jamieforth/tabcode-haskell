@@ -20,9 +20,11 @@
 
 module TabCode.MEI.Types
   ( MEI(..)
-  , MEIAttrs ) where
+  , MEIAttrs
+  , MEIState(..) ) where
 
 import Data.Text
+import TabCode (Rule)
 
 type MEIAttrs = [(Text, Text)]
 
@@ -57,3 +59,15 @@ data MEI
   | XMLText Text
   | XMLComment Text
   deriving (Eq, Show)
+
+data MEIState = MEIState {
+    stRules     :: [Rule]
+  , stMdiv      :: MEIAttrs
+  , stPart      :: MEIAttrs
+  , stSection   :: MEIAttrs
+  , stStaff     :: MEIAttrs
+  , stStaffDef  :: MEIAttrs
+  , stLayer     :: MEIAttrs
+  , stChord     :: MEIAttrs
+  }
+  deriving (Eq)

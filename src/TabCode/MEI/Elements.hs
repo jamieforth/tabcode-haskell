@@ -54,6 +54,30 @@ f <$:> Nothing = []
 attrs :: MEIAttrs -> MEIAttrs -> MEIAttrs
 attrs xs ys = xs <> ys
 
+emptyState :: MEIState
+emptyState =
+  MEIState { stRules     = []
+           , stMdiv      = noMEIAttrs
+           , stPart      = noMEIAttrs
+           , stSection   = noMEIAttrs
+           , stStaff     = noMEIAttrs
+           , stStaffDef  = noMEIAttrs
+           , stLayer     = noMEIAttrs
+           , stChord     = noMEIAttrs
+           }
+
+initialState :: MEIState
+initialState =
+  MEIState { stRules     = []
+           , stMdiv      = [("n","1")]
+           , stPart      = [("n","1")]
+           , stSection   = [("n","1")]
+           , stStaff     = [("n","1")]
+           , stStaffDef  = noMEIAttrs
+           , stLayer     = [("n","1")]
+           , stChord     = noMEIAttrs
+           }
+
 boundedIntAttr :: Int -> (Int, Int) -> Text -> MEIAttrs
 boundedIntAttr i (l, u) n | i >= l && i <= u = [(n, (pack $ show i))]
                           | otherwise        = error $ "Invalid " ++ (unpack n) ++ ": " ++ (show i)

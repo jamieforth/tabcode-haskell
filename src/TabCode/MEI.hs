@@ -45,41 +45,44 @@ instance (Monad m) => Stream (Vector a) m a where
   uncons v | V.null v  = return Nothing
            | otherwise = return $ Just (V.unsafeHead v, V.unsafeTail v)
 
-type TabWordsToMEI = Parsec (Vector TabWord) ([Rule], MEIAttrs) MEI
+type TabWordsToMEI = Parsec (Vector TabWord) MEIState MEI
 
-defaultDoc :: [MEI] -> MEI
-defaultDoc staves = MEI ( atMeiVersion ) [head, music]
+defaultDoc :: MEIState -> [MEI] -> MEI
+defaultDoc st staves = MEI ( atMeiVersion ) [head, music]
   where
     head    = MEIHead    noMEIAttrs []
     music   = MEIMusic   noMEIAttrs [body]
     body    = MEIBody    noMEIAttrs [mdiv]
-    mdiv    = MEIMDiv    noMEIAttrs [parts]
+    mdiv    = MEIMDiv    (stMdiv st) [parts]
     parts   = MEIParts   noMEIAttrs [part]
-    part    = MEIPart    noMEIAttrs [section]
-    section = MEISection noMEIAttrs staves
+    part    = MEIPart    (stPart st) [section]
+    section = MEISection (stSection st) staves
 
-mei :: Structure -> ([MEI] -> MEI) -> String -> TabCode -> Either ParseError MEI
-mei BarLines doc source (TabCode rls tws) = runParser (withBarLines doc) (rls, noMEIAttrs) source tws
-mei Measures doc source (TabCode rls tws) = runParser (withMeasures doc) (rls, noMEIAttrs) source tws
+mei :: Structure -> (MEIState -> [MEI] -> MEI) -> String -> TabCode -> Either ParseError MEI
+mei BarLines doc source (TabCode rls tws) = runParser (withBarLines doc) (initialState { stRules = rls }) source tws
+mei Measures doc source (TabCode rls tws) = runParser (withMeasures doc) (initialState { stRules = rls }) source tws
 
-withMeasures :: ([MEI] -> MEI) -> TabWordsToMEI
+withMeasures :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withMeasures doc = do
   ms       <- many1 $ anyMeasure
   trailing <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
-  return $ doc ( ms ++ trailing )
+  st       <- getState
+  return $ doc st ( ms ++ trailing )
 
-withBarLines :: ([MEI] -> MEI) -> TabWordsToMEI
+withBarLines :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withBarLines doc = do
   cs <- many1 $ tuplet <|> chord <|> rest <|> barLine <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
-  return $ doc [ MEIStaff noMEIAttrs [ MEILayer noMEIAttrs cs ] ]
+  st       <- getState
+  return $ doc st [ MEIStaff (stStaff st) [ MEILayer (stLayer st) cs ] ]
 
 measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
 measureP barlineP attrs = do
   chords <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
-  return $ MEIMeasure attrs [ MEIStaff noMEIAttrs [ MEILayer noMEIAttrs chords ] ]
+  st     <- getState
+  return $ MEIMeasure attrs [ MEIStaff (stStaff st) [ MEILayer (stLayer st) chords ] ]
 
 measureSng    = measureP barLineSng ( atRight "single" )
 measureDbl    = measureP barLineDbl ( atRight "double" )
@@ -133,9 +136,9 @@ tuplet = do
 
 chordLike :: ([Rule] -> MEIAttrs -> TabWord -> Maybe MEI) -> TabWordsToMEI
 chordLike getChord = do
-  (rules, cDur) <- getState
-  c <- tokenPrim show updatePos (getChord rules cDur)
-  putState (rules, durOf c)
+  st <- getState
+  c <- tokenPrim show updatePos (getChord (stRules st) (stChord st))
+  putState $ st { stChord = durOf c }
   return c
 
   where
