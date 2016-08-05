@@ -43,6 +43,13 @@ updateAttrs initial new =
   where
     nKeys = map fst new
 
+incIntAttr :: MEIAttrs -> Text -> Int -> MEIAttrs
+incIntAttr meiAttrs attr n = updateAttrs meiAttrs [(attr, incN)]
+  where
+    incN = pack $ show $ n + (asInt $ lookup attr meiAttrs)
+    asInt (Just s) = read $ unpack s
+    asInt Nothing  = 0
+
 children :: Maybe [a] -> [a]
 children (Just xs) = xs
 children Nothing   = []
