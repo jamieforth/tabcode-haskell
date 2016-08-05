@@ -31,9 +31,10 @@ module TabCode.MEI
   , (<>) ) where
 
 import           Data.Monoid                   ((<>))
-import           Data.Text                     (pack)
+import           Data.Text                     (pack, append)
 import qualified Data.Vector                   as V
 import           Data.Vector                   (Vector)
+import           Prelude                       hiding (append)
 import           TabCode
 import           TabCode.Options               (Structure(..))
 import           TabCode.MEI.Elements
@@ -70,12 +71,16 @@ withMeasures doc = do
   st       <- getState
   return $ doc st ( ms ++ trailing )
 
+staffIDAsDef :: MEIAttrs -> MEIAttrs
+staffIDAsDef staffAttrs =
+  mutateAttr (pack "def") (\s -> append (pack "#") s) $ getAttrAs (pack "xml:id") (pack "def") staffAttrs
+
 withBarLines :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withBarLines doc = do
   cs <- many1 $ tuplet <|> chord <|> rest <|> barLine <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
-  st       <- getState
-  return $ doc st [ MEIStaff (stStaff st) [ MEILayer (stLayer st) cs ] ]
+  st <- getState
+  return $ doc st [ MEIStaff ( stStaff st <> staffIDAsDef (stStaffDef st)) [ MEILayer (stLayer st) cs ] ]
 
 measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
 measureP barlineP attrs = do
@@ -84,7 +89,7 @@ measureP barlineP attrs = do
   st     <- getState
   let nextSt = st { stMeasure = incIntAttr (stMeasure st) (pack "n") 1 }
   putState nextSt
-  return $ MEIMeasure (stMeasure st) [ MEIStaff (stStaff st) [ MEILayer (stLayer st) chords ] ]
+  return $ MEIMeasure (stMeasure st) [ MEIStaff (stStaff st <> staffIDAsDef (stStaffDef st)) [ MEILayer (stLayer st) chords ] ]
 
 measureSng    = measureP barLineSng ( atRight "single" )
 measureDbl    = measureP barLineDbl ( atRight "double" )
@@ -184,35 +189,40 @@ rest = tokenPrim show updatePos getRest
     getRest _ = Nothing
 
 meter :: TabWordsToMEI
-meter = tokenPrim show updatePos getMeter
+meter = do
+  st <- getState
+  let newSt = st { stStaffDef = incPrefixedIntAttr (stStaffDef st) (pack "xml:id") (pack "staff-") 1 }
+  m  <- tokenPrim show updatePos (getMeter $ stStaffDef newSt)
+  putState $ newSt
+  return m
   where
-    getMeter me@(Meter l c m) = case m of
+    getMeter atts me@(Meter l c m) = case m of
       (SingleMeterSign PerfectMajor)
-        -> Just $ MEIStaffDef ( atProlation 3 <> atTempus 3 ) [ MEIMensur ( atSign 'O' <> atDot True ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 3 ) [ MEIMensur ( atSign 'O' <> atDot True ) [] ]
       (SingleMeterSign PerfectMinor)
-        -> Just $ MEIStaffDef ( atProlation 3 <> atTempus 2 ) [ MEIMensur ( atSign 'O' <> atDot False ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 2 ) [ MEIMensur ( atSign 'O' <> atDot False ) [] ]
       (SingleMeterSign ImperfectMajor)
-        -> Just $ MEIStaffDef ( atProlation 2 <> atTempus 3 ) [ MEIMensur ( atSign 'C' <> atDot True ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 3 ) [ MEIMensur ( atSign 'C' <> atDot True ) [] ]
       (SingleMeterSign ImperfectMinor)
-        -> Just $ MEIStaffDef ( atProlation 2 <> atTempus 2 ) [ MEIMensur ( atSign 'C' <> atDot False ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 2 ) [ MEIMensur ( atSign 'C' <> atDot False ) [] ]
       (SingleMeterSign HalfPerfectMajor)
-        -> Just $ MEIStaffDef ( atProlation 3 <> atTempus 3 <> atSlash 1 ) [ MEIMensur ( atSign 'O' <> atDot True <> atCut 1 ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 3 <> atSlash 1 ) [ MEIMensur ( atSign 'O' <> atDot True <> atCut 1 ) [] ]
       (SingleMeterSign HalfPerfectMinor)
-        -> Just $ MEIStaffDef ( atProlation 3 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'O' <> atDot False <> atCut 1 ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'O' <> atDot False <> atCut 1 ) [] ]
       (SingleMeterSign HalfImperfectMajor)
-        -> Just $ MEIStaffDef ( atProlation 2 <> atTempus 3 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot True <> atCut 1 ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 3 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot True <> atCut 1 ) [] ]
       (SingleMeterSign HalfImperfectMinor)
-        -> Just $ MEIStaffDef ( atProlation 2 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot False <> atCut 1 ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot False <> atCut 1 ) [] ]
       (VerticalMeterSign (Beats n) (Beats b))
-        -> Just $ MEIStaffDef ( atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
       (HorizontalMeterSign (Beats n) (Beats b))
-        -> Just $ MEIStaffDef ( atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
       (SingleMeterSign (Beats 3))
-        -> Just $ MEIStaffDef ( atTempus 3 ) []
+        -> Just $ MEIStaffDef ( atts <> atTempus 3 ) []
       _
         -> Just $ XMLComment $ pack $ " tc2mei: Un-implemented mensuration sign: " ++ (show m) ++ " "
 
-    getMeter _ = Nothing
+    getMeter _ _ = Nothing
 
 systemBreak :: TabWordsToMEI
 systemBreak = tokenPrim show updatePos getSystemBreak
