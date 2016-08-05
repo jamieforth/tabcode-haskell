@@ -128,7 +128,13 @@ barLineRptB = tokenPrim show updatePos getBarLine
     getBarLine _ = Nothing
 
 barLine :: TabWordsToMEI
-barLine = barLineSng <|> barLineDbl <|> barLineRptL <|> barLineRptR <|> barLineRptB
+barLine = do
+  bl <- barLineSng <|> barLineDbl <|> barLineRptL <|> barLineRptR <|> barLineRptB
+  st <- getState
+  let blWithN = MEIBarLine (updateAttrs (getAttrs bl) (stBarLine st)) (getChildren bl)
+      nextSt  = st { stBarLine = incIntAttr (stBarLine st) (pack "n") 1 }
+  putState nextSt
+  return $ blWithN
 
 tuplet :: TabWordsToMEI
 tuplet = do

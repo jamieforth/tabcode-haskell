@@ -134,6 +134,7 @@ emptyState =
            , stStaffDef  = noMEIAttrs
            , stLayer     = noMEIAttrs
            , stMeasure   = noMEIAttrs
+           , stBarLine   = noMEIAttrs
            , stChord     = noMEIAttrs
            }
 
@@ -147,6 +148,7 @@ initialState =
            , stStaffDef  = noMEIAttrs
            , stLayer     = [("n","1")]
            , stMeasure   = [("n","1")]
+           , stBarLine   = [("n","1")]
            , stChord     = noMEIAttrs
            }
 
