@@ -329,7 +329,7 @@ finger FingerFour = pack "4"
 finger Thumb = pack "t"
 
 fretNo :: Fret -> Text
-fretNo A = pack "o"
+fretNo A = pack "0"
 fretNo B = pack "1"
 fretNo C = pack "2"
 fretNo D = pack "3"
@@ -345,7 +345,6 @@ fretNo M = pack "12"
 fretNo N = pack "13"
 
 fretGlyphIt :: Fret -> Text
-fretGlyphIt A = pack "0"
 fretGlyphIt f = fretNo f
 
 fretGlyphFr :: Fret -> Text
