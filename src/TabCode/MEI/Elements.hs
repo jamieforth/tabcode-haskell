@@ -37,13 +37,19 @@ noMEIAttrs = mempty
 getAttrs :: MEI -> MEIAttrs
 getAttrs (MEI              attrs _) = attrs
 getAttrs (MEIBarLine       attrs _) = attrs
+getAttrs (MEIBassTuning    attrs _) = attrs
 getAttrs (MEIBeam          attrs _) = attrs
 getAttrs (MEIBody          attrs _) = attrs
 getAttrs (MEIChord         attrs _) = attrs
+getAttrs (MEICourse        attrs _) = attrs
+getAttrs (MEICourseTuning  attrs _) = attrs
 getAttrs (MEIFermata       attrs _) = attrs
 getAttrs (MEIFingering     attrs _) = attrs
 getAttrs (MEIFretGlyph     attrs _) = attrs
 getAttrs (MEIHead          attrs _) = attrs
+getAttrs (MEIInstrConfig   attrs _) = attrs
+getAttrs (MEIInstrDesc     attrs _) = attrs
+getAttrs (MEIInstrName     attrs _) = attrs
 getAttrs (MEILayer         attrs _) = attrs
 getAttrs (MEIMDiv          attrs _) = attrs
 getAttrs (MEIMeasure       attrs _) = attrs
@@ -55,26 +61,38 @@ getAttrs (TCOrnament       attrs _) = attrs
 getAttrs (MEIPageBreak     attrs _) = attrs
 getAttrs (MEIPart          attrs _) = attrs
 getAttrs (MEIParts         attrs _) = attrs
+getAttrs (MEIPerfMedium    attrs _) = attrs
+getAttrs (MEIPerfRes       attrs _) = attrs
+getAttrs (MEIPerfResList   attrs _) = attrs
 getAttrs (MEIRest          attrs _) = attrs
 getAttrs (MEIRhythmSign    attrs _) = attrs
 getAttrs (MEISection       attrs _) = attrs
 getAttrs (MEIStaff         attrs _) = attrs
 getAttrs (MEIStaffDef      attrs _) = attrs
+getAttrs (MEIString        attrs _) = attrs
 getAttrs (MEISystemBreak   attrs _) = attrs
 getAttrs (MEITuplet        attrs _) = attrs
+getAttrs (MEIWork          attrs _) = attrs
+getAttrs (MEIWorkDesc      attrs _) = attrs
 getAttrs (XMLText _)                = noMEIAttrs
 getAttrs (XMLComment _)             = noMEIAttrs
 
 getChildren :: MEI -> [MEI]
 getChildren (MEI              _ cs) = cs
 getChildren (MEIBarLine       _ cs) = cs
+getChildren (MEIBassTuning    _ cs) = cs
 getChildren (MEIBeam          _ cs) = cs
 getChildren (MEIBody          _ cs) = cs
 getChildren (MEIChord         _ cs) = cs
+getChildren (MEICourse        _ cs) = cs
+getChildren (MEICourseTuning  _ cs) = cs
 getChildren (MEIFermata       _ cs) = cs
 getChildren (MEIFingering     _ cs) = cs
 getChildren (MEIFretGlyph     _ cs) = cs
 getChildren (MEIHead          _ cs) = cs
+getChildren (MEIInstrConfig   _ cs) = cs
+getChildren (MEIInstrDesc     _ cs) = cs
+getChildren (MEIInstrName     _ cs) = cs
 getChildren (MEILayer         _ cs) = cs
 getChildren (MEIMDiv          _ cs) = cs
 getChildren (MEIMeasure       _ cs) = cs
@@ -86,13 +104,19 @@ getChildren (TCOrnament       _ cs) = cs
 getChildren (MEIPageBreak     _ cs) = cs
 getChildren (MEIPart          _ cs) = cs
 getChildren (MEIParts         _ cs) = cs
+getChildren (MEIPerfMedium    _ cs) = cs
+getChildren (MEIPerfRes       _ cs) = cs
+getChildren (MEIPerfResList   _ cs) = cs
 getChildren (MEIRest          _ cs) = cs
 getChildren (MEIRhythmSign    _ cs) = cs
 getChildren (MEISection       _ cs) = cs
 getChildren (MEIStaff         _ cs) = cs
 getChildren (MEIStaffDef      _ cs) = cs
+getChildren (MEIString        _ cs) = cs
 getChildren (MEISystemBreak   _ cs) = cs
 getChildren (MEITuplet        _ cs) = cs
+getChildren (MEIWork          _ cs) = cs
+getChildren (MEIWorkDesc      _ cs) = cs
 getChildren (XMLText _)             = []
 getChildren (XMLComment _)          = []
 
@@ -215,6 +239,9 @@ atDot False = [("dot", "false")]
 atForm :: String -> MEIAttrs
 atForm s = [("form", pack s)]
 
+atLabel :: String -> MEIAttrs
+atLabel l = [("label", pack l)]
+
 atMeiVersion :: MEIAttrs
 atMeiVersion = [("meiversion", "3.0.0")]
 
@@ -230,8 +257,14 @@ atNumbase b = [("numbase", (pack $ show b))]
 atNumbaseDef :: Int -> MEIAttrs
 atNumbaseDef b = [("numbase.default", (pack $ show b))]
 
+atOct :: Int -> MEIAttrs
+atOct o = boundedIntAttr o (1,6) "oct"
+
 atPlayingFinger :: Finger -> MEIAttrs
 atPlayingFinger fngr = [("playingFinger", finger fngr)]
+
+atPname :: String -> MEIAttrs
+atPname p = [("pname", pack p)]
 
 atProlation :: Int -> MEIAttrs
 atProlation p = boundedIntAttr p (2,3) "prolatio"
@@ -246,6 +279,10 @@ atSign c   = error $ "Invalid mensuration symbol: " ++ (show c)
 
 atSlash :: Int -> MEIAttrs
 atSlash n = [("mensur.slash", (pack $ show n))]
+
+atSolo :: Bool -> MEIAttrs
+atSolo True = [("solo", "true")]
+atSolo False = [("solo", "false")]
 
 atTabCourse :: Course -> MEIAttrs
 atTabCourse crs = [("tab.course", course crs)]
@@ -308,9 +345,52 @@ elOrnament o =
     orn t s  = [ TCOrnament ([("type", t)] <> (ornST <$:> s)) [] ]
     ornST st = [("sub-type", pack $ show st)]
 
+elPerfMediumLute :: String -> [MEI] -> MEI
+elPerfMediumLute label courses =
+  MEIPerfMedium noMEIAttrs [ perfResList ]
+  where
+    perfResList = MEIPerfResList noMEIAttrs [ perfRes ]
+    perfRes     = MEIPerfRes ( atLabel "lute" <> atSolo True ) [ instrDesc, instrConfig ]
+    instrDesc   = MEIInstrDesc noMEIAttrs [ MEIInstrName noMEIAttrs [ XMLText "Lute" ] ]
+    instrConfig = MEIInstrConfig ( atLabel label ) [ MEICourseTuning noMEIAttrs courses ]
+
 elRhythmSign :: RhythmSign -> [MEI]
 elRhythmSign (RhythmSign Fermata _ _ _) = [ MEIFermata noMEIAttrs [] ]
 elRhythmSign (RhythmSign dur bt dt _)    = [ MEIRhythmSign ( atDurSymb dur bt dt ) [] ]
+
+elWorkDesc :: [Rule] -> [MEI]
+elWorkDesc rls = [ MEIWorkDesc noMEIAttrs [ work ] ]
+  where
+    work = MEIWork noMEIAttrs $ catMaybes $ map descEl rls
+    descEl (Rule "tuning_named" t) = Just $ tuning t
+    descEl (Rule _ _)              = Nothing
+
+-- FIXME What are the correct tunings?
+tuning :: String -> MEI
+tuning "renaissance" =
+  elPerfMediumLute
+    "renaissance"
+    [ MEICourse ( atPname "g" <> atOct 4 ) [ MEIString ( atPname "g" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "d" <> atOct 4 ) [ MEIString ( atPname "d" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "a" <> atOct 4 ) [ MEIString ( atPname "a" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "f" <> atOct 3 ) [ MEIString ( atPname "f" <> atOct 3 ) [] ]
+    , MEICourse ( atPname "c" <> atOct 3 ) [ MEIString ( atPname "c" <> atOct 3 ) [] ]
+    , MEICourse ( atPname "g" <> atOct 2 ) [ MEIString ( atPname "g" <> atOct 2 ) [] ]
+    ]
+
+-- FIXME What are the correct tunings?
+tuning "baroque" =
+  elPerfMediumLute
+    "baroque"
+    [ MEICourse ( atPname "g" <> atOct 4 ) [ MEIString ( atPname "g" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "d" <> atOct 4 ) [ MEIString ( atPname "d" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "a" <> atOct 4 ) [ MEIString ( atPname "a" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "f" <> atOct 3 ) [ MEIString ( atPname "f" <> atOct 3 ) [] ]
+    , MEICourse ( atPname "c" <> atOct 3 ) [ MEIString ( atPname "c" <> atOct 3 ) [] ]
+    , MEICourse ( atPname "g" <> atOct 2 ) [ MEIString ( atPname "g" <> atOct 2 ) [] ]
+    ]
+
+tuning t = error $ "Unknown tuning name: " ++ t
 
 course :: Course -> Text
 course One = pack "1"

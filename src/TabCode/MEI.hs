@@ -51,7 +51,7 @@ type TabWordsToMEI = Parsec (Vector TabWord) MEIState MEI
 defaultDoc :: MEIState -> [MEI] -> MEI
 defaultDoc st staves = MEI ( atMeiVersion ) [head, music]
   where
-    head    = MEIHead    noMEIAttrs []
+    head    = meiHead $ stRules st
     music   = MEIMusic   noMEIAttrs [body]
     body    = MEIBody    noMEIAttrs [mdiv]
     mdiv    = MEIMDiv    (stMdiv st) [parts]
@@ -62,6 +62,10 @@ defaultDoc st staves = MEI ( atMeiVersion ) [head, music]
 mei :: Structure -> (MEIState -> [MEI] -> MEI) -> String -> TabCode -> Either ParseError MEI
 mei BarLines doc source (TabCode rls tws) = runParser (withBarLines doc) (initialState { stRules = rls }) source tws
 mei Measures doc source (TabCode rls tws) = runParser (withMeasures doc) (initialState { stRules = rls }) source tws
+
+meiHead :: [Rule] -> MEI
+meiHead rls =
+  MEIHead noMEIAttrs $ elWorkDesc rls
 
 withMeasures :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withMeasures doc = do
