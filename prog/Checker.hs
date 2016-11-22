@@ -20,6 +20,7 @@
 
 module Main where
 
+import Data.Monoid         ((<>))
 import Options.Applicative
 import TabCode.Options
 import TabCode.Parser      (parseTabcodeStdIn)

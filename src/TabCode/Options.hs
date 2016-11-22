@@ -20,6 +20,7 @@
 
 module TabCode.Options where
 
+import Data.Monoid         ((<>))
 import Options.Applicative
 
 data ParseMode
