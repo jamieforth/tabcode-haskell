@@ -166,14 +166,14 @@ chord :: TabWordsToMEI
 chord = chordLike getChord
   where
     getChord rls dur ch@(Chord l c r ns) =
-      Just $ MEIChord ( updateAttrs dur (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
+      Just $ MEIChord ( replaceAttrs dur (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
     getChord _ _ _ = Nothing
 
 chordCompound :: TabWordsToMEI
 chordCompound = chordLike getChord
   where
     getChord rls dur ch@(Chord l c r@(Just (RhythmSign _ Compound _ _)) ns) =
-      Just $ MEIChord ( updateAttrs dur (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
+      Just $ MEIChord ( replaceAttrs dur (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
     getChord _ _ _ = Nothing
 
 chordNoRS :: TabWordsToMEI

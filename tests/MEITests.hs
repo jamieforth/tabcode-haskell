@@ -128,7 +128,18 @@ chords =
     "E3c1\nc1\nc1\n" $ asStaff "#staff-0" "<tuplet num='3' numbase='2'><chord dur='8'><rhythmGlyph symbol='E3'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord></tuplet>"
   ]
 
+phrases :: [Test]
+phrases =
+  [ Test $ mkMEITest
+    "Q.c1\nEc1\n" $ asStaff "#staff-0" "<chord dur='4' dots='1'><rhythmGlyph symbol='Q.' dots='1'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><rhythmGlyph symbol='E'/><note tab.course='1' tab.fret='2'/></chord>"
+  , Test $ mkMEITest
+    "Ec1\nc1\n" $ asStaff "#staff-0" "<chord dur='8'><rhythmGlyph symbol='E'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord>"
+  , Test $ mkMEITest
+    "E.c1\nc1\n" $ asStaff "#staff-0" "<chord dur='8' dots='1'><rhythmGlyph symbol='E.' dots='1'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8' dots='1'><note tab.course='1' tab.fret='2'/></chord>"
+  ]
+
 tests :: IO [Test]
 tests = return $ meterSigns
   ++ rests
   ++ chords
+  ++ phrases

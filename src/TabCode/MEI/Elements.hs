@@ -142,6 +142,10 @@ updateAttrs initial new =
   where
     nKeys = map fst new
 
+replaceAttrs :: MEIAttrs -> MEIAttrs -> MEIAttrs
+replaceAttrs initial []  = initial
+replaceAttrs _       new = new
+
 mutateAttr :: Text -> (Text -> Text) -> MEIAttrs -> MEIAttrs
 mutateAttr att m meiAttrs = rpl meiAttrs
   where
