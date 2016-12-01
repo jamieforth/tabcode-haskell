@@ -119,7 +119,7 @@ chords =
   [ Test $ mkMEITest
     "c1\n" $ asStaff "#staff-0" "<chord><note tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "c1a2\n" $ asStaff "#staff-0" "<chord><note tab.course='1' tab.fret='2'/><note tab.course='2' tab.fret='o'/></chord>"
+    "c1a2\n" $ asStaff "#staff-0" "<chord><note tab.course='1' tab.fret='2'/><note tab.course='2' tab.fret='0'/></chord>"
   , Test $ mkMEITest
     "Qc1\n" $ asStaff "#staff-0" "<chord dur='4'><rhythmGlyph symbol='Q'/><note tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
