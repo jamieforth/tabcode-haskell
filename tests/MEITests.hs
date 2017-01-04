@@ -103,39 +103,39 @@ rests =
   [ Test $ mkMEITest
     "F\n" $ asStaff "#staff-0" "<fermata/>"
   , Test $ mkMEITest
-    "B\n" $ asStaff "#staff-0" "<rest dur='breve'><rhythmGlyph symbol='B'/></rest>"
+    "B\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='breve'><rhythmGlyph xml:id='rg1' symbol='B'/></rest>"
   , Test $ mkMEITest
-    "W\n" $ asStaff "#staff-0" "<rest dur='1'><rhythmGlyph symbol='W'/></rest>"
+    "W\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='1'><rhythmGlyph xml:id='rg1' symbol='W'/></rest>"
   , Test $ mkMEITest
-    "W.\n" $ asStaff "#staff-0" "<rest dur='1' dots='1'><rhythmGlyph symbol='W.' dots='1'/></rest>"
+    "W.\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='1' dots='1'><rhythmGlyph xml:id='rg1' symbol='W.' dots='1'/></rest>"
   , Test $ mkMEITest
-    "H\n" $ asStaff "#staff-0" "<rest dur='2'><rhythmGlyph symbol='H'/></rest>"
+    "H\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='2'><rhythmGlyph xml:id='rg1' symbol='H'/></rest>"
   , Test $ mkMEITest
-    "H.\n" $ asStaff "#staff-0" "<rest dur='2' dots='1'><rhythmGlyph symbol='H.' dots='1'/></rest>"
+    "H.\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='2' dots='1'><rhythmGlyph xml:id='rg1' symbol='H.' dots='1'/></rest>"
   ]
 
 chords :: [Test]
 chords =
   [ Test $ mkMEITest
-    "c1\n" $ asStaff "#staff-0" "<chord><note tab.course='1' tab.fret='2'/></chord>"
+    "c1\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "c1a2\n" $ asStaff "#staff-0" "<chord><note tab.course='1' tab.fret='2'/><note tab.course='2' tab.fret='0'/></chord>"
+    "c1a2\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/><note tab.course='2' tab.fret='0'/></chord>"
   , Test $ mkMEITest
-    "Qc1\n" $ asStaff "#staff-0" "<chord dur='4'><rhythmGlyph symbol='Q'/><note tab.course='1' tab.fret='2'/></chord>"
+    "Qc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "Q.c1\n" $ asStaff "#staff-0" "<chord dur='4' dots='1'><rhythmGlyph symbol='Q.' dots='1'/><note tab.course='1' tab.fret='2'/></chord>"
+    "Q.c1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4' dots='1'><rhythmGlyph xml:id='rg1' symbol='Q.' dots='1'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "E3c1\nc1\nc1\n" $ asStaff "#staff-0" "<tuplet num='3' numbase='2'><chord dur='8'><rhythmGlyph symbol='E3'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord></tuplet>"
+    "E3c1\nc1\nc1\n" $ asStaff "#staff-0" "<tuplet num='3' numbase='2'><chord xml:id='c1' dur='8'><rhythmGlyph xml:id='rg1' symbol='E3'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord><chord xml:id='c3' dur='8'><note xml:id='n3' tab.course='1' tab.fret='2'/></chord></tuplet>"
   ]
 
 phrases :: [Test]
 phrases =
   [ Test $ mkMEITest
-    "Q.c1\nEc1\n" $ asStaff "#staff-0" "<chord dur='4' dots='1'><rhythmGlyph symbol='Q.' dots='1'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><rhythmGlyph symbol='E'/><note tab.course='1' tab.fret='2'/></chord>"
+    "Q.c1\nEc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4' dots='1'><rhythmGlyph xml:id='rg1' symbol='Q.' dots='1'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8'><rhythmGlyph xml:id='rg2' symbol='E'/><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "Ec1\nc1\n" $ asStaff "#staff-0" "<chord dur='8'><rhythmGlyph symbol='E'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord>"
+    "Ec1\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='8'><rhythmGlyph xml:id='rg1' symbol='E'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "E.c1\nc1\n" $ asStaff "#staff-0" "<chord dur='8' dots='1'><rhythmGlyph symbol='E.' dots='1'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8' dots='1'><note tab.course='1' tab.fret='2'/></chord>"
+    "E.c1\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='8' dots='1'><rhythmGlyph xml:id='rg1' symbol='E.' dots='1'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8' dots='1'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
   ]
 
 tests :: IO [Test]
