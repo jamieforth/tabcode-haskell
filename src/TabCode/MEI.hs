@@ -78,7 +78,7 @@ withMeasures doc = do
 
 staffIDAsDef :: MEIAttrs -> MEIAttrs
 staffIDAsDef staffAttrs =
-  mutateAttr (pack "def") (\s -> append (pack "#") s) $ getAttrAs (pack "xml:id") (pack "def") staffAttrs
+  mutateAttr (pack "xml:id") ((updateStrAttrValue (\s -> append (pack "#") s)) . intAttrToStrAttr . renameAttr (pack "def")) staffAttrs
 
 withBarLines :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withBarLines doc = do
@@ -92,7 +92,7 @@ measureP barlineP attrs = do
   chords <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
   st     <- getState
-  let nextSt = st { stMeasure = incIntAttr (stMeasure st) (pack "n") 1 }
+  let nextSt = st { stMeasure = mutateAttr (pack "n") (incIntAttr 1) (stMeasure st) }
   putState nextSt
   return $ MEIMeasure (stMeasure nextSt) [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ]
 
@@ -142,7 +142,7 @@ barLine = do
   bl <- barLineSng <|> barLineDbl <|> barLineRptL <|> barLineRptR <|> barLineRptB
   st <- getState
   let blWithN = MEIBarLine (updateAttrs (getAttrs bl) (stBarLine nextSt)) (getChildren bl)
-      nextSt  = st { stBarLine = incIntAttr (stBarLine st) (pack "n") 1 }
+      nextSt  = st { stBarLine = mutateAttr (pack "n") (incIntAttr 1) (stBarLine st) }
   putState nextSt
   return $ blWithN
 
@@ -196,7 +196,7 @@ rest = tokenPrim show updatePos getRest
 meter :: TabWordsToMEI
 meter = do
   st <- getState
-  let newSt = st { stStaffDef = incPrefixedIntAttr (stStaffDef st) (pack "xml:id") (pack "staff-") 1 }
+  let newSt = st { stStaffDef = mutateAttr (pack "xml:id") (incIntAttr 1) (stStaffDef st) }
   m  <- tokenPrim show updatePos (getMeter $ stStaffDef newSt)
   putState $ newSt
   return m

@@ -23,10 +23,11 @@
 module TabCode.MEI.Elements where
 
 import Control.Applicative ((<$>))
-import Data.Maybe  (catMaybes)
+import Data.Maybe  (mapMaybe)
 import Data.Monoid (mempty, (<>))
 import Data.Text   (Text, pack, unpack, replace, append)
 import Data.Text.Read (decimal)
+import GHC.Unicode (isDigit)
 import Prelude hiding (append)
 import TabCode
 import TabCode.MEI.Types
@@ -121,63 +122,58 @@ getChildren (MEIWorkDesc      _ cs) = cs
 getChildren (XMLText _)             = []
 getChildren (XMLComment _)          = []
 
-getAttr :: Text -> MEIAttrs -> MEIAttrs
-getAttr att meiAttrs = case lookup att meiAttrs of
-  (Just v) -> [(att, v)]
-  Nothing  -> []
+attrName :: MEIAttr -> Text
+attrName (StringAttr name _) = name
+attrName (IntAttr name _) = name
+attrName (PrefIntAttr name _) = name
 
-getAttrAs :: Text -> Text -> MEIAttrs -> MEIAttrs
-getAttrAs att new meiAttrs = case lookup att meiAttrs of
-  (Just v) -> [(new, v)]
-  Nothing  -> []
+attrNameEq :: Text -> MEIAttr -> Bool
+attrNameEq att (StringAttr name _) = att == name
+attrNameEq att (IntAttr name _) = att == name
+attrNameEq att (PrefIntAttr name _) = att == name
+
+renameAttr :: Text -> MEIAttr -> MEIAttr
+renameAttr new (StringAttr old v) = StringAttr new v
+renameAttr new (IntAttr old v) = IntAttr new v
+renameAttr new (PrefIntAttr old v) = PrefIntAttr new v
+
+intAttrToStrAttr :: MEIAttr -> MEIAttr
+intAttrToStrAttr a@(StringAttr name value) = a
+intAttrToStrAttr (IntAttr name value) = StringAttr name (pack $ show value)
+intAttrToStrAttr (PrefIntAttr name (prefix, value)) = StringAttr name (prefix `append` (pack $ show value))
+
+incIntAttr :: Int -> MEIAttr -> MEIAttr
+incIntAttr _ (StringAttr name value) = error $ unpack $ "Cannot apply incIntAttr to string attribute " `append` name `append` ": \"" `append` value `append` "\""
+incIntAttr n (IntAttr name value) = IntAttr name (value + n)
+incIntAttr n (PrefIntAttr name (prefix, value)) = PrefIntAttr name (prefix, value + n)
+
+getAttr :: Text -> MEIAttrs -> MEIAttrs
+getAttr att meiAttrs = take 1 $ filter (attrNameEq att) meiAttrs
+
+updateStrAttrValue :: (Text -> Text) -> MEIAttr -> MEIAttr
+updateStrAttrValue m (StringAttr name v) = StringAttr name $ m v
+updateStrAttrValue _ _ = error $ unpack "Cannot apply updateStrAttrValue to non-StringAttr attribute"
 
 someAttrs :: [Text] -> MEIAttrs -> MEIAttrs
-someAttrs keys meiAttrs = zip keys $ catMaybes $ lkUp keys meiAttrs
-  where
-    lkUp (k:ks) attrs = lookup k attrs : lkUp ks attrs
-    lkUp []     _     = []
+someAttrs keys meiAttrs =
+  filter (\att -> (attrName att) `elem` keys) meiAttrs
 
 updateAttrs :: MEIAttrs -> MEIAttrs -> MEIAttrs
 updateAttrs initial new =
-  (filter (\(k,_) -> k `notElem` nKeys) initial) ++ new
+  (filter (\att -> (attrName att) `notElem` nKeys) initial) ++ new
   where
-    nKeys = map fst new
+    nKeys = map attrName new
 
 replaceAttrs :: MEIAttrs -> MEIAttrs -> MEIAttrs
 replaceAttrs initial []  = initial
 replaceAttrs _       new = new
 
-mutateAttr :: Text -> (Text -> Text) -> MEIAttrs -> MEIAttrs
+mutateAttr :: Text -> (MEIAttr -> MEIAttr) -> MEIAttrs -> MEIAttrs
 mutateAttr att m meiAttrs = rpl meiAttrs
   where
-    rpl ((k,v):as) | k == att  = (k, m v) : rpl as
-                   | otherwise = (k, v)   : rpl as
+    rpl (a:as) | (attrName a) == att = m a : rpl as
+               | otherwise           = a   : rpl as
     rpl [] = []
-
-renameAttr :: Text -> Text -> MEIAttrs -> MEIAttrs
-renameAttr old new meiAttrs = rpl meiAttrs
-  where
-    rpl ((k,v):as) | k == old  = (new,v) : rpl as
-                   | otherwise = (k,  v) : rpl as
-    rpl [] = []
-
-incIntAttr :: MEIAttrs -> Text -> Int -> MEIAttrs
-incIntAttr meiAttrs attr n = updateAttrs meiAttrs [(attr, incN)]
-  where
-    incN = pack $ show $ n + (asInt $ lookup attr meiAttrs)
-    asInt (Just s) = case decimal s of
-      Right (d, _) -> d
-      Left _       -> 0
-    asInt Nothing  = 0
-
-incPrefixedIntAttr :: MEIAttrs -> Text -> Text -> Int -> MEIAttrs
-incPrefixedIntAttr meiAttrs attr prefix n = updateAttrs meiAttrs [(attr, incN)]
-  where
-    incN = append prefix $ pack (show $ n + (asInt $ lookup attr meiAttrs))
-    asInt (Just s) = case decimal $ replace prefix (pack "") s of
-      Right (d, _) -> d
-      Left _       -> 0
-    asInt Nothing  = 0
 
 children :: Maybe [a] -> [a]
 children (Just xs) = xs
@@ -207,99 +203,108 @@ emptyState =
 initialState :: MEIState
 initialState =
   MEIState { stRules     = []
-           , stMdiv      = [("n","1")]
-           , stPart      = [("n","1")]
-           , stSection   = [("n","1")]
-           , stStaff     = [("n","1")]
-           , stStaffDef  = [("xml:id","staff-0")]
-           , stLayer     = [("n","1")]
-           , stMeasure   = [("n","0")]
-           , stBarLine   = [("n","0")]
+           , stMdiv      = [ IntAttr "n" 1 ]
+           , stPart      = [ IntAttr "n" 1 ]
+           , stSection   = [ IntAttr "n" 1 ]
+           , stStaff     = [ IntAttr "n" 1 ]
+           , stStaffDef  = [ PrefIntAttr "xml:id" ("staff-", 0) ]
+           , stLayer     = [ IntAttr "n" 1 ]
+           , stMeasure   = [ IntAttr "n" 0 ]
+           , stBarLine   = [ IntAttr "n" 0 ]
            , stChord     = noMEIAttrs
            }
 
 boundedIntAttr :: Int -> (Int, Int) -> Text -> MEIAttrs
-boundedIntAttr i (l, u) n | i >= l && i <= u = [(n, (pack $ show i))]
+boundedIntAttr i (l, u) n | i >= l && i <= u = [ IntAttr n i ]
                           | otherwise        = error $ "Invalid " ++ (unpack n) ++ ": " ++ (show i)
 
 atCount :: Int -> MEIAttrs
-atCount c = [("count", (pack $ show c))]
+atCount c = [ IntAttr "count" c ]
 
 atCut :: Int -> MEIAttrs
 atCut n = boundedIntAttr n (1,6) "slash"
 
+atDef :: Text -> MEIAttrs
+atDef d = [ StringAttr "def" d ]
+
 atDur :: RhythmSign -> MEIAttrs
-atDur (RhythmSign s _ Dot _)   = [("dur", meiDur s), ("dots", "1")]
-atDur (RhythmSign s _ NoDot _) = [("dur", meiDur s)]
+atDur (RhythmSign s _ Dot _)   = [ StringAttr "dur" (meiDur s), IntAttr "dots" 1 ]
+atDur (RhythmSign s _ NoDot _) = [ StringAttr "dur" (meiDur s) ]
 
 atDurSymb :: Duration -> Beat -> Dot -> MEIAttrs
-atDurSymb dur bt Dot   = [ ("symbol", durSymb dur bt Dot)
-                         , ("dots", "1") ]
-atDurSymb dur bt NoDot = [("symbol", durSymb dur bt NoDot)]
+atDurSymb dur bt Dot   = [ StringAttr "symbol" (durSymb dur bt Dot)
+                         , IntAttr "dots" 1 ]
+atDurSymb dur bt NoDot = [ StringAttr "symbol" (durSymb dur bt NoDot) ]
 
 atDot :: Bool -> MEIAttrs
-atDot True  = [("dot", "true")]
-atDot False = [("dot", "false")]
+atDot True  = [ StringAttr "dot" "true" ]
+atDot False = [ StringAttr "dot" "false" ]
 
 atForm :: String -> MEIAttrs
-atForm s = [("form", pack s)]
+atForm s = [ StringAttr "form" (pack s) ]
 
 atLabel :: String -> MEIAttrs
-atLabel l = [("label", pack l)]
+atLabel l = [ StringAttr "label" (pack l) ]
 
 atMeiVersion :: MEIAttrs
-atMeiVersion = [("meiversion", "3.0.0")]
+atMeiVersion = [ StringAttr "meiversion" "3.0.0" ]
 
 atNum :: Int -> MEIAttrs
-atNum n = [("num", (pack $ show n))]
+atNum n = [ IntAttr "num" n ]
 
 atNumDef :: Int -> MEIAttrs
-atNumDef n = [("num.default", (pack $ show n))]
+atNumDef n = [ IntAttr "num.default" n ]
 
 atNumbase :: Int -> MEIAttrs
-atNumbase b = [("numbase", (pack $ show b))]
+atNumbase b = [ IntAttr "numbase" b ]
 
 atNumbaseDef :: Int -> MEIAttrs
-atNumbaseDef b = [("numbase.default", (pack $ show b))]
+atNumbaseDef b = [ IntAttr "numbase.default" b ]
 
 atOct :: Int -> MEIAttrs
 atOct o = boundedIntAttr o (1,6) "oct"
 
 atPlayingFinger :: Finger -> MEIAttrs
-atPlayingFinger fngr = [("playingFinger", finger fngr)]
+atPlayingFinger fngr = [ StringAttr "playingFinger" (finger fngr) ]
 
 atPname :: String -> MEIAttrs
-atPname p = [("pname", pack p)]
+atPname p = [ StringAttr "pname" (pack p) ]
 
 atProlation :: Int -> MEIAttrs
 atProlation p = boundedIntAttr p (2,3) "prolatio"
 
 atRight :: String -> MEIAttrs
-atRight s = [("right", pack s)]
+atRight s = [ StringAttr "right" (pack s) ]
 
 atSign :: Char -> MEIAttrs
-atSign 'O' = [("sign", "O")]
-atSign 'C' = [("sign", "C")]
+atSign 'O' = [ StringAttr "sign" "O" ]
+atSign 'C' = [ StringAttr "sign" "C" ]
 atSign c   = error $ "Invalid mensuration symbol: " ++ (show c)
 
 atSlash :: Int -> MEIAttrs
-atSlash n = [("mensur.slash", (pack $ show n))]
+atSlash n = [ IntAttr "mensur.slash" n ]
 
 atSolo :: Bool -> MEIAttrs
-atSolo True = [("solo", "true")]
-atSolo False = [("solo", "false")]
+atSolo True = [ StringAttr "solo" "true" ]
+atSolo False = [ StringAttr "solo" "false" ]
 
 atTabCourse :: Course -> MEIAttrs
-atTabCourse crs = [("tab.course", course crs)]
+atTabCourse crs = [ StringAttr "tab.course" (course crs) ]
 
 atTabFret :: Fret -> MEIAttrs
-atTabFret frt = [("tab.fret", fretNo frt)]
+atTabFret frt = [ StringAttr "tab.fret" (fretNo frt) ]
 
 atTempus :: Int -> MEIAttrs
 atTempus t = boundedIntAttr t (2,3) "tempus"
 
 atUnit :: Int -> MEIAttrs
-atUnit u = [("unit", (pack $ show u))]
+atUnit u = [ IntAttr "unit" u ]
+
+atXmlId :: String -> Int -> MEIAttrs
+atXmlId prefix n = [ PrefIntAttr "xml:id" (pack prefix, n) ]
+
+atXmlIdNext :: MEIAttrs -> MEIAttrs
+atXmlIdNext attrs = mutateAttr "xml:id" (incIntAttr 1) attrs
 
 elArticulation :: Articulation -> [MEI]
 elArticulation artic = [XMLComment ""]
@@ -308,8 +313,8 @@ elConnectingLine :: Connecting -> [MEI]
 elConnectingLine conn = [XMLComment ""]
 
 elFingering :: Fingering -> [MEI]
-elFingering (FingeringLeft fngr _)  = [ MEIFingering ([("playingHand", "left")]  <> (atPlayingFinger fngr)) [] ]
-elFingering (FingeringRight fngr _) = [ MEIFingering ([("playingHand", "right")] <> (atPlayingFinger fngr)) [] ]
+elFingering (FingeringLeft fngr _)  = [ MEIFingering ([ StringAttr "playingHand" "left" ]  <> (atPlayingFinger fngr)) [] ]
+elFingering (FingeringRight fngr _) = [ MEIFingering ([ StringAttr "playingHand" "right" ] <> (atPlayingFinger fngr)) [] ]
 
 elFretGlyph :: [Rule] -> Fret -> Maybe [MEI]
 elFretGlyph rls frt = m <$> glyph
@@ -347,8 +352,8 @@ elOrnament o =
     (OrnM s _) -> orn "m" s
 
   where
-    orn t s  = [ TCOrnament ([("type", t)] <> (ornST <$:> s)) [] ]
-    ornST st = [("sub-type", pack $ show st)]
+    orn t s  = [ TCOrnament ([ StringAttr "type" t ] <> (ornST <$:> s)) [] ]
+    ornST st = [ IntAttr "sub-type" st ]
 
 elPerfMediumLute :: String -> [MEI] -> MEI
 elPerfMediumLute label courses =
@@ -366,7 +371,8 @@ elRhythmSign (RhythmSign dur bt dt _)    = [ MEIRhythmSign ( atDurSymb dur bt dt
 elWorkDesc :: [Rule] -> [MEI]
 elWorkDesc rls = [ MEIWorkDesc noMEIAttrs [ work ] ]
   where
-    work = MEIWork noMEIAttrs $ catMaybes $ map descEl rls
+    work = MEIWork noMEIAttrs $ mapMaybe descEl rls
+    --descEl (Rule "title" t)        = Just $ MEITitle noMEIAttrs $ XMLText t
     descEl (Rule "tuning_named" t) = Just $ tuning t
     descEl (Rule _ _)              = Nothing
 

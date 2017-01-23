@@ -20,13 +20,20 @@
 
 module TabCode.MEI.Types
   ( MEI(..)
+  , MEIAttr(..)
   , MEIAttrs
   , MEIState(..) ) where
 
 import Data.Text
 import TabCode (Rule)
 
-type MEIAttrs = [(Text, Text)]
+data MEIAttr
+  = StringAttr Text Text
+  | IntAttr Text Int
+  | PrefIntAttr Text (Text, Int)
+  deriving (Eq, Show)
+
+type MEIAttrs = [MEIAttr]
 
 data MEI
   = MEI MEIAttrs [MEI]

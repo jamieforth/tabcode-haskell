@@ -23,7 +23,7 @@
 module TabCode.MEI.Serialiser
   ( meiDoc ) where
 
-import           Data.Text          (unpack, Text)
+import           Data.Text          (append, pack, unpack, Text)
 import           TabCode
 import           TabCode.MEI.Types
 import           Text.XML.Generator
@@ -34,20 +34,25 @@ mei = namespace "" "http://www.music-encoding.org/ns/mei"
 tc :: Namespace
 tc = namespace "tc" "http://data.t-mus.org/ns/tabcode"
 
+meiAttr :: MEIAttr -> Xml Attr
+meiAttr (StringAttr name value) = xattr name value
+meiAttr (IntAttr name value) = xattr name (pack $ show value)
+meiAttr (PrefIntAttr name (prefix, value)) = xattr name (append prefix (pack (show value)))
+
 meiAttrs :: MEIAttrs -> Xml Attr
-meiAttrs as = xattrs $ map (\(n,v) -> xattr n v) as
+meiAttrs as = xattrs $ map meiAttr as
 
 meiXml :: Text -> MEIAttrs -> [MEI] -> Xml Elem
-meiXml n as cs = xelemQ mei n $ (xattrs (map (\(n,v) -> xattr n v) as)) <#> (xelems $ map meiDoc cs)
+meiXml n as cs = xelemQ mei n $ (meiAttrs as) <#> (xelems $ map meiDoc cs)
 
 meiXml_ :: Text -> MEIAttrs -> Xml Elem
-meiXml_ n as = xelemQ mei n $ xattrs $ map (\(n,v) -> xattr n v) as
+meiXml_ n as = xelemQ mei n $ meiAttrs as
 
 tcXml :: Text -> MEIAttrs -> [MEI] -> Xml Elem
-tcXml n as cs = xelemQ tc n $ (xattrs (map (\(n,v) -> xattr n v) as)) <#> (xelems $ map meiDoc cs)
+tcXml n as cs = xelemQ tc n $ (meiAttrs as) <#> (xelems $ map meiDoc cs)
 
 tcXml_ :: Text -> MEIAttrs -> Xml Elem
-tcXml_ n as = xelemQ tc n $ xattrs $ map (\(n,v) -> xattr n v) as
+tcXml_ n as = xelemQ tc n $ meiAttrs as
 
 meiDoc :: MEI -> Xml Elem
 meiDoc (MEI             attrs [])       = meiXml_ "mei" attrs
