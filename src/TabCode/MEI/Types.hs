@@ -89,6 +89,7 @@ data MEIState = MEIState {
   , stLayer     :: MEIAttrs
   , stMeasure   :: MEIAttrs
   , stBarLine   :: MEIAttrs
+  , stChordId   :: MEIAttrs
   , stChord     :: MEIAttrs
   }
   deriving (Eq)

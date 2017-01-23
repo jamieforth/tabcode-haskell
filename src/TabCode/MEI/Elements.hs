@@ -197,6 +197,7 @@ emptyState =
            , stLayer     = noMEIAttrs
            , stMeasure   = noMEIAttrs
            , stBarLine   = noMEIAttrs
+           , stChordId   = noMEIAttrs
            , stChord     = noMEIAttrs
            }
 
@@ -211,6 +212,7 @@ initialState =
            , stLayer     = [ IntAttr "n" 1 ]
            , stMeasure   = [ IntAttr "n" 0 ]
            , stBarLine   = [ IntAttr "n" 0 ]
+           , stChordId   = [ PrefIntAttr "xml:id" ("c", 1) ]
            , stChord     = noMEIAttrs
            }
 
