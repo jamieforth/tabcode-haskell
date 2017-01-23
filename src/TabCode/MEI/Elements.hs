@@ -199,6 +199,7 @@ emptyState =
            , stBarLine   = noMEIAttrs
            , stChordId   = noMEIAttrs
            , stChord     = noMEIAttrs
+           , stRestId    = noMEIAttrs
            }
 
 initialState :: MEIState
@@ -214,6 +215,7 @@ initialState =
            , stBarLine   = [ IntAttr "n" 0 ]
            , stChordId   = [ PrefIntAttr "xml:id" ("c", 1) ]
            , stChord     = noMEIAttrs
+           , stRestId    = [ PrefIntAttr "xml:id" ("r", 1) ]
            }
 
 boundedIntAttr :: Int -> (Int, Int) -> Text -> MEIAttrs

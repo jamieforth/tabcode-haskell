@@ -101,7 +101,7 @@ meterSigns =
 rests :: [Test]
 rests =
   [ Test $ mkMEITest
-    "F\n" $ asStaff "#staff-0" "<fermata/>"
+    "F\n" $ asStaff "#staff-0" "<fermata xml:id='r1'/>"
   , Test $ mkMEITest
     "B\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='breve'><rhythmGlyph xml:id='rg1' symbol='B'/></rest>"
   , Test $ mkMEITest

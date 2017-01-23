@@ -186,13 +186,18 @@ chordNoRS = chordLike getChord
     getChord _ _ _ _ = Nothing
 
 rest :: TabWordsToMEI
-rest = tokenPrim show updatePos getRest
+rest = do
+  st <- getState
+  r <- tokenPrim show updatePos (getRest $ stRestId st)
+  let newSt = st { stRestId = atXmlIdNext $ stRestId st }
+  putState newSt
+  return r
   where
-    getRest re@(Rest l c (RhythmSign Fermata _ _ _)) =
-      Just $ MEIFermata noMEIAttrs []
-    getRest re@(Rest l c r) =
-      Just $ MEIRest ( atDur r ) $ ( elRhythmSign r )
-    getRest _ = Nothing
+    getRest xmlId re@(Rest l c (RhythmSign Fermata _ _ _)) =
+      Just $ MEIFermata xmlId []
+    getRest xmlId re@(Rest l c r) =
+      Just $ MEIRest ( xmlId <> atDur r ) $ ( elRhythmSign r )
+    getRest _ _ = Nothing
 
 meter :: TabWordsToMEI
 meter = do
