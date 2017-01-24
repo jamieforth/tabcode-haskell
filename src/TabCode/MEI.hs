@@ -152,10 +152,10 @@ tuplet = do
   cs <- many chordNoRS
   return $ MEITuplet ( atNum 3 <> atNumbase 2 ) $ c ++ cs
 
-chordLike :: ([Rule] -> MEIAttrs -> MEIAttrs -> TabWord -> Maybe MEI) -> TabWordsToMEI
+chordLike :: (MEIState -> TabWord -> Maybe MEI) -> TabWordsToMEI
 chordLike getChord = do
   st <- getState
-  c <- tokenPrim show updatePos $ getChord (stRules st) (stChordId st) (stChord st)
+  c <- tokenPrim show updatePos $ getChord st
   putState $ st { stChordId = atXmlIdNext $ stChordId st,
                   stChord = durOf c }
   return c
@@ -167,23 +167,23 @@ chordLike getChord = do
 chord :: TabWordsToMEI
 chord = chordLike getChord
   where
-    getChord rls xmlId dur ch@(Chord l c r ns) =
-      Just $ MEIChord ( xmlId <> replaceAttrs dur (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
-    getChord _ _ _ _ = Nothing
+    getChord st ch@(Chord l c r ns) =
+      Just $ MEIChord ( (stChordId st) <> replaceAttrs (stChord st) (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote (stRules st)) <$> ns )
+    getChord _ _ = Nothing
 
 chordCompound :: TabWordsToMEI
 chordCompound = chordLike getChord
   where
-    getChord rls xmlId dur ch@(Chord l c r@(Just (RhythmSign _ Compound _ _)) ns) =
-      Just $ MEIChord ( xmlId <> replaceAttrs dur (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
-    getChord _ _ _ _ = Nothing
+    getChord st ch@(Chord l c r@(Just (RhythmSign _ Compound _ _)) ns) =
+      Just $ MEIChord ( (stChordId st) <> replaceAttrs (stChord st) (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote (stRules st)) <$> ns )
+    getChord _ _ = Nothing
 
 chordNoRS :: TabWordsToMEI
 chordNoRS = chordLike getChord
   where
-    getChord rls xmlId dur ch@(Chord l c Nothing ns) =
-      Just $ MEIChord ( xmlId <> dur ) $ ( concat $ (elNote rls) <$> ns )
-    getChord _ _ _ _ = Nothing
+    getChord st ch@(Chord l c Nothing ns) =
+      Just $ MEIChord ( (stChordId st) <> (stChord st) ) $ ( concat $ (elNote (stRules st)) <$> ns )
+    getChord _ _ = Nothing
 
 rest :: TabWordsToMEI
 rest = do
