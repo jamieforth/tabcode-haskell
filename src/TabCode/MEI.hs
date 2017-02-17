@@ -66,7 +66,7 @@ mei Measures doc source (TabCode rls tws) = runParser (withMeasures doc) (initia
 
 meiHead :: [Rule] -> MEI
 meiHead rls =
-  MEIHead noMEIAttrs $ elWorkDesc rls
+  MEIHead noMEIAttrs $ elWorkDesc noMEIAttrs rls
 
 withMeasures :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withMeasures doc = do
@@ -152,12 +152,12 @@ tuplet = do
   cs <- many chordNoRS
   return $ MEITuplet ( atNum 3 <> atNumbase 2 ) $ c ++ cs
 
-chordLike :: (MEIState -> TabWord -> Maybe MEI) -> TabWordsToMEI
+chordLike :: (MEIState -> TabWord -> Maybe (MEIState, MEI)) -> TabWordsToMEI
 chordLike getChord = do
   st <- getState
-  c <- tokenPrim show updatePos $ getChord st
-  putState $ st { stChordId = atXmlIdNext $ stChordId st,
-                  stChord = durOf c }
+  (newState, c) <- tokenPrim show updatePos $ getChord st
+  putState $ newState { stChordId = atXmlIdNext $ stChordId newState,
+                        stChord = durOf c }
   return c
 
   where
@@ -167,36 +167,42 @@ chordLike getChord = do
 chord :: TabWordsToMEI
 chord = chordLike getChord
   where
-    getChord st ch@(Chord l c r ns) =
-      Just $ MEIChord ( (stChordId st) <> replaceAttrs (stChord st) (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote (stRules st)) <$> ns )
-    getChord _ _ = Nothing
+    getChord st ch@(Chord l c (Just r) ns) =
+      Just ( st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st }
+           , MEIChord ( (stChordId st) <> replaceAttrs (stChord st) (atDur r) ) $ ( elRhythmSign (stRhythmGlyphId st) r ) <> ( concat $ (elNote noMEIAttrs (stRules st)) <$> ns ) )
+    getChord st ch@(Chord l c Nothing ns) =
+      Just ( st
+           , MEIChord ( (stChordId st) <> (stChord st) ) $ ( concat $ (elNote noMEIAttrs (stRules st)) <$> ns ) )
+    getChord st _ = Nothing
 
 chordCompound :: TabWordsToMEI
 chordCompound = chordLike getChord
   where
-    getChord st ch@(Chord l c r@(Just (RhythmSign _ Compound _ _)) ns) =
-      Just $ MEIChord ( (stChordId st) <> replaceAttrs (stChord st) (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote (stRules st)) <$> ns )
-    getChord _ _ = Nothing
+    getChord st ch@(Chord l c (Just r@(RhythmSign _ Compound _ _)) ns) =
+      Just ( st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st }
+           , MEIChord ( (stChordId st) <> replaceAttrs (stChord st) (atDur r) ) $ ( elRhythmSign (stRhythmGlyphId st) r ) <> ( concat $ (elNote noMEIAttrs (stRules st)) <$> ns ) )
+    getChord st _ = Nothing
 
 chordNoRS :: TabWordsToMEI
 chordNoRS = chordLike getChord
   where
     getChord st ch@(Chord l c Nothing ns) =
-      Just $ MEIChord ( (stChordId st) <> (stChord st) ) $ ( concat $ (elNote (stRules st)) <$> ns )
-    getChord _ _ = Nothing
+      Just ( st
+           , MEIChord ( (stChordId st) <> (stChord st) ) $ ( concat $ (elNote noMEIAttrs (stRules st)) <$> ns ) )
+    getChord st _ = Nothing
 
 rest :: TabWordsToMEI
 rest = do
   st <- getState
-  r <- tokenPrim show updatePos (getRest $ stRestId st)
+  r <- tokenPrim show updatePos $ getRest st
   let newSt = st { stRestId = atXmlIdNext $ stRestId st }
   putState newSt
   return r
   where
-    getRest xmlId re@(Rest l c (RhythmSign Fermata _ _ _)) =
-      Just $ MEIFermata xmlId []
-    getRest xmlId re@(Rest l c r) =
-      Just $ MEIRest ( xmlId <> atDur r ) $ ( elRhythmSign r )
+    getRest st re@(Rest l c (RhythmSign Fermata _ _ _)) =
+      Just $ MEIFermata (stRestId st) []
+    getRest st re@(Rest l c r) =
+      Just $ MEIRest ( (stRestId st) <> atDur r ) $ ( elRhythmSign (stRhythmGlyphId st) r )
     getRest _ _ = Nothing
 
 meter :: TabWordsToMEI

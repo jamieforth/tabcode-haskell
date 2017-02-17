@@ -200,6 +200,7 @@ emptyState =
            , stChordId   = noMEIAttrs
            , stChord     = noMEIAttrs
            , stRestId    = noMEIAttrs
+           , stRhythmGlyphId = noMEIAttrs
            }
 
 initialState :: MEIState
@@ -216,6 +217,7 @@ initialState =
            , stChordId   = [ PrefIntAttr "xml:id" ("c", 1) ]
            , stChord     = noMEIAttrs
            , stRestId    = [ PrefIntAttr "xml:id" ("r", 1) ]
+           , stRhythmGlyphId = [ PrefIntAttr "xml:id" ("rg", 1) ]
            }
 
 boundedIntAttr :: Int -> (Int, Int) -> Text -> MEIAttrs
@@ -310,36 +312,40 @@ atXmlId prefix n = [ PrefIntAttr "xml:id" (pack prefix, n) ]
 atXmlIdNext :: MEIAttrs -> MEIAttrs
 atXmlIdNext attrs = mutateAttr "xml:id" (incIntAttr 1) attrs
 
-elArticulation :: Articulation -> [MEI]
-elArticulation artic = [XMLComment ""]
+withXmlId :: MEIAttrs -> MEIAttrs -> MEIAttrs
+withXmlId idAttrs otherAttrs =
+  updateAttrs otherAttrs $ getAttr "xml:id" idAttrs
 
-elConnectingLine :: Connecting -> [MEI]
-elConnectingLine conn = [XMLComment ""]
+elArticulation :: MEIAttrs -> Articulation -> [MEI]
+elArticulation _ artic = [XMLComment ""]
 
-elFingering :: Fingering -> [MEI]
-elFingering (FingeringLeft fngr _)  = [ MEIFingering ([ StringAttr "playingHand" "left" ]  <> (atPlayingFinger fngr)) [] ]
-elFingering (FingeringRight fngr _) = [ MEIFingering ([ StringAttr "playingHand" "right" ] <> (atPlayingFinger fngr)) [] ]
+elConnectingLine :: MEIAttrs -> Connecting -> [MEI]
+elConnectingLine _ conn = [XMLComment ""]
 
-elFretGlyph :: [Rule] -> Fret -> Maybe [MEI]
-elFretGlyph rls frt = m <$> glyph
+elFingering :: MEIAttrs -> Fingering -> [MEI]
+elFingering coreAttrs (FingeringLeft fngr _)  = [ MEIFingering (coreAttrs <> [ StringAttr "playingHand" "left" ]  <> (atPlayingFinger fngr)) [] ]
+elFingering coreAttrs (FingeringRight fngr _) = [ MEIFingering (coreAttrs <> [ StringAttr "playingHand" "right" ] <> (atPlayingFinger fngr)) [] ]
+
+elFretGlyph :: MEIAttrs -> [Rule] -> Fret -> Maybe [MEI]
+elFretGlyph coreAttrs rls frt = m <$> glyph
   where
-    m g  = [ MEIFretGlyph noMEIAttrs [ XMLText g ] ]
+    m g  = [ MEIFretGlyph coreAttrs [ XMLText g ] ]
     glyph = case notation rls of
       Just "italian" -> Just $ fretGlyphIt frt
       Just "french"  -> Just $ fretGlyphFr frt
       _              -> Nothing
 
-elNote :: [Rule] -> Note -> [MEI]
-elNote rls (Note crs frt (fng1, fng2) orn artic conn) =
-  [ MEINote ( atTabCourse crs <> atTabFret frt ) $ children ( (elFretGlyph rls frt)
-                                                              <> (elFingering <$> fng1)
-                                                              <> (elFingering <$> fng2) ) ]
-  <> children ( (elOrnament <$> orn)
-                <> (elArticulation <$> artic)
-                <> (elConnectingLine <$> conn ) )
+elNote :: MEIAttrs -> [Rule] -> Note -> [MEI]
+elNote coreAttrs rls (Note crs frt (fng1, fng2) orn artic conn) =
+  [ MEINote ( coreAttrs <> atTabCourse crs <> atTabFret frt ) $ children ( (elFretGlyph noMEIAttrs rls frt)
+                                                                           <> (elFingering noMEIAttrs <$> fng1)
+                                                                           <> (elFingering noMEIAttrs <$> fng2) ) ]
+  <> children ( (elOrnament noMEIAttrs <$> orn)
+                <> (elArticulation noMEIAttrs <$> artic)
+                <> (elConnectingLine noMEIAttrs <$> conn ) )
 
-elOrnament :: Ornament -> [MEI]
-elOrnament o =
+elOrnament :: MEIAttrs -> Ornament -> [MEI]
+elOrnament coreAttrs o =
   case o of
     (OrnA s _) -> orn "a" s
     (OrnB s _) -> orn "b" s
@@ -356,26 +362,26 @@ elOrnament o =
     (OrnM s _) -> orn "m" s
 
   where
-    orn t s  = [ TCOrnament ([ StringAttr "type" t ] <> (ornST <$:> s)) [] ]
+    orn t s  = [ TCOrnament (coreAttrs <> [ StringAttr "type" t ] <> (ornST <$:> s)) [] ]
     ornST st = [ IntAttr "sub-type" st ]
 
-elPerfMediumLute :: String -> [MEI] -> MEI
-elPerfMediumLute label courses =
-  MEIPerfMedium noMEIAttrs [ perfResList ]
+elPerfMediumLute :: MEIAttrs -> String -> [MEI] -> MEI
+elPerfMediumLute coreAttrs label courses =
+  MEIPerfMedium coreAttrs [ perfResList ]
   where
     perfResList = MEIPerfResList noMEIAttrs [ perfRes ]
     perfRes     = MEIPerfRes ( atLabel "lute" <> atSolo True ) [ instrDesc, instrConfig ]
     instrDesc   = MEIInstrDesc noMEIAttrs [ MEIInstrName noMEIAttrs [ XMLText "Lute" ] ]
     instrConfig = MEIInstrConfig ( atLabel label ) [ MEICourseTuning noMEIAttrs courses ]
 
-elRhythmSign :: RhythmSign -> [MEI]
-elRhythmSign (RhythmSign Fermata _ _ _) = [ MEIFermata noMEIAttrs [] ]
-elRhythmSign (RhythmSign dur bt dt _)    = [ MEIRhythmSign ( atDurSymb dur bt dt ) [] ]
+elRhythmSign :: MEIAttrs -> RhythmSign -> [MEI]
+elRhythmSign coreAttrs (RhythmSign Fermata _ _ _) = [ MEIFermata coreAttrs [] ]
+elRhythmSign coreAttrs (RhythmSign dur bt dt _)   = [ MEIRhythmSign ( coreAttrs <> atDurSymb dur bt dt ) [] ]
 
-elWorkDesc :: [Rule] -> [MEI]
-elWorkDesc rls = [ MEIWorkDesc noMEIAttrs [ work ] ]
+elWorkDesc :: MEIAttrs -> [Rule] -> [MEI]
+elWorkDesc coreAttrs rls = [ MEIWorkDesc coreAttrs [ work ] ]
   where
-    work = MEIWork noMEIAttrs $ mapMaybe descEl rls
+    work = MEIWork coreAttrs $ mapMaybe descEl rls
     --descEl (Rule "title" t)        = Just $ MEITitle noMEIAttrs $ XMLText t
     descEl (Rule "tuning_named" t) = Just $ tuning t
     descEl (Rule _ _)              = Nothing
@@ -383,7 +389,7 @@ elWorkDesc rls = [ MEIWorkDesc noMEIAttrs [ work ] ]
 -- FIXME What are the correct tunings?
 tuning :: String -> MEI
 tuning "renaissance" =
-  elPerfMediumLute
+  elPerfMediumLute noMEIAttrs
     "renaissance"
     [ MEICourse ( atPname "g" <> atOct 4 ) [ MEIString ( atPname "g" <> atOct 4 ) [] ]
     , MEICourse ( atPname "d" <> atOct 4 ) [ MEIString ( atPname "d" <> atOct 4 ) [] ]
@@ -395,7 +401,7 @@ tuning "renaissance" =
 
 -- FIXME What are the correct tunings?
 tuning "baroque" =
-  elPerfMediumLute
+  elPerfMediumLute noMEIAttrs
     "baroque"
     [ MEICourse ( atPname "g" <> atOct 4 ) [ MEIString ( atPname "g" <> atOct 4 ) [] ]
     , MEICourse ( atPname "d" <> atOct 4 ) [ MEIString ( atPname "d" <> atOct 4 ) [] ]

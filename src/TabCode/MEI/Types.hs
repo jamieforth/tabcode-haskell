@@ -92,5 +92,6 @@ data MEIState = MEIState {
   , stChordId   :: MEIAttrs
   , stChord     :: MEIAttrs
   , stRestId    :: MEIAttrs
+  , stRhythmGlyphId :: MEIAttrs
   }
   deriving (Eq)
