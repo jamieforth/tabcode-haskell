@@ -23,6 +23,7 @@ module MEITests where
 import Distribution.TestSuite
 
 import qualified Data.ByteString.Char8  as C
+import           Data.Text (pack)
 import           TabCode
 import           TabCode.MEI
 import           TabCode.MEI.Serialiser
@@ -56,10 +57,10 @@ tryMEISerialise tcStrIn meiStrIn =
         tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc $ meiXml t
         meiXml t   = case mei BarLines testDoc ("input: " ++ tcStrIn) t of
                        Right m  -> m
-                       Left err -> error $ "Could not generate MEI tree for " ++ tcStrIn
+                       Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ tcStrIn ++ ": " ++ (show err)
         tcMEI xml  = case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xml of
-                       Right m -> m
-                       Left _  -> xmlParse "fail" "<empty/>"
+                       Right m  -> m
+                       Left err -> xmlParse "fail" $ "<fail>" ++ (show err) ++ "</fail>"
         testDoc st staves = MEI noMEIAttrs staves
 
     equal (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
