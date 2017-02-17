@@ -167,29 +167,45 @@ chordLike getChord = do
 chord :: TabWordsToMEI
 chord = chordLike getChord
   where
-    getChord st ch@(Chord l c (Just r) ns) =
-      Just ( st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st }
-           , MEIChord ( (stChordId st) <> replaceAttrs (stChord st) (atDur r) ) $ ( elRhythmSign (stRhythmGlyphId st) r ) <> ( concat $ (elNote noMEIAttrs (stRules st)) <$> ns ) )
-    getChord st ch@(Chord l c Nothing ns) =
-      Just ( st
-           , MEIChord ( (stChordId st) <> (stChord st) ) $ ( concat $ (elNote noMEIAttrs (stRules st)) <$> ns ) )
-    getChord st _ = Nothing
+    getChord st ch@(Chord l c (Just r) ns) = Just (newState, meiChord)
+      where
+        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st }
+        meiChord = MEIChord attributes ( rhythmSign <> notes )
+        attributes = (stChordId st) <> replaceAttrs (stChord st) (atDur r)
+        rhythmSign = elRhythmSign (stRhythmGlyphId st) r
+        notes = concat $ (elNote noMEIAttrs (stRules st)) <$> ns
+
+    getChord st ch@(Chord l c Nothing ns) = Just (st, meiChord)
+      where
+        meiChord = MEIChord attributes notes
+        attributes = (stChordId st) <> (stChord st)
+        notes = concat $ (elNote noMEIAttrs (stRules st)) <$> ns
+
+    getChord _ _ = Nothing
 
 chordCompound :: TabWordsToMEI
 chordCompound = chordLike getChord
   where
-    getChord st ch@(Chord l c (Just r@(RhythmSign _ Compound _ _)) ns) =
-      Just ( st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st }
-           , MEIChord ( (stChordId st) <> replaceAttrs (stChord st) (atDur r) ) $ ( elRhythmSign (stRhythmGlyphId st) r ) <> ( concat $ (elNote noMEIAttrs (stRules st)) <$> ns ) )
-    getChord st _ = Nothing
+    getChord st ch@(Chord l c (Just r@(RhythmSign _ Compound _ _)) ns) = Just (newState, meiChord)
+      where
+        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st }
+        meiChord = MEIChord attributes ( rhythmSign <> notes )
+        attributes = (stChordId st) <> replaceAttrs (stChord st) (atDur r)
+        rhythmSign = elRhythmSign (stRhythmGlyphId st) r
+        notes = concat $ (elNote noMEIAttrs (stRules st)) <$> ns
+
+    getChord _ _ = Nothing
 
 chordNoRS :: TabWordsToMEI
 chordNoRS = chordLike getChord
   where
-    getChord st ch@(Chord l c Nothing ns) =
-      Just ( st
-           , MEIChord ( (stChordId st) <> (stChord st) ) $ ( concat $ (elNote noMEIAttrs (stRules st)) <$> ns ) )
-    getChord st _ = Nothing
+    getChord st ch@(Chord l c Nothing ns) = Just (st, meiChord)
+      where
+        meiChord = MEIChord attributes notes
+        attributes = (stChordId st) <> (stChord st)
+        notes = concat $ (elNote noMEIAttrs (stRules st)) <$> ns
+
+    getChord _ _ = Nothing
 
 rest :: TabWordsToMEI
 rest = do
