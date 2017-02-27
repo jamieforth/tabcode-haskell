@@ -120,7 +120,7 @@ chords =
   [ Test $ mkMEITest
     "c1\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "c1a2\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/><note tab.course='2' tab.fret='0'/></chord>"
+    "c1a2\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/><note xml:id='n2' tab.course='2' tab.fret='0'/></chord>"
   , Test $ mkMEITest
     "Qc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest

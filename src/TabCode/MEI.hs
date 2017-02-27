@@ -169,17 +169,22 @@ chord = chordLike getChord
   where
     getChord st ch@(Chord l c (Just r) ns) = Just (newState, meiChord)
       where
-        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st }
+        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
+                      , stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st)
+                      }
         meiChord = MEIChord attributes ( rhythmSign <> notes )
         attributes = (stChordId st) <> replaceAttrs (stChord st) (atDur r)
         rhythmSign = elRhythmSign (stRhythmGlyphId st) r
-        notes = concat $ (elNote noMEIAttrs (stRules st)) <$> ns
+        notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
+        notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
 
-    getChord st ch@(Chord l c Nothing ns) = Just (st, meiChord)
+    getChord st ch@(Chord l c Nothing ns) = Just (newState, meiChord)
       where
+        newState = st { stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st) }
         meiChord = MEIChord attributes notes
         attributes = (stChordId st) <> (stChord st)
-        notes = concat $ (elNote noMEIAttrs (stRules st)) <$> ns
+        notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
+        notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
 
     getChord _ _ = Nothing
 
@@ -188,22 +193,27 @@ chordCompound = chordLike getChord
   where
     getChord st ch@(Chord l c (Just r@(RhythmSign _ Compound _ _)) ns) = Just (newState, meiChord)
       where
-        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st }
+        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
+                      , stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st)
+                      }
         meiChord = MEIChord attributes ( rhythmSign <> notes )
         attributes = (stChordId st) <> replaceAttrs (stChord st) (atDur r)
         rhythmSign = elRhythmSign (stRhythmGlyphId st) r
-        notes = concat $ (elNote noMEIAttrs (stRules st)) <$> ns
+        notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
+        notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
 
     getChord _ _ = Nothing
 
 chordNoRS :: TabWordsToMEI
 chordNoRS = chordLike getChord
   where
-    getChord st ch@(Chord l c Nothing ns) = Just (st, meiChord)
+    getChord st ch@(Chord l c Nothing ns) = Just (newState, meiChord)
       where
+        newState = st { stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st) }
         meiChord = MEIChord attributes notes
         attributes = (stChordId st) <> (stChord st)
-        notes = concat $ (elNote noMEIAttrs (stRules st)) <$> ns
+        notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
+        notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
 
     getChord _ _ = Nothing
 

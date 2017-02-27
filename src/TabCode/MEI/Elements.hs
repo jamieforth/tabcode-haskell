@@ -201,6 +201,7 @@ emptyState =
            , stChord     = noMEIAttrs
            , stRestId    = noMEIAttrs
            , stRhythmGlyphId = noMEIAttrs
+           , stNoteId    = noMEIAttrs
            }
 
 initialState :: MEIState
@@ -218,6 +219,7 @@ initialState =
            , stChord     = noMEIAttrs
            , stRestId    = [ PrefIntAttr "xml:id" ("r", 1) ]
            , stRhythmGlyphId = [ PrefIntAttr "xml:id" ("rg", 1) ]
+           , stNoteId    = [ PrefIntAttr "xml:id" ("n", 1) ]
            }
 
 boundedIntAttr :: Int -> (Int, Int) -> Text -> MEIAttrs
@@ -315,6 +317,11 @@ atXmlIdNext attrs = mutateAttr "xml:id" (incIntAttr 1) attrs
 withXmlId :: MEIAttrs -> MEIAttrs -> MEIAttrs
 withXmlId idAttrs otherAttrs =
   updateAttrs otherAttrs $ getAttr "xml:id" idAttrs
+
+xmlIdNumber :: MEIAttrs -> Int
+xmlIdNumber ((PrefIntAttr "xml:id" (_, i)):attrs) = i
+xmlIdNumber (_:attrs) = xmlIdNumber attrs
+xmlIdNumber [] = 0
 
 elArticulation :: MEIAttrs -> Articulation -> [MEI]
 elArticulation _ artic = [XMLComment ""]
