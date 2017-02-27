@@ -220,15 +220,22 @@ chordNoRS = chordLike getChord
 rest :: TabWordsToMEI
 rest = do
   st <- getState
-  r <- tokenPrim show updatePos $ getRest st
-  let newSt = st { stRestId = atXmlIdNext $ stRestId st }
-  putState newSt
+  (newState, r) <- tokenPrim show updatePos $ getRest st
+  putState newState
   return r
+
   where
-    getRest st re@(Rest l c (RhythmSign Fermata _ _ _)) =
-      Just $ MEIFermata (stRestId st) []
-    getRest st re@(Rest l c r) =
-      Just $ MEIRest ( (stRestId st) <> atDur r ) $ ( elRhythmSign (stRhythmGlyphId st) r )
+    getRest st re@(Rest l c (RhythmSign Fermata _ _ _)) = Just (newState, meiFermata)
+      where
+        newState = st { stRestId = atXmlIdNext $ stRestId st }
+        meiFermata = MEIFermata (stRestId st) []
+
+    getRest st re@(Rest l c r) = Just (newState, meiRest)
+      where
+        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
+                      , stRestId = atXmlIdNext $ stRestId st }
+        meiRest = MEIRest ( (stRestId st) <> atDur r ) $ ( elRhythmSign (stRhythmGlyphId st) r )
+
     getRest _ _ = Nothing
 
 meter :: TabWordsToMEI

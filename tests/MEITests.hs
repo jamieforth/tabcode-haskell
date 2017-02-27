@@ -137,6 +137,8 @@ phrases =
     "Ec1\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='8'><rhythmGlyph xml:id='rg1' symbol='E'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
     "E.c1\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='8' dots='1'><rhythmGlyph xml:id='rg1' symbol='E.' dots='1'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8' dots='1'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
+  , Test $ mkMEITest
+    "Q\nEd2\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/></rest><chord xml:id='c1' dur='8'><rhythmGlyph xml:id='rg2' symbol='E'/><note xml:id='n1' tab.course='2' tab.fret='3'/></chord>"
   ]
 
 tests :: IO [Test]
