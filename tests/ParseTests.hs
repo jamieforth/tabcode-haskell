@@ -336,4 +336,10 @@ comments =
   , Test $ mkParseTest "{}" (Comment 1 1 "")
   , Test $ mkParseTest "{\n}" (Comment 1 1 "\n")
   , Test $ mkParseTest "{foo\nbar}" (Comment 1 1 "foo\nbar")
+  , Test $ mkParseTest "{foo}a1c3" (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                                                      , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ])
+  , Test $ mkParseTest "a1{foo}c3" (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                                                      , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ])
+  , Test $ mkParseTest "a1c3{foo}" (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                                                      , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ])
   ]
