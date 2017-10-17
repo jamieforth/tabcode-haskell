@@ -30,6 +30,7 @@ module TabCode.MEI
   , module TabCode.MEI.Types
   , (<>) ) where
 
+import           Control.Applicative           ((<$>))
 import           Data.Monoid                   ((<>))
 import           Data.Text                     (pack, append)
 import qualified Data.Vector                   as V

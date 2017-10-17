@@ -20,6 +20,7 @@
 
 module TabCode.Options where
 
+import Control.Applicative ((<$>))
 import Data.Monoid         ((<>))
 import Options.Applicative
 

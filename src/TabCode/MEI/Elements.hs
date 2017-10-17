@@ -22,6 +22,7 @@
 
 module TabCode.MEI.Elements where
 
+import Control.Applicative ((<$>))
 import Data.Maybe  (catMaybes)
 import Data.Monoid (mempty, (<>))
 import Data.Text   (Text, pack, unpack, replace, append)
