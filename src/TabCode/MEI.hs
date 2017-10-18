@@ -92,9 +92,11 @@ measureP barlineP attrs = do
   chords <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
   st     <- getState
-  let nextSt = st { stMeasure = mutateAttr (pack "n") (incIntAttr 1) (stMeasure st) }
+  let nextSt = st { stMeasure = mutateAttr (pack "n") (incIntAttr 1) (stMeasure st)
+                  , stMeasureId = mutateAttr (pack "xml:id") (incIntAttr 1) (stMeasureId st)
+                  }
   putState nextSt
-  return $ MEIMeasure (stMeasure nextSt) [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ]
+  return $ MEIMeasure (stMeasureId nextSt <> stMeasure nextSt) [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ]
 
 measureSng    = measureP barLineSng ( atRight "single" )
 measureDbl    = measureP barLineDbl ( atRight "double" )
@@ -141,8 +143,11 @@ barLine :: TabWordsToMEI
 barLine = do
   bl <- barLineSng <|> barLineDbl <|> barLineRptL <|> barLineRptR <|> barLineRptB
   st <- getState
-  let blWithN = MEIBarLine (updateAttrs (getAttrs bl) (stBarLine nextSt)) (getChildren bl)
-      nextSt  = st { stBarLine = mutateAttr (pack "n") (incIntAttr 1) (stBarLine st) }
+  let blWithN = MEIBarLine blAttrs (getChildren bl)
+      blAttrs = updateAttrs (updateAttrs (getAttrs bl) (stBarLine nextSt)) (stBarLineId nextSt)
+      nextSt  = st { stBarLine = mutateAttr (pack "n") (incIntAttr 1) (stBarLine st)
+                   , stBarLineId = mutateAttr (pack "xml:id") (incIntAttr 1) (stBarLineId st)
+                   }
   putState nextSt
   return $ blWithN
 

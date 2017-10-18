@@ -33,19 +33,22 @@ import           Text.XML.Generator
 import           Text.XML.HaXml.Parse   (xmlParse', xmlParse)
 import           Text.XML.HaXml.Pretty  (document)
 
-mkMEITest :: String -> String -> TestInstance
-mkMEITest tc xml = TestInstance {
-    run = return $ Finished $ tryMEISerialise tc xml
+mkMEITestWithStructure :: Structure -> String -> String -> TestInstance
+mkMEITestWithStructure structure tc xml = TestInstance {
+    run = return $ Finished $ tryMEISerialise structure tc xml
   , name = "MEI " ++ tc
   , tags = []
   , options = []
-  , setOption = \_ _ -> Right $ mkMEITest tc xml
+  , setOption = \_ _ -> Right $ mkMEITestWithStructure structure tc xml
   }
 
-tryMEISerialise :: String -> String -> Result
-tryMEISerialise tcStrIn meiStrIn =
+mkMEITest :: String -> String -> TestInstance
+mkMEITest = mkMEITestWithStructure BarLines
+
+tryMEISerialise :: Structure -> String -> String -> Result
+tryMEISerialise structure tcStrIn meiStrIn =
   equal
-    (parseTabcode (TCOptions { parseMode = Strict, structure = BarLines }) tcStrIn)
+    (parseTabcode (TCOptions { parseMode = Strict, structure = structure }) tcStrIn)
     (xmlParse' meiStrIn meiStrIn)
 
   where
@@ -55,7 +58,7 @@ tryMEISerialise tcStrIn meiStrIn =
       where
         tcXML      = tcMEI . tcMEIStr $ tc
         tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc $ meiXml t
-        meiXml t   = case mei BarLines testDoc ("input: " ++ tcStrIn) t of
+        meiXml t   = case mei structure testDoc ("input: " ++ tcStrIn) t of
                        Right m  -> m
                        Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ tcStrIn ++ ": " ++ (show err)
         tcMEI xml  = case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xml of
@@ -65,6 +68,9 @@ tryMEISerialise tcStrIn meiStrIn =
 
     equal (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
     equal _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
+
+asMEI :: String -> String
+asMEI s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><mei xmlns='http://www.music-encoding.org/ns/mei'>" ++ s ++ "</mei>"
 
 asStaff :: String -> String -> String
 asStaff def s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><mei xmlns='http://www.music-encoding.org/ns/mei'><staff n='1' def='" ++ def ++ "'><layer n='1'>" ++ s ++ "</layer></staff></mei>"
@@ -141,8 +147,24 @@ phrases =
     "Q\nEd2\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/></rest><chord xml:id='c1' dur='8'><rhythmGlyph xml:id='rg2' symbol='E'/><note xml:id='n1' tab.course='2' tab.fret='3'/></chord>"
   ]
 
+barLines :: [Test]
+barLines =
+  [ Test $ mkMEITest
+    "c1\n|\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><barLine form='single' n='1' xml:id='bl1'/><chord xml:id='c2'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
+  ]
+
+measures :: [Test]
+measures =
+  [ Test $ mkMEITestWithStructure Measures
+    "c1\n|\nc1\n" $ asMEI "<measure xml:id='m1' n='1'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord></layer></staff></measure><chord xml:id='c2'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
+  , Test $ mkMEITestWithStructure Measures
+    "c1\n|\nc1\n|\n" $ asMEI "<measure xml:id='m1' n='1'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord></layer></staff></measure><measure xml:id='m2' n='2'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c2'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord></layer></staff></measure>"
+  ]
+
 tests :: IO [Test]
 tests = return $ meterSigns
   ++ rests
   ++ chords
   ++ phrases
+  ++ barLines
+  ++ measures

@@ -88,7 +88,9 @@ data MEIState = MEIState {
   , stStaffDef  :: MEIAttrs
   , stLayer     :: MEIAttrs
   , stMeasure   :: MEIAttrs
+  , stMeasureId :: MEIAttrs
   , stBarLine   :: MEIAttrs
+  , stBarLineId :: MEIAttrs
   , stChordId   :: MEIAttrs
   , stChord     :: MEIAttrs
   , stRestId    :: MEIAttrs
