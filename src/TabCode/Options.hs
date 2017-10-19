@@ -34,9 +34,17 @@ data Structure
   | Measures
   deriving (Eq, Show)
 
+data XmlIds
+  = WithXmlIds
+  | WithoutXmlIds
+  deriving (Eq, Show)
+
 data TCOptions = TCOptions {
     parseMode :: ParseMode
-  , structure :: Structure } deriving (Eq)
+  , structure :: Structure
+  , xmlIds :: XmlIds
+  }
+  deriving (Eq)
 
 config :: Parser TCOptions
 config = TCOptions
@@ -46,3 +54,6 @@ config = TCOptions
   <*> flag BarLines Measures
     ( long "with-measures"
       <> help "Structure the MEI with <measure> elements. The default is to use <barLine>s." )
+  <*> flag WithoutXmlIds WithXmlIds
+    ( long "with-xml-ids"
+      <> help "Add automatic, sequential xml:id attributes to some of the output elements. By default no xml:id attributes are included." )

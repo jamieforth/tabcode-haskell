@@ -23,28 +23,32 @@ module MEITests where
 import Distribution.TestSuite
 
 import qualified Data.ByteString.Char8  as C
+import           Data.Text (pack)
 import           TabCode
 import           TabCode.MEI
 import           TabCode.MEI.Serialiser
-import           TabCode.Options        (TCOptions(..), ParseMode(..), Structure(..))
+import           TabCode.Options        (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
 import           TabCode.Parser         (parseTabcode)
 import           Text.XML.Generator
 import           Text.XML.HaXml.Parse   (xmlParse', xmlParse)
 import           Text.XML.HaXml.Pretty  (document)
 
-mkMEITest :: String -> String -> TestInstance
-mkMEITest tc xml = TestInstance {
-    run = return $ Finished $ tryMEISerialise tc xml
+mkMEITestWithStructure :: Structure -> String -> String -> TestInstance
+mkMEITestWithStructure structure tc xml = TestInstance {
+    run = return $ Finished $ tryMEISerialise structure tc xml
   , name = "MEI " ++ tc
   , tags = []
   , options = []
-  , setOption = \_ _ -> Right $ mkMEITest tc xml
+  , setOption = \_ _ -> Right $ mkMEITestWithStructure structure tc xml
   }
 
-tryMEISerialise :: String -> String -> Result
-tryMEISerialise tcStrIn meiStrIn =
+mkMEITest :: String -> String -> TestInstance
+mkMEITest = mkMEITestWithStructure BarLines
+
+tryMEISerialise :: Structure -> String -> String -> Result
+tryMEISerialise structure tcStrIn meiStrIn =
   equal
-    (parseTabcode (TCOptions { parseMode = Strict, structure = BarLines }) tcStrIn)
+    (parseTabcode (TCOptions { parseMode = Strict, structure = structure, xmlIds = WithXmlIds }) tcStrIn)
     (xmlParse' meiStrIn meiStrIn)
 
   where
@@ -53,17 +57,20 @@ tryMEISerialise tcStrIn meiStrIn =
                                                          ++ "; got: " ++ (show $ document tcXML)
       where
         tcXML      = tcMEI . tcMEIStr $ tc
-        tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc $ meiXml t
-        meiXml t   = case mei BarLines testDoc ("input: " ++ tcStrIn) t of
+        tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc (meiXml t) WithXmlIds
+        meiXml t   = case mei structure testDoc ("input: " ++ tcStrIn) t of
                        Right m  -> m
-                       Left err -> error $ "Could not generate MEI tree for " ++ tcStrIn
+                       Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ tcStrIn ++ ": " ++ (show err)
         tcMEI xml  = case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xml of
-                       Right m -> m
-                       Left _  -> xmlParse "fail" "<empty/>"
+                       Right m  -> m
+                       Left err -> xmlParse "fail" $ "<fail>" ++ (show err) ++ "</fail>"
         testDoc st staves = MEI noMEIAttrs staves
 
     equal (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
     equal _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
+
+asMEI :: String -> String
+asMEI s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><mei xmlns='http://www.music-encoding.org/ns/mei'>" ++ s ++ "</mei>"
 
 asStaff :: String -> String -> String
 asStaff def s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><mei xmlns='http://www.music-encoding.org/ns/mei'><staff n='1' def='" ++ def ++ "'><layer n='1'>" ++ s ++ "</layer></staff></mei>"
@@ -101,41 +108,57 @@ meterSigns =
 rests :: [Test]
 rests =
   [ Test $ mkMEITest
-    "F\n" $ asStaff "#staff-0" "<fermata/>"
+    "F\n" $ asStaff "#staff-0" "<fermata xml:id='r1'/>"
   , Test $ mkMEITest
-    "B\n" $ asStaff "#staff-0" "<rest dur='breve'><rhythmGlyph symbol='B'/></rest>"
+    "B\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='breve'><rhythmGlyph xml:id='rg1' symbol='B'/></rest>"
   , Test $ mkMEITest
-    "W\n" $ asStaff "#staff-0" "<rest dur='1'><rhythmGlyph symbol='W'/></rest>"
+    "W\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='1'><rhythmGlyph xml:id='rg1' symbol='W'/></rest>"
   , Test $ mkMEITest
-    "W.\n" $ asStaff "#staff-0" "<rest dur='1' dots='1'><rhythmGlyph symbol='W.' dots='1'/></rest>"
+    "W.\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='1' dots='1'><rhythmGlyph xml:id='rg1' symbol='W.' dots='1'/></rest>"
   , Test $ mkMEITest
-    "H\n" $ asStaff "#staff-0" "<rest dur='2'><rhythmGlyph symbol='H'/></rest>"
+    "H\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='2'><rhythmGlyph xml:id='rg1' symbol='H'/></rest>"
   , Test $ mkMEITest
-    "H.\n" $ asStaff "#staff-0" "<rest dur='2' dots='1'><rhythmGlyph symbol='H.' dots='1'/></rest>"
+    "H.\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='2' dots='1'><rhythmGlyph xml:id='rg1' symbol='H.' dots='1'/></rest>"
   ]
 
 chords :: [Test]
 chords =
   [ Test $ mkMEITest
-    "c1\n" $ asStaff "#staff-0" "<chord><note tab.course='1' tab.fret='2'/></chord>"
+    "c1\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "c1a2\n" $ asStaff "#staff-0" "<chord><note tab.course='1' tab.fret='2'/><note tab.course='2' tab.fret='0'/></chord>"
+    "c1a2\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/><note xml:id='n2' tab.course='2' tab.fret='0'/></chord>"
   , Test $ mkMEITest
-    "Qc1\n" $ asStaff "#staff-0" "<chord dur='4'><rhythmGlyph symbol='Q'/><note tab.course='1' tab.fret='2'/></chord>"
+    "Qc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "Q.c1\n" $ asStaff "#staff-0" "<chord dur='4' dots='1'><rhythmGlyph symbol='Q.' dots='1'/><note tab.course='1' tab.fret='2'/></chord>"
+    "Q.c1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4' dots='1'><rhythmGlyph xml:id='rg1' symbol='Q.' dots='1'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "E3c1\nc1\nc1\n" $ asStaff "#staff-0" "<tuplet num='3' numbase='2'><chord dur='8'><rhythmGlyph symbol='E3'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord></tuplet>"
+    "E3c1\nc1\nc1\n" $ asStaff "#staff-0" "<tuplet num='3' numbase='2'><chord xml:id='c1' dur='8'><rhythmGlyph xml:id='rg1' symbol='E3'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord><chord xml:id='c3' dur='8'><note xml:id='n3' tab.course='1' tab.fret='2'/></chord></tuplet>"
   ]
 
 phrases :: [Test]
 phrases =
   [ Test $ mkMEITest
-    "Q.c1\nEc1\n" $ asStaff "#staff-0" "<chord dur='4' dots='1'><rhythmGlyph symbol='Q.' dots='1'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><rhythmGlyph symbol='E'/><note tab.course='1' tab.fret='2'/></chord>"
+    "Q.c1\nEc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4' dots='1'><rhythmGlyph xml:id='rg1' symbol='Q.' dots='1'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8'><rhythmGlyph xml:id='rg2' symbol='E'/><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "Ec1\nc1\n" $ asStaff "#staff-0" "<chord dur='8'><rhythmGlyph symbol='E'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8'><note tab.course='1' tab.fret='2'/></chord>"
+    "Ec1\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='8'><rhythmGlyph xml:id='rg1' symbol='E'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
   , Test $ mkMEITest
-    "E.c1\nc1\n" $ asStaff "#staff-0" "<chord dur='8' dots='1'><rhythmGlyph symbol='E.' dots='1'/><note tab.course='1' tab.fret='2'/></chord><chord dur='8' dots='1'><note tab.course='1' tab.fret='2'/></chord>"
+    "E.c1\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1' dur='8' dots='1'><rhythmGlyph xml:id='rg1' symbol='E.' dots='1'/><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><chord xml:id='c2' dur='8' dots='1'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
+  , Test $ mkMEITest
+    "Q\nEd2\n" $ asStaff "#staff-0" "<rest xml:id='r1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/></rest><chord xml:id='c1' dur='8'><rhythmGlyph xml:id='rg2' symbol='E'/><note xml:id='n1' tab.course='2' tab.fret='3'/></chord>"
+  ]
+
+barLines :: [Test]
+barLines =
+  [ Test $ mkMEITest
+    "c1\n|\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><barLine form='single' n='1' xml:id='bl1'/><chord xml:id='c2'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
+  ]
+
+measures :: [Test]
+measures =
+  [ Test $ mkMEITestWithStructure Measures
+    "c1\n|\nc1\n" $ asMEI "<measure xml:id='m1' n='1'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord></layer></staff></measure><chord xml:id='c2'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
+  , Test $ mkMEITestWithStructure Measures
+    "c1\n|\nc1\n|\n" $ asMEI "<measure xml:id='m1' n='1'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord></layer></staff></measure><measure xml:id='m2' n='2'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c2'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord></layer></staff></measure>"
   ]
 
 tests :: IO [Test]
@@ -143,3 +166,5 @@ tests = return $ meterSigns
   ++ rests
   ++ chords
   ++ phrases
+  ++ barLines
+  ++ measures

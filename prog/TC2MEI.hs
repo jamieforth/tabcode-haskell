@@ -43,4 +43,4 @@ main = execParser opts >>= runSerialiser
       m  <- case mei (structure o) defaultDoc "stdin" tc of
         Right m  -> return m
         Left err -> do { putStrLn $ pack $ "Could not construct MEI tree: " ++ (show err); return $ MEIMusic [] [] }
-      putStrLn $ xrender $ doc defaultDocInfo $ meiDoc m
+      putStrLn $ xrender $ doc defaultDocInfo $ meiDoc m (xmlIds o)

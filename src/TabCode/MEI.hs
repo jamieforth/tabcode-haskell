@@ -66,7 +66,7 @@ mei Measures doc source (TabCode rls tws) = runParser (withMeasures doc) (initia
 
 meiHead :: [Rule] -> MEI
 meiHead rls =
-  MEIHead noMEIAttrs $ elWorkDesc rls
+  MEIHead noMEIAttrs $ elWorkDesc noMEIAttrs rls
 
 withMeasures :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withMeasures doc = do
@@ -78,7 +78,7 @@ withMeasures doc = do
 
 staffIDAsDef :: MEIAttrs -> MEIAttrs
 staffIDAsDef staffAttrs =
-  mutateAttr (pack "def") (\s -> append (pack "#") s) $ getAttrAs (pack "xml:id") (pack "def") staffAttrs
+  mutateAttr (pack "xml:id") ((updateStrAttrValue (\s -> append (pack "#") s)) . intAttrToStrAttr . renameAttr (pack "def")) staffAttrs
 
 withBarLines :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withBarLines doc = do
@@ -92,9 +92,11 @@ measureP barlineP attrs = do
   chords <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
   st     <- getState
-  let nextSt = st { stMeasure = incIntAttr (stMeasure st) (pack "n") 1 }
+  let nextSt = st { stMeasure = mutateAttr (pack "n") (incIntAttr 1) (stMeasure st)
+                  , stMeasureId = mutateAttr (pack "xml:id") (incIntAttr 1) (stMeasureId st)
+                  }
   putState nextSt
-  return $ MEIMeasure (stMeasure nextSt) [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ]
+  return $ MEIMeasure (stMeasureId nextSt <> stMeasure nextSt) [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ]
 
 measureSng    = measureP barLineSng ( atRight "single" )
 measureDbl    = measureP barLineDbl ( atRight "double" )
@@ -141,8 +143,11 @@ barLine :: TabWordsToMEI
 barLine = do
   bl <- barLineSng <|> barLineDbl <|> barLineRptL <|> barLineRptR <|> barLineRptB
   st <- getState
-  let blWithN = MEIBarLine (updateAttrs (getAttrs bl) (stBarLine nextSt)) (getChildren bl)
-      nextSt  = st { stBarLine = incIntAttr (stBarLine st) (pack "n") 1 }
+  let blWithN = MEIBarLine blAttrs (getChildren bl)
+      blAttrs = updateAttrs (updateAttrs (getAttrs bl) (stBarLine nextSt)) (stBarLineId nextSt)
+      nextSt  = st { stBarLine = mutateAttr (pack "n") (incIntAttr 1) (stBarLine st)
+                   , stBarLineId = mutateAttr (pack "xml:id") (incIntAttr 1) (stBarLineId st)
+                   }
   putState nextSt
   return $ blWithN
 
@@ -152,11 +157,12 @@ tuplet = do
   cs <- many chordNoRS
   return $ MEITuplet ( atNum 3 <> atNumbase 2 ) $ c ++ cs
 
-chordLike :: ([Rule] -> MEIAttrs -> TabWord -> Maybe MEI) -> TabWordsToMEI
+chordLike :: (MEIState -> TabWord -> Maybe (MEIState, MEI)) -> TabWordsToMEI
 chordLike getChord = do
   st <- getState
-  c <- tokenPrim show updatePos (getChord (stRules st) (stChord st))
-  putState $ st { stChord = durOf c }
+  (newState, c) <- tokenPrim show updatePos $ getChord st
+  putState $ newState { stChordId = atXmlIdNext $ stChordId newState,
+                        stChord = durOf c }
   return c
 
   where
@@ -166,37 +172,81 @@ chordLike getChord = do
 chord :: TabWordsToMEI
 chord = chordLike getChord
   where
-    getChord rls dur ch@(Chord l c r ns) =
-      Just $ MEIChord ( replaceAttrs dur (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
-    getChord _ _ _ = Nothing
+    getChord st ch@(Chord l c (Just r) ns) = Just (newState, meiChord)
+      where
+        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
+                      , stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st)
+                      }
+        meiChord = MEIChord attributes ( rhythmSign <> notes )
+        attributes = (stChordId st) <> replaceAttrs (stChord st) (atDur r)
+        rhythmSign = elRhythmSign (stRhythmGlyphId st) r
+        notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
+        notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
+
+    getChord st ch@(Chord l c Nothing ns) = Just (newState, meiChord)
+      where
+        newState = st { stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st) }
+        meiChord = MEIChord attributes notes
+        attributes = (stChordId st) <> (stChord st)
+        notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
+        notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
+
+    getChord _ _ = Nothing
 
 chordCompound :: TabWordsToMEI
 chordCompound = chordLike getChord
   where
-    getChord rls dur ch@(Chord l c r@(Just (RhythmSign _ Compound _ _)) ns) =
-      Just $ MEIChord ( replaceAttrs dur (atDur <$:> r) ) $ ( elRhythmSign <$:> r ) <> ( concat $ (elNote rls) <$> ns )
-    getChord _ _ _ = Nothing
+    getChord st ch@(Chord l c (Just r@(RhythmSign _ Compound _ _)) ns) = Just (newState, meiChord)
+      where
+        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
+                      , stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st)
+                      }
+        meiChord = MEIChord attributes ( rhythmSign <> notes )
+        attributes = (stChordId st) <> replaceAttrs (stChord st) (atDur r)
+        rhythmSign = elRhythmSign (stRhythmGlyphId st) r
+        notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
+        notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
+
+    getChord _ _ = Nothing
 
 chordNoRS :: TabWordsToMEI
 chordNoRS = chordLike getChord
   where
-    getChord rls dur ch@(Chord l c Nothing ns) =
-      Just $ MEIChord dur $ ( concat $ (elNote rls) <$> ns )
-    getChord _ _ _ = Nothing
+    getChord st ch@(Chord l c Nothing ns) = Just (newState, meiChord)
+      where
+        newState = st { stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st) }
+        meiChord = MEIChord attributes notes
+        attributes = (stChordId st) <> (stChord st)
+        notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
+        notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
+
+    getChord _ _ = Nothing
 
 rest :: TabWordsToMEI
-rest = tokenPrim show updatePos getRest
+rest = do
+  st <- getState
+  (newState, r) <- tokenPrim show updatePos $ getRest st
+  putState newState
+  return r
+
   where
-    getRest re@(Rest l c (RhythmSign Fermata _ _ _)) =
-      Just $ MEIFermata noMEIAttrs []
-    getRest re@(Rest l c r) =
-      Just $ MEIRest ( atDur r ) $ ( elRhythmSign r )
-    getRest _ = Nothing
+    getRest st re@(Rest l c (RhythmSign Fermata _ _ _)) = Just (newState, meiFermata)
+      where
+        newState = st { stRestId = atXmlIdNext $ stRestId st }
+        meiFermata = MEIFermata (stRestId st) []
+
+    getRest st re@(Rest l c r) = Just (newState, meiRest)
+      where
+        newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
+                      , stRestId = atXmlIdNext $ stRestId st }
+        meiRest = MEIRest ( (stRestId st) <> atDur r ) $ ( elRhythmSign (stRhythmGlyphId st) r )
+
+    getRest _ _ = Nothing
 
 meter :: TabWordsToMEI
 meter = do
   st <- getState
-  let newSt = st { stStaffDef = incPrefixedIntAttr (stStaffDef st) (pack "xml:id") (pack "staff-") 1 }
+  let newSt = st { stStaffDef = mutateAttr (pack "xml:id") (incIntAttr 1) (stStaffDef st) }
   m  <- tokenPrim show updatePos (getMeter $ stStaffDef newSt)
   putState $ newSt
   return m
