@@ -26,6 +26,7 @@ module TabCode.MEI.Serialiser
 import           Data.Text          (append, pack, unpack, Text)
 import           TabCode
 import           TabCode.MEI.Types
+import           TabCode.Options    (XmlIds(..))
 import           Text.XML.Generator
 
 mei :: Namespace
@@ -39,99 +40,104 @@ meiAttr (StringAttr name value) = xattr name value
 meiAttr (IntAttr name value) = xattr name (pack $ show value)
 meiAttr (PrefIntAttr name (prefix, value)) = xattr name (append prefix (pack (show value)))
 
-meiAttrs :: MEIAttrs -> Xml Attr
-meiAttrs as = xattrs $ map meiAttr as
+meiAttrs :: MEIAttrs -> XmlIds -> Xml Attr
+meiAttrs as WithXmlIds = xattrs $ map meiAttr as
+meiAttrs as WithoutXmlIds = xattrs $ map meiAttr $ filter (not . isXmlId) as
 
-meiXml :: Text -> MEIAttrs -> [MEI] -> Xml Elem
-meiXml n as cs = xelemQ mei n $ (meiAttrs as) <#> (xelems $ map meiDoc cs)
+isXmlId :: MEIAttr -> Bool
+isXmlId (PrefIntAttr "xml:id" _) = True
+isXmlId _ = False
 
-meiXml_ :: Text -> MEIAttrs -> Xml Elem
-meiXml_ n as = xelemQ mei n $ meiAttrs as
+meiXml :: Text -> MEIAttrs -> [MEI] -> XmlIds -> Xml Elem
+meiXml n as cs xmlIds = xelemQ mei n $ (meiAttrs as xmlIds) <#> (xelems $ map (flip meiDoc xmlIds) cs)
 
-tcXml :: Text -> MEIAttrs -> [MEI] -> Xml Elem
-tcXml n as cs = xelemQ tc n $ (meiAttrs as) <#> (xelems $ map meiDoc cs)
+meiXml_ :: Text -> MEIAttrs -> XmlIds -> Xml Elem
+meiXml_ n as xmlIds = xelemQ mei n $ meiAttrs as xmlIds
 
-tcXml_ :: Text -> MEIAttrs -> Xml Elem
-tcXml_ n as = xelemQ tc n $ meiAttrs as
+tcXml :: Text -> MEIAttrs -> [MEI] -> XmlIds -> Xml Elem
+tcXml n as cs xmlIds = xelemQ tc n $ (meiAttrs as xmlIds) <#> (xelems $ map (flip meiDoc xmlIds) cs)
 
-meiDoc :: MEI -> Xml Elem
-meiDoc (MEI             attrs [])       = meiXml_ "mei" attrs
-meiDoc (MEI             attrs children) = meiXml  "mei" attrs children
-meiDoc (MEIBarLine      attrs [])       = meiXml_ "barLine" attrs
-meiDoc (MEIBarLine      attrs children) = meiXml  "barLine" attrs children
-meiDoc (MEIBassTuning   attrs [])       = meiXml_ "bassTuning" attrs
-meiDoc (MEIBassTuning   attrs children) = meiXml  "bassTuning" attrs children
-meiDoc (MEIBeam         attrs [])       = meiXml_ "beam" attrs
-meiDoc (MEIBeam         attrs children) = meiXml  "beam" attrs children
-meiDoc (MEIBody         attrs [])       = meiXml_ "body" attrs
-meiDoc (MEIBody         attrs children) = meiXml  "body" attrs children
-meiDoc (MEIChord        attrs [])       = meiXml_ "chord" attrs
-meiDoc (MEIChord        attrs children) = meiXml  "chord" attrs children
-meiDoc (MEICourse       attrs [])       = meiXml_ "course" attrs
-meiDoc (MEICourse       attrs children) = meiXml  "course" attrs children
-meiDoc (MEICourseTuning attrs [])       = meiXml_ "courseTuning" attrs
-meiDoc (MEICourseTuning attrs children) = meiXml  "courseTuning" attrs children
-meiDoc (MEIFermata      attrs [])       = meiXml_ "fermata" attrs
-meiDoc (MEIFermata      attrs children) = meiXml  "fermata" attrs children
-meiDoc (MEIFingering    attrs [])       = meiXml_ "fingering" attrs
-meiDoc (MEIFingering    attrs children) = meiXml  "fingering" attrs children
-meiDoc (MEIFretGlyph    attrs [])       = meiXml_ "fretGlyph" attrs
-meiDoc (MEIFretGlyph    attrs children) = meiXml  "fretGlyph" attrs children
-meiDoc (MEIHead         attrs [])       = meiXml_ "meiHead" attrs
-meiDoc (MEIHead         attrs children) = meiXml  "meiHead" attrs children
-meiDoc (MEIInstrConfig  attrs [])       = meiXml_ "instrConfig" attrs
-meiDoc (MEIInstrConfig  attrs children) = meiXml  "instrConfig" attrs children
-meiDoc (MEIInstrDesc    attrs [])       = meiXml_ "instrDesc" attrs
-meiDoc (MEIInstrDesc    attrs children) = meiXml  "instrDesc" attrs children
-meiDoc (MEIInstrName    attrs [])       = meiXml_ "instrName" attrs
-meiDoc (MEIInstrName    attrs children) = meiXml  "instrName" attrs children
-meiDoc (MEILayer        attrs [])       = meiXml_ "layer" attrs
-meiDoc (MEILayer        attrs children) = meiXml  "layer" attrs children
-meiDoc (MEIMDiv         attrs [])       = meiXml_ "mdiv" attrs
-meiDoc (MEIMDiv         attrs children) = meiXml  "mdiv" attrs children
-meiDoc (MEIMeasure      attrs [])       = meiXml_ "measure" attrs
-meiDoc (MEIMeasure      attrs children) = meiXml  "measure" attrs children
-meiDoc (MEIMensur       attrs [])       = meiXml_ "mensur" attrs
-meiDoc (MEIMensur       attrs children) = meiXml  "mensur" attrs children
-meiDoc (MEIMeterSig     attrs [])       = meiXml_ "meterSig" attrs
-meiDoc (MEIMeterSig     attrs children) = meiXml  "meterSig" attrs children
-meiDoc (MEIMusic        attrs [])       = meiXml_ "music" attrs
-meiDoc (MEIMusic        attrs children) = meiXml  "music" attrs children
-meiDoc (MEINote         attrs [])       = meiXml_ "note" attrs
-meiDoc (MEINote         attrs children) = meiXml  "note" attrs children
-meiDoc (TCOrnament      attrs [])       = tcXml_  "ornament" attrs
-meiDoc (TCOrnament      attrs children) = tcXml   "ornament" attrs children
-meiDoc (MEIPageBreak    attrs [])       = meiXml_ "pb" attrs
-meiDoc (MEIPageBreak    attrs children) = meiXml  "pb" attrs children
-meiDoc (MEIPart         attrs [])       = meiXml_ "part" attrs
-meiDoc (MEIPart         attrs children) = meiXml  "part" attrs children
-meiDoc (MEIParts        attrs [])       = meiXml_ "parts" attrs
-meiDoc (MEIParts        attrs children) = meiXml  "parts" attrs children
-meiDoc (MEIPerfMedium   attrs [])       = meiXml_ "perfMedium" attrs
-meiDoc (MEIPerfMedium   attrs children) = meiXml  "perfMedium" attrs children
-meiDoc (MEIPerfRes      attrs [])       = meiXml_ "perfRes" attrs
-meiDoc (MEIPerfRes      attrs children) = meiXml  "perfRes" attrs children
-meiDoc (MEIPerfResList  attrs [])       = meiXml_ "perfResList" attrs
-meiDoc (MEIPerfResList  attrs children) = meiXml  "perfResList" attrs children
-meiDoc (MEIRest         attrs [])       = meiXml_ "rest" attrs
-meiDoc (MEIRest         attrs children) = meiXml  "rest" attrs children
-meiDoc (MEIRhythmSign   attrs [])       = meiXml_ "rhythmGlyph" attrs
-meiDoc (MEIRhythmSign   attrs children) = meiXml  "rhythmGlyph" attrs children
-meiDoc (MEISection      attrs [])       = meiXml_ "section" attrs
-meiDoc (MEISection      attrs children) = meiXml  "section" attrs children
-meiDoc (MEIStaff        attrs [])       = meiXml_ "staff" attrs
-meiDoc (MEIStaff        attrs children) = meiXml  "staff" attrs children
-meiDoc (MEIStaffDef     attrs [])       = meiXml_ "staffDef" attrs
-meiDoc (MEIStaffDef     attrs children) = meiXml  "staffDef" attrs children
-meiDoc (MEIString       attrs [])       = meiXml_ "string" attrs
-meiDoc (MEIString       attrs children) = meiXml  "string" attrs children
-meiDoc (MEISystemBreak  attrs [])       = meiXml_ "sb" attrs
-meiDoc (MEISystemBreak  attrs children) = meiXml  "sb" attrs children
-meiDoc (MEITuplet       attrs [])       = meiXml_ "tuplet" attrs
-meiDoc (MEITuplet       attrs children) = meiXml  "tuplet" attrs children
-meiDoc (MEIWork         attrs [])       = meiXml_ "work" attrs
-meiDoc (MEIWork         attrs children) = meiXml  "work" attrs children
-meiDoc (MEIWorkDesc     attrs [])       = meiXml_ "workDesc" attrs
-meiDoc (MEIWorkDesc     attrs children) = meiXml  "workDesc" attrs children
-meiDoc (XMLText         txt)            = xtext txt
-meiDoc (XMLComment      cmt)            = xcomment $ unpack cmt
+tcXml_ :: Text -> MEIAttrs -> XmlIds -> Xml Elem
+tcXml_ n as xmlIds = xelemQ tc n $ meiAttrs as xmlIds
+
+meiDoc :: MEI -> XmlIds -> Xml Elem
+meiDoc (MEI             attrs [])       xmlIds = meiXml_ "mei" attrs xmlIds
+meiDoc (MEI             attrs children) xmlIds = meiXml  "mei" attrs children xmlIds
+meiDoc (MEIBarLine      attrs [])       xmlIds = meiXml_ "barLine" attrs xmlIds
+meiDoc (MEIBarLine      attrs children) xmlIds = meiXml  "barLine" attrs children xmlIds
+meiDoc (MEIBassTuning   attrs [])       xmlIds = meiXml_ "bassTuning" attrs xmlIds
+meiDoc (MEIBassTuning   attrs children) xmlIds = meiXml  "bassTuning" attrs children xmlIds
+meiDoc (MEIBeam         attrs [])       xmlIds = meiXml_ "beam" attrs xmlIds
+meiDoc (MEIBeam         attrs children) xmlIds = meiXml  "beam" attrs children xmlIds
+meiDoc (MEIBody         attrs [])       xmlIds = meiXml_ "body" attrs xmlIds
+meiDoc (MEIBody         attrs children) xmlIds = meiXml  "body" attrs children xmlIds
+meiDoc (MEIChord        attrs [])       xmlIds = meiXml_ "chord" attrs xmlIds
+meiDoc (MEIChord        attrs children) xmlIds = meiXml  "chord" attrs children xmlIds
+meiDoc (MEICourse       attrs [])       xmlIds = meiXml_ "course" attrs xmlIds
+meiDoc (MEICourse       attrs children) xmlIds = meiXml  "course" attrs children xmlIds
+meiDoc (MEICourseTuning attrs [])       xmlIds = meiXml_ "courseTuning" attrs xmlIds
+meiDoc (MEICourseTuning attrs children) xmlIds = meiXml  "courseTuning" attrs children xmlIds
+meiDoc (MEIFermata      attrs [])       xmlIds = meiXml_ "fermata" attrs xmlIds
+meiDoc (MEIFermata      attrs children) xmlIds = meiXml  "fermata" attrs children xmlIds
+meiDoc (MEIFingering    attrs [])       xmlIds = meiXml_ "fingering" attrs xmlIds
+meiDoc (MEIFingering    attrs children) xmlIds = meiXml  "fingering" attrs children xmlIds
+meiDoc (MEIFretGlyph    attrs [])       xmlIds = meiXml_ "fretGlyph" attrs xmlIds
+meiDoc (MEIFretGlyph    attrs children) xmlIds = meiXml  "fretGlyph" attrs children xmlIds
+meiDoc (MEIHead         attrs [])       xmlIds = meiXml_ "meiHead" attrs xmlIds
+meiDoc (MEIHead         attrs children) xmlIds = meiXml  "meiHead" attrs children xmlIds
+meiDoc (MEIInstrConfig  attrs [])       xmlIds = meiXml_ "instrConfig" attrs xmlIds
+meiDoc (MEIInstrConfig  attrs children) xmlIds = meiXml  "instrConfig" attrs children xmlIds
+meiDoc (MEIInstrDesc    attrs [])       xmlIds = meiXml_ "instrDesc" attrs xmlIds
+meiDoc (MEIInstrDesc    attrs children) xmlIds = meiXml  "instrDesc" attrs children xmlIds
+meiDoc (MEIInstrName    attrs [])       xmlIds = meiXml_ "instrName" attrs xmlIds
+meiDoc (MEIInstrName    attrs children) xmlIds = meiXml  "instrName" attrs children xmlIds
+meiDoc (MEILayer        attrs [])       xmlIds = meiXml_ "layer" attrs xmlIds
+meiDoc (MEILayer        attrs children) xmlIds = meiXml  "layer" attrs children xmlIds
+meiDoc (MEIMDiv         attrs [])       xmlIds = meiXml_ "mdiv" attrs xmlIds
+meiDoc (MEIMDiv         attrs children) xmlIds = meiXml  "mdiv" attrs children xmlIds
+meiDoc (MEIMeasure      attrs [])       xmlIds = meiXml_ "measure" attrs xmlIds
+meiDoc (MEIMeasure      attrs children) xmlIds = meiXml  "measure" attrs children xmlIds
+meiDoc (MEIMensur       attrs [])       xmlIds = meiXml_ "mensur" attrs xmlIds
+meiDoc (MEIMensur       attrs children) xmlIds = meiXml  "mensur" attrs children xmlIds
+meiDoc (MEIMeterSig     attrs [])       xmlIds = meiXml_ "meterSig" attrs xmlIds
+meiDoc (MEIMeterSig     attrs children) xmlIds = meiXml  "meterSig" attrs children xmlIds
+meiDoc (MEIMusic        attrs [])       xmlIds = meiXml_ "music" attrs xmlIds
+meiDoc (MEIMusic        attrs children) xmlIds = meiXml  "music" attrs children xmlIds
+meiDoc (MEINote         attrs [])       xmlIds = meiXml_ "note" attrs xmlIds
+meiDoc (MEINote         attrs children) xmlIds = meiXml  "note" attrs children xmlIds
+meiDoc (TCOrnament      attrs [])       xmlIds = tcXml_  "ornament" attrs xmlIds
+meiDoc (TCOrnament      attrs children) xmlIds = tcXml   "ornament" attrs children xmlIds
+meiDoc (MEIPageBreak    attrs [])       xmlIds = meiXml_ "pb" attrs xmlIds
+meiDoc (MEIPageBreak    attrs children) xmlIds = meiXml  "pb" attrs children xmlIds
+meiDoc (MEIPart         attrs [])       xmlIds = meiXml_ "part" attrs xmlIds
+meiDoc (MEIPart         attrs children) xmlIds = meiXml  "part" attrs children xmlIds
+meiDoc (MEIParts        attrs [])       xmlIds = meiXml_ "parts" attrs xmlIds
+meiDoc (MEIParts        attrs children) xmlIds = meiXml  "parts" attrs children xmlIds
+meiDoc (MEIPerfMedium   attrs [])       xmlIds = meiXml_ "perfMedium" attrs xmlIds
+meiDoc (MEIPerfMedium   attrs children) xmlIds = meiXml  "perfMedium" attrs children xmlIds
+meiDoc (MEIPerfRes      attrs [])       xmlIds = meiXml_ "perfRes" attrs xmlIds
+meiDoc (MEIPerfRes      attrs children) xmlIds = meiXml  "perfRes" attrs children xmlIds
+meiDoc (MEIPerfResList  attrs [])       xmlIds = meiXml_ "perfResList" attrs xmlIds
+meiDoc (MEIPerfResList  attrs children) xmlIds = meiXml  "perfResList" attrs children xmlIds
+meiDoc (MEIRest         attrs [])       xmlIds = meiXml_ "rest" attrs xmlIds
+meiDoc (MEIRest         attrs children) xmlIds = meiXml  "rest" attrs children xmlIds
+meiDoc (MEIRhythmSign   attrs [])       xmlIds = meiXml_ "rhythmGlyph" attrs xmlIds
+meiDoc (MEIRhythmSign   attrs children) xmlIds = meiXml  "rhythmGlyph" attrs children xmlIds
+meiDoc (MEISection      attrs [])       xmlIds = meiXml_ "section" attrs xmlIds
+meiDoc (MEISection      attrs children) xmlIds = meiXml  "section" attrs children xmlIds
+meiDoc (MEIStaff        attrs [])       xmlIds = meiXml_ "staff" attrs xmlIds
+meiDoc (MEIStaff        attrs children) xmlIds = meiXml  "staff" attrs children xmlIds
+meiDoc (MEIStaffDef     attrs [])       xmlIds = meiXml_ "staffDef" attrs xmlIds
+meiDoc (MEIStaffDef     attrs children) xmlIds = meiXml  "staffDef" attrs children xmlIds
+meiDoc (MEIString       attrs [])       xmlIds = meiXml_ "string" attrs xmlIds
+meiDoc (MEIString       attrs children) xmlIds = meiXml  "string" attrs children xmlIds
+meiDoc (MEISystemBreak  attrs [])       xmlIds = meiXml_ "sb" attrs xmlIds
+meiDoc (MEISystemBreak  attrs children) xmlIds = meiXml  "sb" attrs children xmlIds
+meiDoc (MEITuplet       attrs [])       xmlIds = meiXml_ "tuplet" attrs xmlIds
+meiDoc (MEITuplet       attrs children) xmlIds = meiXml  "tuplet" attrs children xmlIds
+meiDoc (MEIWork         attrs [])       xmlIds = meiXml_ "work" attrs xmlIds
+meiDoc (MEIWork         attrs children) xmlIds = meiXml  "work" attrs children xmlIds
+meiDoc (MEIWorkDesc     attrs [])       xmlIds = meiXml_ "workDesc" attrs xmlIds
+meiDoc (MEIWorkDesc     attrs children) xmlIds = meiXml  "workDesc" attrs children xmlIds
+meiDoc (XMLText         txt) _          = xtext txt
+meiDoc (XMLComment      cmt) _          = xcomment $ unpack cmt

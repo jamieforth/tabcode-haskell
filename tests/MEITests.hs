@@ -27,7 +27,7 @@ import           Data.Text (pack)
 import           TabCode
 import           TabCode.MEI
 import           TabCode.MEI.Serialiser
-import           TabCode.Options        (TCOptions(..), ParseMode(..), Structure(..))
+import           TabCode.Options        (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
 import           TabCode.Parser         (parseTabcode)
 import           Text.XML.Generator
 import           Text.XML.HaXml.Parse   (xmlParse', xmlParse)
@@ -48,7 +48,7 @@ mkMEITest = mkMEITestWithStructure BarLines
 tryMEISerialise :: Structure -> String -> String -> Result
 tryMEISerialise structure tcStrIn meiStrIn =
   equal
-    (parseTabcode (TCOptions { parseMode = Strict, structure = structure }) tcStrIn)
+    (parseTabcode (TCOptions { parseMode = Strict, structure = structure, xmlIds = WithXmlIds }) tcStrIn)
     (xmlParse' meiStrIn meiStrIn)
 
   where
@@ -57,7 +57,7 @@ tryMEISerialise structure tcStrIn meiStrIn =
                                                          ++ "; got: " ++ (show $ document tcXML)
       where
         tcXML      = tcMEI . tcMEIStr $ tc
-        tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc $ meiXml t
+        tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc (meiXml t) WithXmlIds
         meiXml t   = case mei structure testDoc ("input: " ++ tcStrIn) t of
                        Right m  -> m
                        Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ tcStrIn ++ ": " ++ (show err)
