@@ -27,16 +27,19 @@ import           TabCode
 import           TabCode.Options (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
 import           TabCode.Parser  (parseTabcode)
 
-tryParseWord :: String -> TabWord -> Result
-tryParseWord tc tw =
+tryParsePhrase :: String -> [TabWord] -> Result
+tryParsePhrase tc phrase =
   case parseTabcode (TCOptions { parseMode = Strict, structure = BarLines, xmlIds = WithXmlIds }) tc of
-    Right (TabCode rls wrds) -> check wrds tw
+    Right (TabCode rls wrds) -> check wrds phrase
     Left err                 -> Fail $ show err
   where
-    check ws twExp | V.length ws == 0 = Error $ "Could not parse " ++ tc ++ " as " ++ (show twExp)
-                   | otherwise        = if V.head ws == twExp
-                                        then Pass
-                                        else Fail $ "For \"" ++ tc ++ "\", expected " ++ (show twExp) ++ "; got " ++ (show $ V.head ws)
+    check ws exp | V.length ws == 0 = Error $ "Could not parse " ++ tc ++ " as " ++ (show exp)
+                 | otherwise        = if (V.toList ws) == exp
+                                      then Pass
+                                      else Fail $ "For \"" ++ tc ++ "\", expected " ++ (show exp) ++ "; got " ++ (show $ V.toList ws)
+
+tryParseWord :: String -> TabWord -> Result
+tryParseWord tc tw = tryParsePhrase tc [tw]
 
 mkParseTest :: String -> TabWord -> TestInstance
 mkParseTest tc tw = TestInstance {
@@ -45,6 +48,15 @@ mkParseTest tc tw = TestInstance {
   , tags = []
   , options = []
   , setOption = \_ _ -> Right $ mkParseTest tc tw
+  }
+
+mkParsePhraseTest :: String -> [TabWord] -> TestInstance
+mkParsePhraseTest tc phrase = TestInstance {
+    run = return $ Finished $ tryParsePhrase tc phrase
+  , name = show tc
+  , tags = []
+  , options = []
+  , setOption = \_ _ -> Right $ mkParsePhraseTest tc phrase
   }
 
 tryParseInvalidWord :: String -> Result
