@@ -159,7 +159,7 @@ duplicateCoursesInNotes ns =
   where cs = coursesFromNotes ns
 
 duplicateCourses :: TabWord -> Bool
-duplicateCourses (Chord _ _ _ ns) = duplicateCoursesInNotes ns
+duplicateCourses (Chord _ _ _ ns _) = duplicateCoursesInNotes ns
 duplicateCourses _ = False
 
 data Counting
@@ -206,26 +206,30 @@ data MeterSign
   | HorizontalMeterSign Mensuration Mensuration
   deriving (Eq, Show)
 
+data Comment
+  = Comment String
+  deriving (Eq, Show)
+
 data TabWord
-  = Chord Line Column (Maybe RhythmSign) [Note]
-  | Rest Line Column RhythmSign
-  | BarLine Line Column Bar
-  | Meter Line Column MeterSign
-  | Comment Line Column String
-  | SystemBreak Line Column
-  | PageBreak Line Column
+  = Chord Line Column (Maybe RhythmSign) [Note] (Maybe Comment)
+  | Rest Line Column RhythmSign (Maybe Comment)
+  | BarLine Line Column Bar (Maybe Comment)
+  | Meter Line Column MeterSign (Maybe Comment)
+  | CommentWord Line Column Comment
+  | SystemBreak Line Column (Maybe Comment)
+  | PageBreak Line Column (Maybe Comment)
   | Invalid String Line Column String
   deriving (Eq, Show)
 
 twPos :: TabWord -> (Line, Column)
-twPos (Chord l c _ _)   = (l, c)
-twPos (Rest l c _)      = (l, c)
-twPos (BarLine l c _)   = (l, c)
-twPos (Meter l c _)     = (l, c)
-twPos (Comment l c _)   = (l, c)
-twPos (SystemBreak l c) = (l, c)
-twPos (PageBreak l c)   = (l, c)
-twPos (Invalid _ l c _) = (l, c)
+twPos (Chord l c _ _ _)      = (l, c)
+twPos (Rest l c _ _)         = (l, c)
+twPos (BarLine l c _ _)      = (l, c)
+twPos (Meter l c _ _)        = (l, c)
+twPos (CommentWord l c _)    = (l, c)
+twPos (SystemBreak l c _)    = (l, c)
+twPos (PageBreak l c _)      = (l, c)
+twPos (Invalid _ l c _)      = (l, c)
 
 twLine :: TabWord -> Line
 twLine = fst . twPos
@@ -237,7 +241,7 @@ coursesFromNotes :: [Note] -> [Course]
 coursesFromNotes ns = map (\(Note crs _ _ _ _ _) -> crs) ns
 
 courses :: TabWord -> [Course]
-courses (Chord _ _ _ ns) = coursesFromNotes ns
+courses (Chord _ _ _ ns _) = coursesFromNotes ns
 courses _ = []
 
 data Rule = Rule String String deriving (Eq, Show)
