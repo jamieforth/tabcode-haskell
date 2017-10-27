@@ -161,6 +161,22 @@ measures =
     "c1\n|\nc1\n|\n" $ asMEI "<measure xml:id='m1' n='1'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord></layer></staff></measure><measure xml:id='m2' n='2'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c2'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord></layer></staff></measure>"
   ]
 
+comments :: [Test]
+comments =
+  [ Test $ mkMEITest
+    "Qa1{foo}" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/><note xml:id='n1' tab.course='1' tab.fret='0'/><!--foo--></chord>"
+  , Test $ mkMEITest
+    "Qa1 {foo}" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/><note xml:id='n1' tab.course='1' tab.fret='0'/><!--foo--></chord>"
+  , Test $ mkMEITest
+    "Qa1\n{foo}" $ asStaff "#staff-0" "<chord xml:id='c1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/><note xml:id='n1' tab.course='1' tab.fret='0'/></chord><!--foo-->"
+  , Test $ mkMEITest
+    "Q{foo}" $ asStaff "#staff-0" "<rest xml:id='r1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/><!--foo--></rest>"
+  , Test $ mkMEITest
+    "|{foo}" $ asStaff "#staff-0" "<barLine form='single' n='1' xml:id='bl1'><!--foo--></barLine>"
+  , Test $ mkMEITest
+    "M(O){foo}" $ asStaff "#staff-1" "<staffDef xml:id='staff-1' prolatio='3' tempus='2'><mensur sign='O' dot='false'><!--foo--></mensur></staffDef>"
+  ]
+
 tests :: IO [Test]
 tests = return $ meterSigns
   ++ rests
@@ -168,3 +184,4 @@ tests = return $ meterSigns
   ++ phrases
   ++ barLines
   ++ measures
+  ++ comments
