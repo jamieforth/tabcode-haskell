@@ -109,34 +109,34 @@ anyMeasure = (try measureSng) <|> (try measureDbl) <|> (try measureRptEnd) <|> (
 barLineSng :: TabWordsToMEI
 barLineSng = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (SingleBar Nothing Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "single" ) []
+    getBarLine bl@(BarLine l c (SingleBar Nothing Nothing NotDashed _) cmt) = Just $ MEIBarLine ( atForm "single" ) (attachedComment cmt)
     getBarLine _ = Nothing
 
 barLineDbl :: TabWordsToMEI
 barLineDbl = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (DoubleBar Nothing Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "double" ) []
+    getBarLine bl@(BarLine l c (DoubleBar Nothing Nothing NotDashed _) cmt) = Just $ MEIBarLine ( atForm "double" ) (attachedComment cmt)
     getBarLine _ = Nothing
 
 barLineRptL :: TabWordsToMEI
 barLineRptL = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (SingleBar (Just RepeatLeft) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "single-rptend" ) []
-    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatLeft) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "double-rptend" ) []
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatLeft) Nothing NotDashed _) cmt) = Just $ MEIBarLine ( atForm "single-rptend" ) (attachedComment cmt)
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatLeft) Nothing NotDashed _) cmt) = Just $ MEIBarLine ( atForm "double-rptend" ) (attachedComment cmt)
     getBarLine _ = Nothing
 
 barLineRptR :: TabWordsToMEI
 barLineRptR = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (SingleBar (Just RepeatRight) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "single-rptstart" ) []
-    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatRight) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "double-rptstart" ) []
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatRight) Nothing NotDashed _) cmt) = Just $ MEIBarLine ( atForm "single-rptstart" ) (attachedComment cmt)
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatRight) Nothing NotDashed _) cmt) = Just $ MEIBarLine ( atForm "double-rptstart" ) (attachedComment cmt)
     getBarLine _ = Nothing
 
 barLineRptB :: TabWordsToMEI
 barLineRptB = tokenPrim show updatePos getBarLine
   where
-    getBarLine bl@(BarLine l c (SingleBar (Just RepeatBoth) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "single-rptboth" ) []
-    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatBoth) Nothing NotDashed _)) = Just $ MEIBarLine ( atForm "double-rptboth" ) []
+    getBarLine bl@(BarLine l c (SingleBar (Just RepeatBoth) Nothing NotDashed _) cmt) = Just $ MEIBarLine ( atForm "single-rptboth" ) (attachedComment cmt)
+    getBarLine bl@(BarLine l c (DoubleBar (Just RepeatBoth) Nothing NotDashed _) cmt) = Just $ MEIBarLine ( atForm "double-rptboth" ) (attachedComment cmt)
     getBarLine _ = Nothing
 
 barLine :: TabWordsToMEI
@@ -172,21 +172,21 @@ chordLike getChord = do
 chord :: TabWordsToMEI
 chord = chordLike getChord
   where
-    getChord st ch@(Chord l c (Just r) ns) = Just (newState, meiChord)
+    getChord st ch@(Chord l c (Just r) ns cmt) = Just (newState, meiChord)
       where
         newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
                       , stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st)
                       }
-        meiChord = MEIChord attributes ( rhythmSign <> notes )
+        meiChord = MEIChord attributes ( rhythmSign <> notes <> (attachedComment cmt) )
         attributes = (stChordId st) <> replaceAttrs (stChord st) (atDur r)
         rhythmSign = elRhythmSign (stRhythmGlyphId st) r
         notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
         notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
 
-    getChord st ch@(Chord l c Nothing ns) = Just (newState, meiChord)
+    getChord st ch@(Chord l c Nothing ns cmt) = Just (newState, meiChord)
       where
         newState = st { stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st) }
-        meiChord = MEIChord attributes notes
+        meiChord = MEIChord attributes ( notes <> (attachedComment cmt) )
         attributes = (stChordId st) <> (stChord st)
         notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
         notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
@@ -196,12 +196,12 @@ chord = chordLike getChord
 chordCompound :: TabWordsToMEI
 chordCompound = chordLike getChord
   where
-    getChord st ch@(Chord l c (Just r@(RhythmSign _ Compound _ _)) ns) = Just (newState, meiChord)
+    getChord st ch@(Chord l c (Just r@(RhythmSign _ Compound _ _)) ns cmt) = Just (newState, meiChord)
       where
         newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
                       , stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st)
                       }
-        meiChord = MEIChord attributes ( rhythmSign <> notes )
+        meiChord = MEIChord attributes ( rhythmSign <> notes <> (attachedComment cmt) )
         attributes = (stChordId st) <> replaceAttrs (stChord st) (atDur r)
         rhythmSign = elRhythmSign (stRhythmGlyphId st) r
         notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
@@ -212,10 +212,10 @@ chordCompound = chordLike getChord
 chordNoRS :: TabWordsToMEI
 chordNoRS = chordLike getChord
   where
-    getChord st ch@(Chord l c Nothing ns) = Just (newState, meiChord)
+    getChord st ch@(Chord l c Nothing ns cmt) = Just (newState, meiChord)
       where
         newState = st { stNoteId = mutateAttr (pack "xml:id") (incIntAttr $ length ns) (stNoteId st) }
-        meiChord = MEIChord attributes notes
+        meiChord = MEIChord attributes ( notes <> (attachedComment cmt) )
         attributes = (stChordId st) <> (stChord st)
         notes = concat $ (\(note, idx) -> (elNote (atXmlId "n" idx) (stRules st) note)) <$> notesWithIds
         notesWithIds = zip ns [(xmlIdNumber $ (stNoteId st))..]
@@ -230,16 +230,16 @@ rest = do
   return r
 
   where
-    getRest st re@(Rest l c (RhythmSign Fermata _ _ _)) = Just (newState, meiFermata)
+    getRest st re@(Rest l c (RhythmSign Fermata _ _ _) cmt) = Just (newState, meiFermata)
       where
         newState = st { stRestId = atXmlIdNext $ stRestId st }
-        meiFermata = MEIFermata (stRestId st) []
+        meiFermata = MEIFermata (stRestId st) (attachedComment cmt)
 
-    getRest st re@(Rest l c r) = Just (newState, meiRest)
+    getRest st re@(Rest l c r cmt) = Just (newState, meiRest)
       where
         newState = st { stRhythmGlyphId = atXmlIdNext $ stRhythmGlyphId st
                       , stRestId = atXmlIdNext $ stRestId st }
-        meiRest = MEIRest ( (stRestId st) <> atDur r ) $ ( elRhythmSign (stRhythmGlyphId st) r )
+        meiRest = MEIRest ( (stRestId st) <> atDur r ) $ ( (elRhythmSign (stRhythmGlyphId st) r) <> (attachedComment cmt) )
 
     getRest _ _ = Nothing
 
@@ -251,29 +251,29 @@ meter = do
   putState $ newSt
   return m
   where
-    getMeter atts me@(Meter l c m) = case m of
+    getMeter atts me@(Meter l c m cmt) = case m of
       (SingleMeterSign PerfectMajor)
-        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 3 ) [ MEIMensur ( atSign 'O' <> atDot True ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 3 ) [ MEIMensur ( atSign 'O' <> atDot True ) (attachedComment cmt) ]
       (SingleMeterSign PerfectMinor)
-        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 2 ) [ MEIMensur ( atSign 'O' <> atDot False ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 2 ) [ MEIMensur ( atSign 'O' <> atDot False ) (attachedComment cmt) ]
       (SingleMeterSign ImperfectMajor)
-        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 3 ) [ MEIMensur ( atSign 'C' <> atDot True ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 3 ) [ MEIMensur ( atSign 'C' <> atDot True ) (attachedComment cmt) ]
       (SingleMeterSign ImperfectMinor)
-        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 2 ) [ MEIMensur ( atSign 'C' <> atDot False ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 2 ) [ MEIMensur ( atSign 'C' <> atDot False ) (attachedComment cmt) ]
       (SingleMeterSign HalfPerfectMajor)
-        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 3 <> atSlash 1 ) [ MEIMensur ( atSign 'O' <> atDot True <> atCut 1 ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 3 <> atSlash 1 ) [ MEIMensur ( atSign 'O' <> atDot True <> atCut 1 ) (attachedComment cmt) ]
       (SingleMeterSign HalfPerfectMinor)
-        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'O' <> atDot False <> atCut 1 ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 3 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'O' <> atDot False <> atCut 1 ) (attachedComment cmt) ]
       (SingleMeterSign HalfImperfectMajor)
-        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 3 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot True <> atCut 1 ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 3 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot True <> atCut 1 ) (attachedComment cmt) ]
       (SingleMeterSign HalfImperfectMinor)
-        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot False <> atCut 1 ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atProlation 2 <> atTempus 2 <> atSlash 1 ) [ MEIMensur ( atSign 'C' <> atDot False <> atCut 1 ) (attachedComment cmt) ]
       (VerticalMeterSign (Beats n) (Beats b))
-        -> Just $ MEIStaffDef ( atts <> atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) (attachedComment cmt) ]
       (HorizontalMeterSign (Beats n) (Beats b))
-        -> Just $ MEIStaffDef ( atts <> atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) [] ]
+        -> Just $ MEIStaffDef ( atts <> atNumDef n <> atNumbaseDef b ) [ MEIMeterSig ( atCount n <> atUnit b ) (attachedComment cmt) ]
       (SingleMeterSign (Beats 3))
-        -> Just $ MEIStaffDef ( atts <> atTempus 3 ) []
+        -> Just $ MEIStaffDef ( atts <> atTempus 3 ) (attachedComment cmt)
       _
         -> Just $ XMLComment $ pack $ " tc2mei: Un-implemented mensuration sign: " ++ (show m) ++ " "
 
@@ -282,20 +282,24 @@ meter = do
 systemBreak :: TabWordsToMEI
 systemBreak = tokenPrim show updatePos getSystemBreak
   where
-    getSystemBreak re@(SystemBreak l c) = Just $ MEISystemBreak noMEIAttrs []
-    getSystemBreak _                    = Nothing
+    getSystemBreak re@(SystemBreak l c cmt) = Just $ MEISystemBreak noMEIAttrs (attachedComment cmt)
+    getSystemBreak _ = Nothing
 
 pageBreak :: TabWordsToMEI
 pageBreak = tokenPrim show updatePos getPageBreak
   where
-    getPageBreak re@(PageBreak l c) = Just $ MEIPageBreak noMEIAttrs []
-    getPageBreak _                  = Nothing
+    getPageBreak re@(PageBreak l c cmt) = Just $ MEIPageBreak noMEIAttrs (attachedComment cmt)
+    getPageBreak _ = Nothing
 
 comment :: TabWordsToMEI
 comment = tokenPrim show updatePos getComment
   where
-    getComment re@(Comment l c cmt) = Just $ XMLComment $ pack cmt
-    getComment _                    = Nothing
+    getComment re@(CommentWord l c (Comment cmt)) = Just $ XMLComment $ pack cmt
+    getComment _ = Nothing
+
+attachedComment :: Maybe Comment -> [MEI]
+attachedComment (Just (Comment cmt)) = [ XMLComment $ pack cmt ]
+attachedComment Nothing = []
 
 invalid :: TabWordsToMEI
 invalid = tokenPrim show updatePos getInvalid

@@ -62,8 +62,8 @@ rule r = do
   return $ Rule r nt
 
 tabword :: ParseMode -> GenParser Char st TabWord
-tabword Strict     = (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak) <|> chord
-tabword Permissive = (try rest) <|> (try barLine) <|> (try meter) <|> (try comment) <|> (try systemBreak) <|> (try pageBreak) <|> (try chord) <|> (try invalid)
+tabword Strict     = (try rest) <|> (try barLine) <|> (try meter) <|> (try commentWord) <|> (try systemBreak) <|> (try pageBreak) <|> chord
+tabword Permissive = (try rest) <|> (try barLine) <|> (try meter) <|> (try commentWord) <|> (try systemBreak) <|> (try pageBreak) <|> (try chord) <|> (try invalid)
 
 endOfWord :: GenParser Char st ()
 endOfWord = (lookAhead $ try (do { space; return () })) <|> eof--try (do { c <- try eof; unexpected (show c) } <|> return "")
@@ -81,8 +81,9 @@ chord = do
   pos <- getPosition
   rs <- option Nothing $ do { r <- rhythmSign; return $ Just r }
   ns <- uniqueNotes $ many1 note
+  cmt <- option Nothing $ do { c <- comment; return $ Just c }
   endOfWord
-  return $ Chord (sourceLine pos) (sourceColumn pos) rs ns
+  return $ Chord (sourceLine pos) (sourceColumn pos) rs ns cmt
 
 uniqueNotes :: ParsecT s u m [Note] -> ParsecT s u m [Note]
 uniqueNotes parser = do
@@ -138,8 +139,9 @@ rest :: GenParser Char st TabWord
 rest = do
   pos <- getPosition
   rs <- rhythmSign
+  cmt <- option Nothing $ do { c <- comment; return $ Just c }
   endOfWord
-  return $ Rest (sourceLine pos) (sourceColumn pos) rs
+  return $ Rest (sourceLine pos) (sourceColumn pos) rs cmt
 
 barLine :: GenParser Char st TabWord
 barLine = do
@@ -150,11 +152,12 @@ barLine = do
   nonC     <- option Counting $ do { char '0'; return NotCounting }
   dash     <- option NotDashed $ do { char '='; return Dashed }
   rep      <- option Nothing addition
+  cmt      <- option Nothing $ do { c <- comment; return $ Just c }
 
   endOfWord
   if line == "|"
-    then return $ BarLine (sourceLine pos) (sourceColumn pos) $ SingleBar (combineRepeat leftRpt rightRpt) rep dash nonC
-    else return $ BarLine (sourceLine pos) (sourceColumn pos) $ DoubleBar (combineRepeat leftRpt rightRpt) rep dash nonC
+    then return $ BarLine (sourceLine pos) (sourceColumn pos) (SingleBar (combineRepeat leftRpt rightRpt) rep dash nonC) cmt
+    else return $ BarLine (sourceLine pos) (sourceColumn pos) (DoubleBar (combineRepeat leftRpt rightRpt) rep dash nonC) cmt
 
   where
     sgl     = string "|"
@@ -185,9 +188,10 @@ meter = do
   c2  <- cuts
   p2  <- prol
   char ')'
+  cmt <- option Nothing $ do { c <- comment; return $ Just c }
 
   endOfWord
-  return $ mkMS pos arr m1 c1 p1 m2 c2 p2
+  return $ mkMS pos arr m1 c1 p1 m2 c2 p2 cmt
 
   where
     mensurSign = char 'O' <|> char 'C' <|> char 'D'
@@ -442,10 +446,10 @@ separee = try $ do
           _   -> error $ "Invalid separee position: " ++ (show p)
 
 connecting :: GenParser Char st (Maybe Connecting)
-connecting = option Nothing (slur <|> straight <|> curved)
+connecting = option Nothing $ slur <|> straight <|> curved
 
 slur :: GenParser Char st (Maybe Connecting)
-slur = option Nothing $ do
+slur = try $ do
   between (char '(') (char ')') $ do
     char 'C'
     dir <- direction
@@ -461,7 +465,7 @@ slur = option Nothing $ do
           _   -> error $ "Invalid slur direction: " ++ (show d)
 
 straight :: GenParser Char st (Maybe Connecting)
-straight = option Nothing $ do
+straight = try $ do
   between (char '(') (char ')') $ do
     char 'C'
     cid <- int
@@ -471,7 +475,7 @@ straight = option Nothing $ do
       else return $ Just (StraightTo cid pos)
 
 curved :: GenParser Char st (Maybe Connecting)
-curved = option Nothing $ do
+curved = try $ do
   between (char '(') (char ')') $ do
     char 'C'
     cid <- int
@@ -488,28 +492,35 @@ curved = option Nothing $ do
                        | i < 0  = Just (CurvedDownTo i p)
       mkCurved _  d  _ = error $ "Invalid curved connecting line direction: " ++ (show d)
 
-comment :: GenParser Char st TabWord
+comment :: GenParser Char st Comment
 comment = do
-  pos <- getPosition
-  char '{'
+  manyTill (char ' ') (try $ char '{')
   notFollowedBy $ (try $ string "^}") <|> (try $ string ">}{^}")
   c <- manyTill anyChar (try $ char '}')
+  return $ Comment c
+
+commentWord :: GenParser Char st TabWord
+commentWord = do
+  pos <- getPosition
+  c <- comment
   endOfWord
-  return $ Comment (sourceLine pos) (sourceColumn pos) c
+  return $ CommentWord (sourceLine pos) (sourceColumn pos) c
 
 systemBreak :: GenParser Char st TabWord
 systemBreak = do
   pos <- getPosition
   string "{^}"
+  cmt <- option Nothing $ do { c <- comment; return $ Just c }
   endOfWord
-  return $ SystemBreak (sourceLine pos) (sourceColumn pos)
+  return $ SystemBreak (sourceLine pos) (sourceColumn pos) cmt
 
 pageBreak :: GenParser Char st TabWord
 pageBreak = do
   pos <- getPosition
   string "{>}{^}"
+  cmt <- option Nothing $ do { c <- comment; return $ Just c }
   endOfWord
-  return $ PageBreak (sourceLine pos) (sourceColumn pos)
+  return $ PageBreak (sourceLine pos) (sourceColumn pos) cmt
 
 parseTabcode :: TCOptions -> String -> Either ParseError TabCode
 parseTabcode opts s = parse (tablature $ parseMode opts) "" s
