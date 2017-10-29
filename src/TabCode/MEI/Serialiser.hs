@@ -1,7 +1,7 @@
 -- TabCode - A parser for the Tabcode lute tablature language
 --
--- Copyright (C) 2015, 2016 Richard Lewis, Goldsmiths' College
--- Author: Richard Lewis <richard.lewis@gold.ac.uk>
+-- Copyright (C) 2015-2017 Richard Lewis
+-- Author: Richard Lewis <richard@rjlewis.me.uk>
 
 -- This file is part of TabCode
 
