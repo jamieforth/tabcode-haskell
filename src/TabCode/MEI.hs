@@ -19,7 +19,7 @@
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module TabCode.MEI
@@ -30,21 +30,21 @@ module TabCode.MEI
   , module TabCode.MEI.Types
   , (<>) ) where
 
-import           Control.Applicative           ((<$>))
-import           Data.Monoid                   ((<>))
-import           Data.Text                     (pack, append)
-import qualified Data.Vector                   as V
-import           Data.Vector                   (Vector)
-import           Prelude                       hiding (append)
-import           TabCode
-import           TabCode.Options               (Structure(..))
-import           TabCode.MEI.Elements
-import           TabCode.MEI.Types
-import           Text.Parsec
-import           Text.Parsec.Combinator
+import Control.Applicative ((<$>))
+import Data.Monoid ((<>))
+import Data.Text (pack, append)
+import qualified Data.Vector as V
+import Data.Vector (Vector)
+import Prelude hiding (append)
+import TabCode
+import TabCode.Options (Structure(..))
+import TabCode.MEI.Elements
+import TabCode.MEI.Types
+import Text.Parsec
+import Text.Parsec.Combinator
 
 instance (Monad m) => Stream (Vector a) m a where
-  uncons v | V.null v  = return Nothing
+  uncons v | V.null v = return Nothing
            | otherwise = return $ Just (V.unsafeHead v, V.unsafeTail v)
 
 type TabWordsToMEI = Parsec (Vector TabWord) MEIState MEI
@@ -52,12 +52,12 @@ type TabWordsToMEI = Parsec (Vector TabWord) MEIState MEI
 defaultDoc :: MEIState -> [MEI] -> MEI
 defaultDoc st staves = MEI ( atMeiVersion ) [head, music]
   where
-    head    = meiHead $ stRules st
-    music   = MEIMusic   noMEIAttrs [body]
-    body    = MEIBody    noMEIAttrs [mdiv]
-    mdiv    = MEIMDiv    (stMdiv st) [parts]
-    parts   = MEIParts   noMEIAttrs [part]
-    part    = MEIPart    (stPart st) [section]
+    head = meiHead $ stRules st
+    music = MEIMusic noMEIAttrs [body]
+    body = MEIBody noMEIAttrs [mdiv]
+    mdiv = MEIMDiv (stMdiv st) [parts]
+    parts = MEIParts noMEIAttrs [part]
+    part = MEIPart (stPart st) [section]
     section = MEISection (stSection st) staves
 
 mei :: Structure -> (MEIState -> [MEI] -> MEI) -> String -> TabCode -> Either ParseError MEI
@@ -70,10 +70,10 @@ meiHead rls =
 
 withMeasures :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withMeasures doc = do
-  ms       <- many1 $ anyMeasure
+  ms <- many1 $ anyMeasure
   trailing <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   eof
-  st       <- getState
+  st <- getState
   return $ doc st ( ms ++ trailing )
 
 staffIDAsDef :: MEIAttrs -> MEIAttrs
@@ -91,15 +91,15 @@ measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
 measureP barlineP attrs = do
   chords <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
   barlineP
-  st     <- getState
+  st <- getState
   let nextSt = st { stMeasure = mutateAttr (pack "n") (incIntAttr 1) (stMeasure st)
                   , stMeasureId = mutateAttr (pack "xml:id") (incIntAttr 1) (stMeasureId st)
                   }
   putState nextSt
   return $ MEIMeasure (stMeasureId nextSt <> stMeasure nextSt) [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ]
 
-measureSng    = measureP barLineSng ( atRight "single" )
-measureDbl    = measureP barLineDbl ( atRight "double" )
+measureSng = measureP barLineSng ( atRight "single" )
+measureDbl = measureP barLineDbl ( atRight "double" )
 measureRptEnd = measureP barLineRptL ( atRight "rptend" )
 measureRptStr = measureP barLineRptR ( atRight "rptstart" )
 measureRptBth = measureP barLineRptB ( atRight "rptboth" )
@@ -153,7 +153,7 @@ barLine = do
 
 tuplet :: TabWordsToMEI
 tuplet = do
-  c  <- many1 chordCompound
+  c <- many1 chordCompound
   cs <- many chordNoRS
   return $ MEITuplet ( atNum 3 <> atNumbase 2 ) $ c ++ cs
 
@@ -167,7 +167,7 @@ chordLike getChord = do
 
   where
     durOf (MEIChord attrs _) = someAttrs [pack "dur", pack "dots"] attrs
-    durOf _                  = noMEIAttrs
+    durOf _ = noMEIAttrs
 
 chord :: TabWordsToMEI
 chord = chordLike getChord
@@ -311,7 +311,7 @@ invalid = tokenPrim show updatePos getInvalid
 
 updatePos :: SourcePos -> TabWord -> Vector TabWord -> SourcePos
 updatePos pos _ v
-  | V.null v  = pos
+  | V.null v = pos
   | otherwise = setSourceLine (setSourceColumn pos (twColumn tok)) (twLine tok)
   where
     tok = V.head v

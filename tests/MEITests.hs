@@ -23,19 +23,19 @@ module MEITests where
 import Distribution.TestSuite
 
 import qualified Data.ByteString.Char8  as C
-import           Data.Text (pack)
-import           TabCode
-import           TabCode.MEI
-import           TabCode.MEI.Serialiser
-import           TabCode.Options        (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
-import           TabCode.Parser         (parseTabcode)
-import           Text.XML.Generator
-import           Text.XML.HaXml.Parse   (xmlParse', xmlParse)
-import           Text.XML.HaXml.Pretty  (document)
+import Data.Text (pack)
+import TabCode
+import TabCode.MEI
+import TabCode.MEI.Serialiser
+import TabCode.Options (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
+import TabCode.Parser (parseTabcode)
+import Text.XML.Generator
+import Text.XML.HaXml.Parse (xmlParse', xmlParse)
+import Text.XML.HaXml.Pretty (document)
 
 mkMEITestWithStructure :: Structure -> String -> String -> TestInstance
-mkMEITestWithStructure structure tc xml = TestInstance {
-    run = return $ Finished $ tryMEISerialise structure tc xml
+mkMEITestWithStructure structure tc xml = TestInstance
+  { run = return $ Finished $ tryMEISerialise structure tc xml
   , name = "MEI " ++ tc
   , tags = []
   , options = []
@@ -48,22 +48,28 @@ mkMEITest = mkMEITestWithStructure BarLines
 tryMEISerialise :: Structure -> String -> String -> Result
 tryMEISerialise structure tcStrIn meiStrIn =
   equal
-    (parseTabcode (TCOptions { parseMode = Strict, structure = structure, xmlIds = WithXmlIds }) tcStrIn)
+    (parseTabcode parsingOptions tcStrIn)
     (xmlParse' meiStrIn meiStrIn)
 
   where
-    equal (Right tc) (Right xml) | tcXML == xml = Pass
-                                 | otherwise    = Fail $ "Expected " ++ (show $ document xml)
-                                                         ++ "; got: " ++ (show $ document tcXML)
+    parsingOptions = TCOptions
+      { parseMode = Strict
+      , structure = structure
+      , xmlIds = WithXmlIds }
+    equal (Right tc) (Right xml)
+      | tcXML == xml = Pass
+      | otherwise = Fail $ "Expected " ++ (show $ document xml) ++ "; got: " ++ (show $ document tcXML)
       where
-        tcXML      = tcMEI . tcMEIStr $ tc
+        tcXML = tcMEI . tcMEIStr $ tc
         tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc (meiXml t) WithXmlIds
-        meiXml t   = case mei structure testDoc ("input: " ++ tcStrIn) t of
-                       Right m  -> m
-                       Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ tcStrIn ++ ": " ++ (show err)
-        tcMEI xml  = case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xml of
-                       Right m  -> m
-                       Left err -> xmlParse "fail" $ "<fail>" ++ (show err) ++ "</fail>"
+        meiXml t =
+          case mei structure testDoc ("input: " ++ tcStrIn) t of
+            Right m -> m
+            Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ tcStrIn ++ ": " ++ (show err)
+        tcMEI xml =
+          case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xml of
+            Right m -> m
+            Left err -> xmlParse "fail" $ "<fail>" ++ (show err) ++ "</fail>"
         testDoc st staves = MEI noMEIAttrs staves
 
     equal (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)

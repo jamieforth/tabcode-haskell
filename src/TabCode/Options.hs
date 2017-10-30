@@ -21,7 +21,7 @@
 module TabCode.Options where
 
 import Control.Applicative ((<$>))
-import Data.Monoid         ((<>))
+import Data.Monoid ((<>))
 import Options.Applicative
 
 data ParseMode
@@ -39,8 +39,8 @@ data XmlIds
   | WithoutXmlIds
   deriving (Eq, Show)
 
-data TCOptions = TCOptions {
-    parseMode :: ParseMode
+data TCOptions = TCOptions
+  { parseMode :: ParseMode
   , structure :: Structure
   , xmlIds :: XmlIds
   }

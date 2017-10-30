@@ -20,8 +20,8 @@
 
 module TabCode where
 
-import Data.Set                          (size, fromList)
-import Data.Vector                       (Vector)
+import Data.Set (size, fromList)
+import Data.Vector (Vector)
 import Text.ParserCombinators.Parsec.Pos (Line, Column)
 
 data Duration
@@ -222,14 +222,14 @@ data TabWord
   deriving (Eq, Show)
 
 twPos :: TabWord -> (Line, Column)
-twPos (Chord l c _ _ _)      = (l, c)
-twPos (Rest l c _ _)         = (l, c)
-twPos (BarLine l c _ _)      = (l, c)
-twPos (Meter l c _ _)        = (l, c)
-twPos (CommentWord l c _)    = (l, c)
-twPos (SystemBreak l c _)    = (l, c)
-twPos (PageBreak l c _)      = (l, c)
-twPos (Invalid _ l c _)      = (l, c)
+twPos (Chord l c _ _ _) = (l, c)
+twPos (Rest l c _ _) = (l, c)
+twPos (BarLine l c _ _) = (l, c)
+twPos (Meter l c _ _) = (l, c)
+twPos (CommentWord l c _) = (l, c)
+twPos (SystemBreak l c _) = (l, c)
+twPos (PageBreak l c _) = (l, c)
+twPos (Invalid _ l c _) = (l, c)
 
 twLine :: TabWord -> Line
 twLine = fst . twPos

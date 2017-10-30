@@ -25,20 +25,20 @@ module TabCode.Parser
   , parseTabcodeStdIn
   , parseTabcodeFile ) where
 
-import           Data.Vector()
-import qualified Data.Vector                          as V
-import           Prelude                              hiding (words)
-import           System.IO                            (hPutStrLn, stderr)
-import           System.Exit                          (exitFailure)
-import           TabCode
-import           TabCode.Options
-import           Text.Parsec                          (ParsecT)
-import           Text.ParserCombinators.Parsec
-import           Text.ParserCombinators.Parsec.Number
+import Data.Vector()
+import qualified Data.Vector as V
+import Prelude hiding (words)
+import System.IO (hPutStrLn, stderr)
+import System.Exit (exitFailure)
+import TabCode
+import TabCode.Options
+import Text.Parsec (ParsecT)
+import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Number
 
 tablature :: ParseMode -> GenParser Char st TabCode
 tablature mode = do
-  rls   <- option [] rules
+  rls <- option [] rules
   words <- (tabword mode) `sepEndBy` (skipMany1 space)
   eof
   return $ TabCode rls (V.fromList words)
@@ -62,7 +62,7 @@ rule r = do
   return $ Rule r nt
 
 tabword :: ParseMode -> GenParser Char st TabWord
-tabword Strict     = (try rest) <|> (try barLine) <|> (try meter) <|> (try commentWord) <|> (try systemBreak) <|> (try pageBreak) <|> chord
+tabword Strict = (try rest) <|> (try barLine) <|> (try meter) <|> (try commentWord) <|> (try systemBreak) <|> (try pageBreak) <|> chord
 tabword Permissive = (try rest) <|> (try barLine) <|> (try meter) <|> (try commentWord) <|> (try systemBreak) <|> (try pageBreak) <|> (try chord) <|> (try invalid)
 
 endOfWord :: GenParser Char st ()
@@ -94,9 +94,9 @@ uniqueNotes parser = do
 
 rhythmSign :: GenParser Char st RhythmSign
 rhythmSign = do
-  dur  <- duration
-  bt   <- beat
-  dts  <- dots
+  dur <- duration
+  bt <- beat
+  dts <- dots
   beam <- openBeam <|> closeBeam
 
   -- FIXME if beam, lookAhead for tabword with closing beam
@@ -133,7 +133,7 @@ duration = do
    'W' -> Semibreve
    'B' -> Breve
    'F' -> Fermata
-   _   -> error $ "Invalid duration " ++ (show d)
+   _ -> error $ "Invalid duration " ++ (show d)
 
 rest :: GenParser Char st TabWord
 rest = do
@@ -146,13 +146,13 @@ rest = do
 barLine :: GenParser Char st TabWord
 barLine = do
   pos <- getPosition
-  leftRpt  <- option False $ do { char ':'; return True }
-  line     <- (try dbl) <|> (try sgl)
+  leftRpt <- option False $ do { char ':'; return True }
+  line <- (try dbl) <|> (try sgl)
   rightRpt <- option False $ do { char ':'; return True }
-  nonC     <- option Counting $ do { char '0'; return NotCounting }
-  dash     <- option NotDashed $ do { char '='; return Dashed }
-  rep      <- option Nothing addition
-  cmt      <- option Nothing $ do { c <- comment; return $ Just c }
+  nonC <- option Counting $ do { char '0'; return NotCounting }
+  dash <- option NotDashed $ do { char '='; return Dashed }
+  rep <- option Nothing addition
+  cmt <- option Nothing $ do { c <- comment; return $ Just c }
 
   endOfWord
   if line == "|"
@@ -160,8 +160,8 @@ barLine = do
     else return $ BarLine (sourceLine pos) (sourceColumn pos) (DoubleBar (combineRepeat leftRpt rightRpt) rep dash nonC) cmt
 
   where
-    sgl     = string "|"
-    dbl     = string "||"
+    sgl = string "|"
+    dbl = string "||"
     addition = (try reprise) <|> (try nthTime)
     reprise = between (char '(') (char ')') $ do
       string "T=:\\R"
@@ -173,20 +173,20 @@ barLine = do
     combineRepeat True True  = Just RepeatBoth
     combineRepeat True False = Just RepeatLeft
     combineRepeat False True = Just RepeatRight
-    combineRepeat _ _        = Nothing
+    combineRepeat _ _ = Nothing
 
 meter :: GenParser Char st TabWord
 meter = do
   pos <- getPosition
   char 'M'
   char '('
-  m1  <- do { m <- digit <|> mensurSign; return $ Just m }
-  c1  <- cuts
-  p1  <- prol
+  m1 <- do { m <- digit <|> mensurSign; return $ Just m }
+  c1 <- cuts
+  p1 <- prol
   arr <- option Nothing $ do { a <- char ':' <|> char ';'; return $ Just a }
-  m2  <- option Nothing $ do { t <- digit <|> mensurSign; return $ Just t }
-  c2  <- cuts
-  p2  <- prol
+  m2 <- option Nothing $ do { t <- digit <|> mensurSign; return $ Just t }
+  c2 <- cuts
+  p2 <- prol
   char ')'
   cmt <- option Nothing $ do { c <- comment; return $ Just c }
 
@@ -195,8 +195,8 @@ meter = do
 
   where
     mensurSign = char 'O' <|> char 'C' <|> char 'D'
-    cuts       = option Nothing $ do { cs <- many1 $ char '/'; return $ Just cs }
-    prol       = option Nothing $ do { ds <- char '.'; return $ Just ds }
+    cuts = option Nothing $ do { cs <- many1 $ char '/'; return $ Just cs }
+    prol = option Nothing $ do { ds <- char '.'; return $ Just ds }
 
     mkMS pos (Just arrangement) mensur1 cut1 prolation1 mensur2 cut2 prolation2
       | arrangement == ':' = Meter (sourceLine pos) (sourceColumn pos) $ VerticalMeterSign (mkMensur mensur1 cut1 prolation1) (mkMensur mensur2 cut2 prolation2)
@@ -205,19 +205,18 @@ meter = do
     mkMS pos Nothing mensur1 cut1 prolation1 _ _ _
       = Meter (sourceLine pos) (sourceColumn pos) $ SingleMeterSign (mkMensur mensur1 cut1 prolation1)
 
-    mkMensur (Just 'O') Nothing      (Just '.') = PerfectMajor
-    mkMensur (Just 'O') Nothing      Nothing    = PerfectMinor
-    mkMensur (Just 'C') Nothing      (Just '.') = ImperfectMajor
-    mkMensur (Just 'C') Nothing      Nothing    = ImperfectMinor
+    mkMensur (Just 'O') Nothing (Just '.') = PerfectMajor
+    mkMensur (Just 'O') Nothing Nothing = PerfectMinor
+    mkMensur (Just 'C') Nothing (Just '.') = ImperfectMajor
+    mkMensur (Just 'C') Nothing Nothing = ImperfectMinor
     mkMensur (Just 'O') (Just ['/']) (Just '.') = HalfPerfectMajor
-    mkMensur (Just 'O') (Just ['/']) Nothing    = HalfPerfectMinor
+    mkMensur (Just 'O') (Just ['/']) Nothing = HalfPerfectMinor
     mkMensur (Just 'C') (Just ['/']) (Just '.') = HalfImperfectMajor
-    mkMensur (Just 'C') (Just ['/']) Nothing    = HalfImperfectMinor
-    mkMensur (Just 'D') Nothing      (Just '.') = HalfImperfectMajor
-    mkMensur (Just 'D') Nothing      Nothing    = HalfImperfectMinor
-    mkMensur (Just ms)  _            _          =
-      Beats $ ((read [ms]) :: Int)
-    mkMensur Nothing    _            _          = error "Invalid mensuration sign"
+    mkMensur (Just 'C') (Just ['/']) Nothing = HalfImperfectMinor
+    mkMensur (Just 'D') Nothing (Just '.') = HalfImperfectMajor
+    mkMensur (Just 'D') Nothing Nothing = HalfImperfectMinor
+    mkMensur (Just ms) _ _ = Beats $ ((read [ms]) :: Int)
+    mkMensur Nothing _ _ = error "Invalid mensuration sign"
 
 note :: GenParser Char st Note
 note = (try trebNote) <|> (try bassNote) <|> bassNoteOpenAbbr
@@ -230,12 +229,12 @@ unorderedPair p q =
 
 trebNote :: GenParser Char st Note
 trebNote = do
-  f    <- fret
-  c    <- course
-  fng  <- unorderedPair fingeringLeft fingeringRight
-  orn  <- ornament
-  art  <- articulation
-  con  <- connecting
+  f <- fret
+  c <- course
+  fng <- unorderedPair fingeringLeft fingeringRight
+  orn <- ornament
+  art <- articulation
+  con <- connecting
 
   return $ Note c f fng orn art con
 
@@ -275,12 +274,12 @@ bassNote :: GenParser Char st Note
 bassNote = do
   char 'X'
 
-  f    <- fret
-  c    <- bassCourse
-  fng  <- unorderedPair fingeringLeft fingeringRight
-  orn  <- ornament
-  art  <- articulation
-  con  <- connecting
+  f <- fret
+  c <- bassCourse
+  fng <- unorderedPair fingeringLeft fingeringRight
+  orn <- ornament
+  art <- articulation
+  con <- connecting
 
   return $ Note c f fng orn art con
 
@@ -293,11 +292,11 @@ bassNoteOpenAbbr :: GenParser Char st Note
 bassNoteOpenAbbr = do
   char 'X'
 
-  c    <- int
-  fng  <- unorderedPair fingeringLeft fingeringRight
-  orn  <- ornament
-  art  <- articulation
-  con  <- connecting
+  c <- int
+  fng <- unorderedPair fingeringLeft fingeringRight
+  orn <- ornament
+  art <- articulation
+  con <- connecting
 
   return $ Note (Bass c) A fng orn art con
 
@@ -332,7 +331,7 @@ finger = do
     '2' -> FingerTwo
     '3' -> FingerThree
     '4' -> FingerFour
-    _   -> error $ "Invalid finger number: " ++ (show n)
+    _ -> error $ "Invalid finger number: " ++ (show n)
 
 fingeringDots :: GenParser Char st Finger
 fingeringDots = do
@@ -367,7 +366,7 @@ attachmentNoColon = do
     '6' -> PosBelowLeft
     '7' -> PosBelow
     '8' -> PosBelowRight
-    _   -> error $ "Invalid attachment position: " ++ (show pos)
+    _ -> error $ "Invalid attachment position: " ++ (show pos)
 
 attachment :: GenParser Char st (Maybe Attachment)
 attachment = option Nothing $ do
@@ -382,19 +381,19 @@ ornament = option Nothing $ (try abbr) <|> (try full)
       o <- oA1 <|> oB <|> oC1 <|> oC2 <|> oE <|> oF <|> oH
       return $ Just o
 
-    oA1 = do { (try $ char ',')    ; return $ OrnA (Just 1) Nothing }
-    oB  = do { (try $ string "(C)"); return $ OrnB Nothing Nothing }
-    oC1 = do { (try $ char 'u')    ; return $ OrnC (Just 1) Nothing }
-    oC2 = do { (try $ char '<')    ; return $ OrnC (Just 2) Nothing }
-    oE  = do { (try $ char '#')    ; return $ OrnE Nothing Nothing }
-    oF  = do { (try $ char 'x')    ; return $ OrnF Nothing Nothing }
-    oH  = do { (try $ char '~')    ; return $ OrnH Nothing Nothing }
+    oA1 = do { (try $ char ','); return $ OrnA (Just 1) Nothing }
+    oB = do { (try $ string "(C)"); return $ OrnB Nothing Nothing }
+    oC1 = do { (try $ char 'u'); return $ OrnC (Just 1) Nothing }
+    oC2 = do { (try $ char '<'); return $ OrnC (Just 2) Nothing }
+    oE = do { (try $ char '#'); return $ OrnE Nothing Nothing }
+    oF = do { (try $ char 'x'); return $ OrnF Nothing Nothing }
+    oH = do { (try $ char '~'); return $ OrnH Nothing Nothing }
 
     full = do
       between (char '(') (char ')') $ do
         char 'O'
-        t   <- oneOf "abcdefghijklm"
-        s   <- optionMaybe int
+        t <- oneOf "abcdefghijklm"
+        s <- optionMaybe int
         pos <- option Nothing $ attachment
         return $ Just $ case t of
           'a' -> OrnA s pos
@@ -410,7 +409,7 @@ ornament = option Nothing $ (try abbr) <|> (try full)
           'k' -> OrnK s pos
           'l' -> OrnL s pos
           'm' -> OrnM s pos
-          _   -> error $ "Invalid ornament: " ++ (show t)
+          _ -> error $ "Invalid ornament: " ++ (show t)
 
 articulation :: GenParser Char st (Maybe Articulation)
 articulation = option Nothing $ separee <|> ensemble
@@ -436,14 +435,14 @@ separee = try $ do
         return $ Just $ case d of
           'u' -> SepareeUp
           'd' -> SepareeDown
-          _   -> error $ "Invalid separee direction: " ++ (show d)
+          _ -> error $ "Invalid separee direction: " ++ (show d)
       position = option Nothing $ do
         char ':'
         p <- oneOf "lr"
         return $ Just $ case p of
           'l' -> SepareeLeft
           'r' -> SepareeRight
-          _   -> error $ "Invalid separee position: " ++ (show p)
+          _ -> error $ "Invalid separee position: " ++ (show p)
 
 connecting :: GenParser Char st (Maybe Connecting)
 connecting = option Nothing $ slur <|> straight <|> curved
@@ -462,7 +461,7 @@ slur = try $ do
         return $ case d of
           'u' -> SlurUp
           'd' -> SlurDown
-          _   -> error $ "Invalid slur direction: " ++ (show d)
+          _ -> error $ "Invalid slur direction: " ++ (show d)
 
 straight :: GenParser Char st (Maybe Connecting)
 straight = try $ do
@@ -486,11 +485,14 @@ curved = try $ do
     return $ mkCurved cid dir pos
 
     where
-      mkCurved i 'u' p | i >= 0 = Just (CurvedUpFrom i p)
-                       | i < 0  = Just (CurvedUpTo i p)
-      mkCurved i 'd' p | i >= 0 = Just (CurvedDownFrom i p)
-                       | i < 0  = Just (CurvedDownTo i p)
-      mkCurved _  d  _ = error $ "Invalid curved connecting line direction: " ++ (show d)
+      mkCurved i 'u' p
+        | i >= 0 = Just (CurvedUpFrom i p)
+        | i < 0 = Just (CurvedUpTo i p)
+      mkCurved i 'd' p
+        | i >= 0 = Just (CurvedDownFrom i p)
+        | i < 0 = Just (CurvedDownTo i p)
+      mkCurved _  d  _ =
+        error $ "Invalid curved connecting line direction: " ++ (show d)
 
 comment :: GenParser Char st Comment
 comment = do

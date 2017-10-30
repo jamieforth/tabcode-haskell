@@ -80,21 +80,21 @@ data MEI
   deriving (Eq, Show)
 
 data MEIState = MEIState {
-    stRules     :: [Rule]
-  , stMdiv      :: MEIAttrs
-  , stPart      :: MEIAttrs
-  , stSection   :: MEIAttrs
-  , stStaff     :: MEIAttrs
-  , stStaffDef  :: MEIAttrs
-  , stLayer     :: MEIAttrs
-  , stMeasure   :: MEIAttrs
+    stRules :: [Rule]
+  , stMdiv :: MEIAttrs
+  , stPart :: MEIAttrs
+  , stSection :: MEIAttrs
+  , stStaff :: MEIAttrs
+  , stStaffDef :: MEIAttrs
+  , stLayer :: MEIAttrs
+  , stMeasure :: MEIAttrs
   , stMeasureId :: MEIAttrs
-  , stBarLine   :: MEIAttrs
+  , stBarLine :: MEIAttrs
   , stBarLineId :: MEIAttrs
-  , stChordId   :: MEIAttrs
-  , stChord     :: MEIAttrs
-  , stRestId    :: MEIAttrs
+  , stChordId :: MEIAttrs
+  , stChord :: MEIAttrs
+  , stRestId :: MEIAttrs
   , stRhythmGlyphId :: MEIAttrs
-  , stNoteId    :: MEIAttrs
+  , stNoteId :: MEIAttrs
   }
   deriving (Eq)

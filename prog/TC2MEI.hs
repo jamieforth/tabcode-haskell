@@ -20,13 +20,13 @@
 
 module Main where
 
-import Data.ByteString.Char8  (pack, putStrLn)
+import Data.ByteString.Char8 (pack, putStrLn)
 import Options.Applicative
-import Prelude                hiding (putStrLn)
+import Prelude hiding (putStrLn)
 import TabCode.MEI
 import TabCode.MEI.Serialiser (meiDoc)
 import TabCode.Options
-import TabCode.Parser         (parseTabcodeStdIn)
+import TabCode.Parser (parseTabcodeStdIn)
 import Text.XML.Generator
 
 opts :: ParserInfo TCOptions

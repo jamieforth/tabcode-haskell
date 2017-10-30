@@ -22,28 +22,35 @@ module ParseTests where
 
 import Distribution.TestSuite
 
-import qualified Data.Vector     as V
-import           TabCode
-import           TabCode.Options (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
-import           TabCode.Parser  (parseTabcode)
+import qualified Data.Vector as V
+import TabCode
+import TabCode.Options (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
+import TabCode.Parser (parseTabcode)
 
 tryParsePhrase :: String -> [TabWord] -> Result
 tryParsePhrase tc phrase =
-  case parseTabcode (TCOptions { parseMode = Strict, structure = BarLines, xmlIds = WithXmlIds }) tc of
+  case (parseTabcode parsingOptions tc) of
     Right (TabCode rls wrds) -> check wrds phrase
-    Left err                 -> Fail $ show err
+    Left err -> Fail $ show err
   where
-    check ws exp | V.length ws == 0 = Error $ "Could not parse " ++ tc ++ " as " ++ (show exp)
-                 | otherwise        = if (V.toList ws) == exp
-                                      then Pass
-                                      else Fail $ "For \"" ++ tc ++ "\", expected " ++ (show exp) ++ "; got " ++ (show $ V.toList ws)
+    parsingOptions = TCOptions
+      { parseMode = Strict
+      , structure = BarLines
+      , xmlIds = WithXmlIds }
+    check ws exp
+      | V.length ws == 0 =
+          Error $ "Could not parse " ++ tc ++ " as " ++ (show exp)
+      | otherwise =
+          if (V.toList ws) == exp
+          then Pass
+          else Fail $ "For \"" ++ tc ++ "\", expected " ++ (show exp) ++ "; got " ++ (show $ V.toList ws)
 
 tryParseWord :: String -> TabWord -> Result
 tryParseWord tc tw = tryParsePhrase tc [tw]
 
 mkParseTest :: String -> TabWord -> TestInstance
-mkParseTest tc tw = TestInstance {
-    run = return $ Finished $ tryParseWord tc tw
+mkParseTest tc tw = TestInstance
+  { run = return $ Finished $ tryParseWord tc tw
   , name = show tc
   , tags = []
   , options = []
@@ -51,8 +58,8 @@ mkParseTest tc tw = TestInstance {
   }
 
 mkParsePhraseTest :: String -> [TabWord] -> TestInstance
-mkParsePhraseTest tc phrase = TestInstance {
-    run = return $ Finished $ tryParsePhrase tc phrase
+mkParsePhraseTest tc phrase = TestInstance
+  { run = return $ Finished $ tryParsePhrase tc phrase
   , name = show tc
   , tags = []
   , options = []
@@ -66,8 +73,8 @@ tryParseInvalidWord tc =
     Left err                 -> Pass
 
 mkInvalidTest :: String -> TestInstance
-mkInvalidTest tc = TestInstance {
-    run = return $ Finished $ tryParseInvalidWord tc
+mkInvalidTest tc = TestInstance
+  { run = return $ Finished $ tryParseInvalidWord tc
   , name = show $ tc ++ " [invalid]"
   , tags = []
   , options = []

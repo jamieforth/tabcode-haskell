@@ -20,10 +20,10 @@
 
 module Main where
 
-import Data.Monoid         ((<>))
+import Data.Monoid ((<>))
 import Options.Applicative
 import TabCode.Options
-import TabCode.Parser      (parseTabcodeStdIn)
+import TabCode.Parser (parseTabcodeStdIn)
 
 opts :: ParserInfo TCOptions
 opts = info ( helper <*> config )
