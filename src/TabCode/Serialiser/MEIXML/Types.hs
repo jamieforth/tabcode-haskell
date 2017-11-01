@@ -18,14 +18,14 @@
 -- You should have received a copy of the GNU General Public License
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
-module TabCode.MEI.Types
+module TabCode.Serialiser.MEIXML.Types
   ( MEI(..)
   , MEIAttr(..)
   , MEIAttrs
   , MEIState(..) ) where
 
 import Data.Text
-import TabCode (Rule)
+import TabCode.Types (Rule)
 
 data MEIAttr
   = StringAttr Text Text

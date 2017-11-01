@@ -18,7 +18,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
-module TabCode where
+module TabCode.Types where
 
 import Data.Set (size, fromList)
 import Data.Vector (Vector)

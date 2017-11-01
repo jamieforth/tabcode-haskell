@@ -23,7 +23,7 @@ module ParseTests where
 import Distribution.TestSuite
 
 import qualified Data.Vector as V
-import TabCode
+import TabCode.Types
 import TabCode.Options (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
 import TabCode.Parser (parseTabcode)
 

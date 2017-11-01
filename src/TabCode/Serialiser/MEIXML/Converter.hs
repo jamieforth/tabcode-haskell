@@ -22,12 +22,12 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module TabCode.MEI
+module TabCode.Serialiser.MEIXML.Converter
   ( TabWordsToMEI
   , mei
   , defaultDoc
-  , module TabCode.MEI.Elements
-  , module TabCode.MEI.Types
+  , module TabCode.Serialiser.MEIXML.Elements
+  , module TabCode.Serialiser.MEIXML.Types
   , (<>) ) where
 
 import Control.Applicative ((<$>))
@@ -35,10 +35,10 @@ import Data.Monoid ((<>))
 import Data.Text (pack, append)
 import qualified Data.Vector as V
 import Data.Vector (Vector)
-import TabCode
+import TabCode.Types
 import TabCode.Options (Structure(..))
-import TabCode.MEI.Elements
-import TabCode.MEI.Types
+import TabCode.Serialiser.MEIXML.Elements
+import TabCode.Serialiser.MEIXML.Types
 import Text.Parsec
 
 newtype WrapVector a = WrapVector { unWrapVector :: Vector a }

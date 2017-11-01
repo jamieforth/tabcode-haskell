@@ -20,14 +20,14 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module TabCode.MEI.Elements where
+module TabCode.Serialiser.MEIXML.Elements where
 
 import Control.Applicative ((<$>))
 import Data.Maybe (mapMaybe)
 import Data.Monoid (mempty, (<>))
 import Data.Text (Text, pack, unpack, append)
-import TabCode
-import TabCode.MEI.Types
+import TabCode.Types
+import TabCode.Serialiser.MEIXML.Types
 
 noMEIAttrs :: MEIAttrs
 noMEIAttrs = mempty

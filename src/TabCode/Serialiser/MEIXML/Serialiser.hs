@@ -20,11 +20,11 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module TabCode.MEI.Serialiser
+module TabCode.Serialiser.MEIXML.Serialiser
   ( meiDoc ) where
 
 import Data.Text (append, pack, unpack, Text)
-import TabCode.MEI.Types
+import TabCode.Serialiser.MEIXML.Types
 import TabCode.Options (XmlIds(..))
 import Text.XML.Generator
 

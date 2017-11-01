@@ -18,11 +18,11 @@ library
                , text
                , vector
                , xmlgen
-  exposed-modules: TabCode
-                 , TabCode.MEI
-                 , TabCode.MEI.Elements
-                 , TabCode.MEI.Serialiser
-                 , TabCode.MEI.Types
+  exposed-modules: TabCode.Types
+                 , TabCode.Serialiser.MEIXML.Converter
+                 , TabCode.Serialiser.MEIXML.Elements
+                 , TabCode.Serialiser.MEIXML.Serialiser
+                 , TabCode.Serialiser.MEIXML.Types
                  , TabCode.Options
                  , TabCode.Parser
   hs-source-dirs: src

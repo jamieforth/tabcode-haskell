@@ -30,7 +30,7 @@ import qualified Data.Vector as V
 import Prelude hiding (words)
 import System.IO (hPutStrLn, stderr)
 import System.Exit (exitFailure)
-import TabCode
+import TabCode.Types
 import TabCode.Options
 import Text.Parsec (ParsecT)
 import Text.ParserCombinators.Parsec
