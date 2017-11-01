@@ -24,7 +24,6 @@ import Distribution.TestSuite
 
 import qualified Data.ByteString.Char8  as C
 import Data.Text (pack)
-import TabCode
 import TabCode.MEI
 import TabCode.MEI.Serialiser
 import TabCode.Options (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
@@ -34,19 +33,19 @@ import Text.XML.HaXml.Parse (xmlParse', xmlParse)
 import Text.XML.HaXml.Pretty (document)
 
 mkMEITestWithStructure :: Structure -> String -> String -> TestInstance
-mkMEITestWithStructure structure tc xml = TestInstance
-  { run = return $ Finished $ tryMEISerialise structure tc xml
+mkMEITestWithStructure struct tc xml = TestInstance
+  { run = return $ Finished $ tryMEISerialise struct tc xml
   , name = "MEI " ++ tc
   , tags = []
   , options = []
-  , setOption = \_ _ -> Right $ mkMEITestWithStructure structure tc xml
+  , setOption = \_ _ -> Right $ mkMEITestWithStructure struct tc xml
   }
 
 mkMEITest :: String -> String -> TestInstance
 mkMEITest = mkMEITestWithStructure BarLines
 
 tryMEISerialise :: Structure -> String -> String -> Result
-tryMEISerialise structure tcStrIn meiStrIn =
+tryMEISerialise struct tcStrIn meiStrIn =
   equal
     (parseTabcode parsingOptions tcStrIn)
     (xmlParse' meiStrIn meiStrIn)
@@ -54,7 +53,7 @@ tryMEISerialise structure tcStrIn meiStrIn =
   where
     parsingOptions = TCOptions
       { parseMode = Strict
-      , structure = structure
+      , structure = struct
       , xmlIds = WithXmlIds }
     equal (Right tc) (Right xml)
       | tcXML == xml = Pass
@@ -63,14 +62,14 @@ tryMEISerialise structure tcStrIn meiStrIn =
         tcXML = tcMEI . tcMEIStr $ tc
         tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc (meiXml t) WithXmlIds
         meiXml t =
-          case mei structure testDoc ("input: " ++ tcStrIn) t of
+          case mei struct testDoc ("input: " ++ tcStrIn) t of
             Right m -> m
             Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ tcStrIn ++ ": " ++ (show err)
-        tcMEI xml =
-          case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xml of
+        tcMEI xmlStr =
+          case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xmlStr of
             Right m -> m
             Left err -> xmlParse "fail" $ "<fail>" ++ (show err) ++ "</fail>"
-        testDoc st staves = MEI noMEIAttrs staves
+        testDoc _ staves = MEI noMEIAttrs staves
 
     equal (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
     equal _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)

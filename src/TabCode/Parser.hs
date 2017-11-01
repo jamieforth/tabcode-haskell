@@ -224,7 +224,7 @@ note = (try trebNote) <|> (try bassNote) <|> bassNoteOpenAbbr
 unorderedPair :: GenParser Char st (Maybe a) -> GenParser Char st (Maybe a) -> GenParser Char st (Maybe a, Maybe a)
 unorderedPair p q =
   p >>= \r -> case r of
-                Just r' -> do { s <- q; return (r, s) }
+                Just _ -> do { s <- q; return (r, s) }
                 Nothing -> do { t <- q; u <- p; return (t, u) }
 
 trebNote :: GenParser Char st Note

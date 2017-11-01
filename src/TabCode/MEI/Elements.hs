@@ -25,10 +25,7 @@ module TabCode.MEI.Elements where
 import Control.Applicative ((<$>))
 import Data.Maybe (mapMaybe)
 import Data.Monoid (mempty, (<>))
-import Data.Text (Text, pack, unpack, replace, append)
-import Data.Text.Read (decimal)
-import GHC.Unicode (isDigit)
-import Prelude hiding (append)
+import Data.Text (Text, pack, unpack, append)
 import TabCode
 import TabCode.MEI.Types
 
@@ -36,45 +33,45 @@ noMEIAttrs :: MEIAttrs
 noMEIAttrs = mempty
 
 getAttrs :: MEI -> MEIAttrs
-getAttrs (MEI attrs _) = attrs
-getAttrs (MEIBarLine attrs _) = attrs
-getAttrs (MEIBassTuning attrs _) = attrs
-getAttrs (MEIBeam attrs _) = attrs
-getAttrs (MEIBody attrs _) = attrs
-getAttrs (MEIChord attrs _) = attrs
-getAttrs (MEICourse attrs _) = attrs
-getAttrs (MEICourseTuning attrs _) = attrs
-getAttrs (MEIFermata attrs _) = attrs
-getAttrs (MEIFingering attrs _) = attrs
-getAttrs (MEIFretGlyph attrs _) = attrs
-getAttrs (MEIHead attrs _) = attrs
-getAttrs (MEIInstrConfig attrs _) = attrs
-getAttrs (MEIInstrDesc attrs _) = attrs
-getAttrs (MEIInstrName attrs _) = attrs
-getAttrs (MEILayer attrs _) = attrs
-getAttrs (MEIMDiv attrs _) = attrs
-getAttrs (MEIMeasure attrs _) = attrs
-getAttrs (MEIMensur attrs _) = attrs
-getAttrs (MEIMeterSig attrs _) = attrs
-getAttrs (MEIMusic attrs _) = attrs
-getAttrs (MEINote attrs _) = attrs
-getAttrs (TCOrnament attrs _) = attrs
-getAttrs (MEIPageBreak attrs _) = attrs
-getAttrs (MEIPart attrs _) = attrs
-getAttrs (MEIParts attrs _) = attrs
-getAttrs (MEIPerfMedium attrs _) = attrs
-getAttrs (MEIPerfRes attrs _) = attrs
-getAttrs (MEIPerfResList attrs _) = attrs
-getAttrs (MEIRest attrs _) = attrs
-getAttrs (MEIRhythmSign attrs _) = attrs
-getAttrs (MEISection attrs _) = attrs
-getAttrs (MEIStaff attrs _) = attrs
-getAttrs (MEIStaffDef attrs _) = attrs
-getAttrs (MEIString attrs _) = attrs
-getAttrs (MEISystemBreak attrs _) = attrs
-getAttrs (MEITuplet attrs _) = attrs
-getAttrs (MEIWork attrs _) = attrs
-getAttrs (MEIWorkDesc attrs _) = attrs
+getAttrs (MEI atts _) = atts
+getAttrs (MEIBarLine atts _) = atts
+getAttrs (MEIBassTuning atts _) = atts
+getAttrs (MEIBeam atts _) = atts
+getAttrs (MEIBody atts _) = atts
+getAttrs (MEIChord atts _) = atts
+getAttrs (MEICourse atts _) = atts
+getAttrs (MEICourseTuning atts _) = atts
+getAttrs (MEIFermata atts _) = atts
+getAttrs (MEIFingering atts _) = atts
+getAttrs (MEIFretGlyph atts _) = atts
+getAttrs (MEIHead atts _) = atts
+getAttrs (MEIInstrConfig atts _) = atts
+getAttrs (MEIInstrDesc atts _) = atts
+getAttrs (MEIInstrName atts _) = atts
+getAttrs (MEILayer atts _) = atts
+getAttrs (MEIMDiv atts _) = atts
+getAttrs (MEIMeasure atts _) = atts
+getAttrs (MEIMensur atts _) = atts
+getAttrs (MEIMeterSig atts _) = atts
+getAttrs (MEIMusic atts _) = atts
+getAttrs (MEINote atts _) = atts
+getAttrs (TCOrnament atts _) = atts
+getAttrs (MEIPageBreak atts _) = atts
+getAttrs (MEIPart atts _) = atts
+getAttrs (MEIParts atts _) = atts
+getAttrs (MEIPerfMedium atts _) = atts
+getAttrs (MEIPerfRes atts _) = atts
+getAttrs (MEIPerfResList atts _) = atts
+getAttrs (MEIRest atts _) = atts
+getAttrs (MEIRhythmSign atts _) = atts
+getAttrs (MEISection atts _) = atts
+getAttrs (MEIStaff atts _) = atts
+getAttrs (MEIStaffDef atts _) = atts
+getAttrs (MEIString atts _) = atts
+getAttrs (MEISystemBreak atts _) = atts
+getAttrs (MEITuplet atts _) = atts
+getAttrs (MEIWork atts _) = atts
+getAttrs (MEIWorkDesc atts _) = atts
 getAttrs (XMLText _) = noMEIAttrs
 getAttrs (XMLComment _) = noMEIAttrs
 
@@ -132,12 +129,12 @@ attrNameEq att (IntAttr name _) = att == name
 attrNameEq att (PrefIntAttr name _) = att == name
 
 renameAttr :: Text -> MEIAttr -> MEIAttr
-renameAttr new (StringAttr old v) = StringAttr new v
-renameAttr new (IntAttr old v) = IntAttr new v
-renameAttr new (PrefIntAttr old v) = PrefIntAttr new v
+renameAttr new (StringAttr _ v) = StringAttr new v
+renameAttr new (IntAttr _ v) = IntAttr new v
+renameAttr new (PrefIntAttr _ v) = PrefIntAttr new v
 
 intAttrToStrAttr :: MEIAttr -> MEIAttr
-intAttrToStrAttr a@(StringAttr name value) = a
+intAttrToStrAttr a@(StringAttr _ _) = a
 intAttrToStrAttr (IntAttr name value) = StringAttr name (pack $ show value)
 intAttrToStrAttr (PrefIntAttr name (prefix, value)) = StringAttr name (prefix `append` (pack $ show value))
 
@@ -181,7 +178,7 @@ children Nothing = []
 
 (<$:>) :: (a -> [b]) -> Maybe a -> [b]
 f <$:> Just x = f x
-f <$:> Nothing = []
+_ <$:> Nothing = []
 
 attrs :: MEIAttrs -> MEIAttrs -> MEIAttrs
 attrs xs ys = xs <> ys
@@ -319,22 +316,22 @@ atXmlId :: String -> Int -> MEIAttrs
 atXmlId prefix n = [ PrefIntAttr "xml:id" (pack prefix, n) ]
 
 atXmlIdNext :: MEIAttrs -> MEIAttrs
-atXmlIdNext attrs = mutateAttr "xml:id" (incIntAttr 1) attrs
+atXmlIdNext atts = mutateAttr "xml:id" (incIntAttr 1) atts
 
 withXmlId :: MEIAttrs -> MEIAttrs -> MEIAttrs
 withXmlId idAttrs otherAttrs =
   updateAttrs otherAttrs $ getAttr "xml:id" idAttrs
 
 xmlIdNumber :: MEIAttrs -> Int
-xmlIdNumber ((PrefIntAttr "xml:id" (_, i)):attrs) = i
-xmlIdNumber (_:attrs) = xmlIdNumber attrs
+xmlIdNumber ((PrefIntAttr "xml:id" (_, i)):_) = i
+xmlIdNumber (_:atts) = xmlIdNumber atts
 xmlIdNumber [] = 0
 
 elArticulation :: MEIAttrs -> Articulation -> [MEI]
-elArticulation _ artic = [XMLComment ""]
+elArticulation _ _ = [XMLComment ""]
 
 elConnectingLine :: MEIAttrs -> Connecting -> [MEI]
-elConnectingLine _ conn = [XMLComment ""]
+elConnectingLine _ _ = [XMLComment ""]
 
 elFingering :: MEIAttrs -> Fingering -> [MEI]
 elFingering coreAttrs (FingeringLeft fngr _) = [ MEIFingering (coreAttrs <> [ StringAttr "playingHand" "left" ]  <> (atPlayingFinger fngr)) [] ]
@@ -380,13 +377,13 @@ elOrnament coreAttrs o =
     ornST st = [ IntAttr "sub-type" st ]
 
 elPerfMediumLute :: MEIAttrs -> String -> [MEI] -> MEI
-elPerfMediumLute coreAttrs label courses =
+elPerfMediumLute coreAttrs label courseElements =
   MEIPerfMedium coreAttrs [ perfResList ]
   where
     perfResList = MEIPerfResList noMEIAttrs [ perfRes ]
     perfRes = MEIPerfRes ( atLabel "lute" <> atSolo True ) [ instrDesc, instrConfig ]
     instrDesc = MEIInstrDesc noMEIAttrs [ MEIInstrName noMEIAttrs [ XMLText "Lute" ] ]
-    instrConfig = MEIInstrConfig ( atLabel label ) [ MEICourseTuning noMEIAttrs courses ]
+    instrConfig = MEIInstrConfig ( atLabel label ) [ MEICourseTuning noMEIAttrs courseElements ]
 
 elRhythmSign :: MEIAttrs -> RhythmSign -> [MEI]
 elRhythmSign coreAttrs (RhythmSign Fermata _ _ _) = [ MEIFermata coreAttrs [] ]

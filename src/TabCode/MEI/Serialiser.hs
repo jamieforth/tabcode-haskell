@@ -24,7 +24,6 @@ module TabCode.MEI.Serialiser
   ( meiDoc ) where
 
 import Data.Text (append, pack, unpack, Text)
-import TabCode
 import TabCode.MEI.Types
 import TabCode.Options (XmlIds(..))
 import Text.XML.Generator

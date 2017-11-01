@@ -30,20 +30,20 @@ import TabCode.Parser (parseTabcode)
 tryParsePhrase :: String -> [TabWord] -> Result
 tryParsePhrase tc phrase =
   case (parseTabcode parsingOptions tc) of
-    Right (TabCode rls wrds) -> check wrds phrase
+    Right (TabCode _ wrds) -> check wrds phrase
     Left err -> Fail $ show err
   where
     parsingOptions = TCOptions
       { parseMode = Strict
       , structure = BarLines
       , xmlIds = WithXmlIds }
-    check ws exp
+    check ws expected
       | V.length ws == 0 =
-          Error $ "Could not parse " ++ tc ++ " as " ++ (show exp)
+          Error $ "Could not parse " ++ tc ++ " as " ++ (show expected)
       | otherwise =
-          if (V.toList ws) == exp
+          if (V.toList ws) == expected
           then Pass
-          else Fail $ "For \"" ++ tc ++ "\", expected " ++ (show exp) ++ "; got " ++ (show $ V.toList ws)
+          else Fail $ "For \"" ++ tc ++ "\", expected " ++ (show expected) ++ "; got " ++ (show $ V.toList ws)
 
 tryParseWord :: String -> TabWord -> Result
 tryParseWord tc tw = tryParsePhrase tc [tw]
@@ -69,8 +69,8 @@ mkParsePhraseTest tc phrase = TestInstance
 tryParseInvalidWord :: String -> Result
 tryParseInvalidWord tc =
   case parseTabcode (TCOptions { parseMode = Strict, structure = BarLines, xmlIds = WithXmlIds }) tc of
-    Right (TabCode rls wrds) -> Fail $ show wrds
-    Left err                 -> Pass
+    Right (TabCode _ wrds) -> Fail $ show wrds
+    Left _                 -> Pass
 
 mkInvalidTest :: String -> TestInstance
 mkInvalidTest tc = TestInstance
