@@ -32,8 +32,8 @@ import Text.XML.Generator
 opts :: ParserInfo TCOptions
 opts = info ( helper <*> config )
        ( fullDesc
-         <> progDesc "TabCode MEI XML converter"
-         <> header "tc2mei" )
+         <> progDesc "Reads TabCode text from stdin and writes MEI XML to stdout."
+         <> header "tc2mei - TabCode MEI XML converter" )
 
 main :: IO ()
 main = execParser opts >>= runSerialiser
