@@ -24,13 +24,17 @@ import Distribution.TestSuite
 
 import qualified Data.ByteString.Char8  as C
 import Data.Text (pack)
-import TabCode.Serialiser.MEIXML.Converter
-import TabCode.Serialiser.MEIXML.Serialiser
 import TabCode.Options (TCOptions(..), ParseMode(..), Structure(..), XmlIds(..))
 import TabCode.Parser (parseTabcode)
+import TabCode.Serialiser.MEIXML.Converter
+import TabCode.Serialiser.MEIXML.Serialiser
+import TabCode.Types (TabCode)
+import Text.Parsec.Error (ParseError)
 import Text.XML.Generator
 import Text.XML.HaXml.Parse (xmlParse', xmlParse)
+import Text.XML.HaXml.Posn (Posn)
 import Text.XML.HaXml.Pretty (document)
+import Text.XML.HaXml.Types (Document)
 
 mkMEITestWithStructure :: Structure -> String -> String -> TestInstance
 mkMEITestWithStructure struct tc xml = TestInstance
@@ -46,7 +50,7 @@ mkMEITest = mkMEITestWithStructure BarLines
 
 tryMEISerialise :: Structure -> String -> String -> Result
 tryMEISerialise struct tcStrIn meiStrIn =
-  equal
+  equal struct tcStrIn
     (parseTabcode parsingOptions tcStrIn)
     (xmlParse' meiStrIn meiStrIn)
 
@@ -55,24 +59,34 @@ tryMEISerialise struct tcStrIn meiStrIn =
       { parseMode = Strict
       , structure = struct
       , xmlIds = WithXmlIds }
-    equal (Right tc) (Right xml)
-      | tcXML == xml = Pass
-      | otherwise = Fail $ "Expected " ++ (show $ document xml) ++ "; got: " ++ (show $ document tcXML)
-      where
-        tcXML = tcMEI . tcMEIStr $ tc
-        tcMEIStr t = xrender $ doc defaultDocInfo $ meiDoc (meiXml t) WithXmlIds
-        meiXml t =
-          case mei struct testDoc ("input: " ++ tcStrIn) t of
-            Right m -> m
-            Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ tcStrIn ++ ": " ++ (show err)
-        tcMEI xmlStr =
-          case xmlParse' ("input: " ++ tcStrIn) $ C.unpack xmlStr of
-            Right m -> m
-            Left err -> xmlParse "fail" $ "<fail>" ++ (show err) ++ "</fail>"
-        testDoc _ staves = MEI noMEIAttrs staves
 
-    equal (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
-    equal _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
+equal :: Structure -> String -> Either ParseError TabCode -> Either String (Document Posn) -> Result
+equal struct tcStrIn (Right parsedTabcode) (Right expectedXml)
+  | tcXML == expectedXml = Pass
+  | otherwise = Fail $ "Expected " ++ (show $ document expectedXml) ++ "; got: " ++ (show $ document tcXML)
+  where
+    tcXML = parseMEIXML $ serialiseMEIToXML $ convertToMEI struct tcStrIn parsedTabcode
+
+equal _ tcStrIn (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
+equal _ tcStrIn _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
+
+convertToMEI :: Structure -> String -> TabCode -> MEI
+convertToMEI struct originalInput parsedTabcode =
+  case mei struct testDoc originalInput parsedTabcode of
+    Right m -> m
+    Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ originalInput ++ ": " ++ (show err)
+  where
+    testDoc _ staves = MEI noMEIAttrs staves
+
+serialiseMEIToXML :: MEI -> String
+serialiseMEIToXML meiTree =
+  C.unpack $ xrender $ doc defaultDocInfo $ meiDoc meiTree WithXmlIds
+
+parseMEIXML :: String -> Document Posn
+parseMEIXML meiXml =
+  case xmlParse' "" meiXml of
+    Right m -> m
+    Left err -> xmlParse "fail" $ "<fail>" ++ (show err) ++ "</fail>"
 
 asMEI :: String -> String
 asMEI s = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><mei xmlns='http://www.music-encoding.org/ns/mei'>" ++ s ++ "</mei>"
