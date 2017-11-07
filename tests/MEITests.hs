@@ -38,7 +38,7 @@ import Text.XML.HaXml.Types (Document)
 
 mkMEITestWithStructure :: Structure -> String -> String -> TestInstance
 mkMEITestWithStructure struct tc xml = TestInstance
-  { run = return $ Finished $ tryMEISerialise struct tc xml
+  { run = return $ Finished $ tryMEISerialise struct justStaves tc xml
   , name = "MEI " ++ tc
   , tags = []
   , options = []
@@ -48,9 +48,18 @@ mkMEITestWithStructure struct tc xml = TestInstance
 mkMEITest :: String -> String -> TestInstance
 mkMEITest = mkMEITestWithStructure BarLines
 
-tryMEISerialise :: Structure -> String -> String -> Result
-tryMEISerialise struct tcStrIn meiStrIn =
-  equal struct tcStrIn
+mkFullMEITest :: String -> String -> TestInstance
+mkFullMEITest tc xml = TestInstance
+  { run = return $ Finished $ tryMEISerialise BarLines defaultDoc tc xml
+  , name = "MEI " ++ tc
+  , tags = []
+  , options = []
+  , setOption = \_ _ -> Right $ mkFullMEITest tc xml
+  }
+
+tryMEISerialise :: Structure -> (MEIState -> [MEI] -> MEI) -> String -> String -> Result
+tryMEISerialise struct testDoc tcStrIn meiStrIn =
+  equal struct tcStrIn testDoc
     (parseTabcode parsingOptions tcStrIn)
     (xmlParse' meiStrIn meiStrIn)
 
@@ -60,23 +69,24 @@ tryMEISerialise struct tcStrIn meiStrIn =
       , structure = struct
       , xmlIds = WithXmlIds }
 
-equal :: Structure -> String -> Either ParseError TabCode -> Either String (Document Posn) -> Result
-equal struct tcStrIn (Right parsedTabcode) (Right expectedXml)
+equal :: Structure -> String -> (MEIState -> [MEI] -> MEI) -> Either ParseError TabCode -> Either String (Document Posn) -> Result
+equal struct tcStrIn testDoc (Right parsedTabcode) (Right expectedXml)
   | tcXML == expectedXml = Pass
   | otherwise = Fail $ "Expected " ++ (show $ document expectedXml) ++ "; got: " ++ (show $ document tcXML)
   where
-    tcXML = parseMEIXML $ serialiseMEIToXML $ convertToMEI struct tcStrIn parsedTabcode
+    tcXML = parseMEIXML $ serialiseMEIToXML $ convertToMEI struct tcStrIn testDoc parsedTabcode
 
-equal _ tcStrIn (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
-equal _ tcStrIn _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
+equal _ tcStrIn _ (Left e) _ = Fail $ "Invalid tabcode: " ++ tcStrIn ++ "; " ++ (show e)
+equal _ tcStrIn _ _ (Left e) = Fail $ "Un-parsable serialisation for " ++ tcStrIn ++ "; " ++ (show e)
 
-convertToMEI :: Structure -> String -> TabCode -> MEI
-convertToMEI struct originalInput parsedTabcode =
+justStaves :: MEIState -> [MEI] -> MEI
+justStaves _ staves = MEI noMEIAttrs staves
+
+convertToMEI :: Structure -> String -> (MEIState -> [MEI] -> MEI) -> TabCode -> MEI
+convertToMEI struct originalInput testDoc parsedTabcode =
   case mei struct testDoc originalInput parsedTabcode of
     Right m -> m
     Left err -> XMLComment $ pack $ "Could not generate MEI tree for " ++ originalInput ++ ": " ++ (show err)
-  where
-    testDoc _ staves = MEI noMEIAttrs staves
 
 serialiseMEIToXML :: MEI -> String
 serialiseMEIToXML meiTree =
@@ -196,6 +206,13 @@ comments =
     "M(O){foo}" $ asStaff "#staff-1" "<staffDef xml:id='staff-1' prolatio='3' tempus='2'><mensur sign='O' dot='false'><!--foo--></mensur></staffDef>"
   ]
 
+headers :: [Test]
+headers =
+  [ Test $ mkFullMEITest
+    "{<rules><rhythm-font>varietie</rhythm-font><tuning_named>renaissance</tuning_named><pitch>67</pitch><bass_tuning>(-2)</bass_tuning></rules>}\n{foo}\n"
+    "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><mei xmlns='http://www.music-encoding.org/ns/mei' meiversion='3.0.0'><meiHead><fileDesc><titleStmt><title></title></titleStmt><pubStmt></pubStmt><sourceDesc><source><notesStmt><annot>Generated with tc2mei</annot></notesStmt></source></sourceDesc></fileDesc><workDesc><work><perfMedium><perfResList><perfRes label='lute' solo='true'><instrDesc><instrName>Lute</instrName></instrDesc><instrConfig label='renaissance'><courseTuning><course pname='g' oct='4'><string pname='g' oct='4'/></course><course pname='d' oct='4'><string pname='d' oct='4'/></course><course pname='a' oct='4'><string pname='a' oct='4'/></course><course pname='f' oct='3'><string pname='f' oct='3'/></course><course pname='c' oct='3'><string pname='c' oct='3'/></course><course pname='g' oct='2'><string pname='g' oct='2'/></course></courseTuning></instrConfig></perfRes></perfResList></perfMedium></work></workDesc></meiHead><music><body><mdiv n='1'><parts><part n='1'><section n='1'><staff n='1' def='#staff-0'><layer n='1'><!--foo--></layer></staff></section></part></parts></mdiv></body></music></mei>"
+  ]
+
 tests :: IO [Test]
 tests = return $ meterSigns
   ++ rests
@@ -204,3 +221,4 @@ tests = return $ meterSigns
   ++ barLines
   ++ measures
   ++ comments
+  ++ headers

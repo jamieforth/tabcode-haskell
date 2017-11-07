@@ -67,7 +67,7 @@ mei Measures doc source (TabCode rls tws) = runParser (withMeasures doc) (initia
 
 meiHead :: [Rule] -> MEI
 meiHead rls =
-  MEIHead noMEIAttrs $ elWorkDesc noMEIAttrs rls
+  MEIHead noMEIAttrs $ ( elFileDesc noMEIAttrs <> elWorkDesc noMEIAttrs rls )
 
 withMeasures :: (MEIState -> [MEI] -> MEI) -> TabWordsToMEI
 withMeasures doc = do

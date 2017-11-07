@@ -34,6 +34,7 @@ noMEIAttrs = mempty
 
 getAttrs :: MEI -> MEIAttrs
 getAttrs (MEI atts _) = atts
+getAttrs (MEIAnnot atts _) = atts
 getAttrs (MEIBarLine atts _) = atts
 getAttrs (MEIBassTuning atts _) = atts
 getAttrs (MEIBeam atts _) = atts
@@ -42,6 +43,7 @@ getAttrs (MEIChord atts _) = atts
 getAttrs (MEICourse atts _) = atts
 getAttrs (MEICourseTuning atts _) = atts
 getAttrs (MEIFermata atts _) = atts
+getAttrs (MEIFileDesc atts _) = atts
 getAttrs (MEIFingering atts _) = atts
 getAttrs (MEIFretGlyph atts _) = atts
 getAttrs (MEIHead atts _) = atts
@@ -55,6 +57,7 @@ getAttrs (MEIMensur atts _) = atts
 getAttrs (MEIMeterSig atts _) = atts
 getAttrs (MEIMusic atts _) = atts
 getAttrs (MEINote atts _) = atts
+getAttrs (MEINotesStmt atts _) = atts
 getAttrs (TCOrnament atts _) = atts
 getAttrs (MEIPageBreak atts _) = atts
 getAttrs (MEIPart atts _) = atts
@@ -62,21 +65,27 @@ getAttrs (MEIParts atts _) = atts
 getAttrs (MEIPerfMedium atts _) = atts
 getAttrs (MEIPerfRes atts _) = atts
 getAttrs (MEIPerfResList atts _) = atts
+getAttrs (MEIPubStmt atts _) = atts
 getAttrs (MEIRest atts _) = atts
 getAttrs (MEIRhythmSign atts _) = atts
 getAttrs (MEISection atts _) = atts
+getAttrs (MEISource atts _) = atts
+getAttrs (MEISourceDesc atts _) = atts
 getAttrs (MEIStaff atts _) = atts
 getAttrs (MEIStaffDef atts _) = atts
 getAttrs (MEIString atts _) = atts
 getAttrs (MEISystemBreak atts _) = atts
+getAttrs (MEITitle atts _) = atts
+getAttrs (MEITitleStmt atts _) = atts
 getAttrs (MEITuplet atts _) = atts
 getAttrs (MEIWork atts _) = atts
 getAttrs (MEIWorkDesc atts _) = atts
-getAttrs (XMLText _) = noMEIAttrs
 getAttrs (XMLComment _) = noMEIAttrs
+getAttrs (XMLText _) = noMEIAttrs
 
 getChildren :: MEI -> [MEI]
 getChildren (MEI _ cs) = cs
+getChildren (MEIAnnot _ cs) = cs
 getChildren (MEIBarLine _ cs) = cs
 getChildren (MEIBassTuning _ cs) = cs
 getChildren (MEIBeam _ cs) = cs
@@ -85,6 +94,7 @@ getChildren (MEIChord _ cs) = cs
 getChildren (MEICourse _ cs) = cs
 getChildren (MEICourseTuning _ cs) = cs
 getChildren (MEIFermata _ cs) = cs
+getChildren (MEIFileDesc  _ cs) = cs
 getChildren (MEIFingering _ cs) = cs
 getChildren (MEIFretGlyph _ cs) = cs
 getChildren (MEIHead _ cs) = cs
@@ -98,6 +108,7 @@ getChildren (MEIMensur _ cs) = cs
 getChildren (MEIMeterSig _ cs) = cs
 getChildren (MEIMusic _ cs) = cs
 getChildren (MEINote _ cs) = cs
+getChildren (MEINotesStmt _ cs) = cs
 getChildren (TCOrnament _ cs) = cs
 getChildren (MEIPageBreak _ cs) = cs
 getChildren (MEIPart _ cs) = cs
@@ -105,13 +116,18 @@ getChildren (MEIParts _ cs) = cs
 getChildren (MEIPerfMedium _ cs) = cs
 getChildren (MEIPerfRes _ cs) = cs
 getChildren (MEIPerfResList _ cs) = cs
+getChildren (MEIPubStmt _ cs) = cs
 getChildren (MEIRest _ cs) = cs
 getChildren (MEIRhythmSign _ cs) = cs
 getChildren (MEISection _ cs) = cs
+getChildren (MEISource _ cs) = cs
+getChildren (MEISourceDesc _ cs) = cs
 getChildren (MEIStaff _ cs) = cs
 getChildren (MEIStaffDef _ cs) = cs
 getChildren (MEIString _ cs) = cs
 getChildren (MEISystemBreak _ cs) = cs
+getChildren (MEITitle _ cs) = cs
+getChildren (MEITitleStmt _ cs) = cs
 getChildren (MEITuplet _ cs) = cs
 getChildren (MEIWork _ cs) = cs
 getChildren (MEIWorkDesc _ cs) = cs
@@ -388,6 +404,30 @@ elPerfMediumLute coreAttrs label courseElements =
 elRhythmSign :: MEIAttrs -> RhythmSign -> [MEI]
 elRhythmSign coreAttrs (RhythmSign Fermata _ _ _) = [ MEIFermata coreAttrs [] ]
 elRhythmSign coreAttrs (RhythmSign dur bt dt _) = [ MEIRhythmSign ( coreAttrs <> atDurSymb dur bt dt ) [] ]
+
+elFileDesc :: MEIAttrs -> [MEI]
+elFileDesc coreAttrs = [ MEIFileDesc coreAttrs ( elTitleStmt coreAttrs <> elPubStmt coreAttrs <> elSourceDesc coreAttrs ) ]
+
+elPubStmt :: MEIAttrs -> [MEI]
+elPubStmt coreAttrs = [ MEIPubStmt coreAttrs [] ]
+
+elSource :: MEIAttrs -> [MEI]
+elSource coreAttrs = [ MEISource coreAttrs ( elNotesStmt coreAttrs ( elAnnot coreAttrs "Generated with tc2mei" ) ) ]
+
+elSourceDesc :: MEIAttrs -> [MEI]
+elSourceDesc coreAttrs = [ MEISourceDesc coreAttrs ( elSource coreAttrs ) ]
+
+elAnnot :: MEIAttrs -> String -> [MEI]
+elAnnot coreAttrs annot = [ MEIAnnot coreAttrs [ XMLText (pack annot) ] ]
+
+elNotesStmt :: MEIAttrs -> [MEI] -> [MEI]
+elNotesStmt coreAttrs stmts = [ MEINotesStmt coreAttrs stmts ]
+
+elTitle :: MEIAttrs -> [MEI]
+elTitle coreAttrs = [ MEITitle coreAttrs [] ]
+
+elTitleStmt :: MEIAttrs -> [MEI]
+elTitleStmt coreAttrs = [ MEITitleStmt coreAttrs ( elTitle coreAttrs ) ]
 
 elWorkDesc :: MEIAttrs -> [Rule] -> [MEI]
 elWorkDesc coreAttrs rls = [ MEIWorkDesc coreAttrs [ work ] ]
