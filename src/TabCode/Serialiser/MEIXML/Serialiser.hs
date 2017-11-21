@@ -64,6 +64,10 @@ meiDoc (MEI attrs []) xmlIds =
   meiXml_ "mei" attrs xmlIds
 meiDoc (MEI attrs children) xmlIds =
   meiXml  "mei" attrs children xmlIds
+meiDoc (MEIAnnot attrs []) xmlIds =
+  meiXml_ "annot" attrs xmlIds
+meiDoc (MEIAnnot attrs children) xmlIds =
+  meiXml  "annot" attrs children xmlIds
 meiDoc (MEIBarLine attrs []) xmlIds =
   meiXml_ "barLine" attrs xmlIds
 meiDoc (MEIBarLine attrs children) xmlIds =
@@ -96,6 +100,10 @@ meiDoc (MEIFermata attrs []) xmlIds =
   meiXml_ "fermata" attrs xmlIds
 meiDoc (MEIFermata attrs children) xmlIds =
   meiXml  "fermata" attrs children xmlIds
+meiDoc (MEIFileDesc attrs []) xmlIds =
+  meiXml_ "fileDesc" attrs xmlIds
+meiDoc (MEIFileDesc attrs children) xmlIds =
+  meiXml  "fileDesc" attrs children xmlIds
 meiDoc (MEIFingering attrs []) xmlIds =
   meiXml_ "fingering" attrs xmlIds
 meiDoc (MEIFingering attrs children) xmlIds =
@@ -148,6 +156,10 @@ meiDoc (MEINote attrs []) xmlIds =
   meiXml_ "note" attrs xmlIds
 meiDoc (MEINote attrs children) xmlIds =
   meiXml  "note" attrs children xmlIds
+meiDoc (MEINotesStmt attrs []) xmlIds =
+  meiXml_ "notesStmt" attrs xmlIds
+meiDoc (MEINotesStmt attrs children) xmlIds =
+  meiXml  "notesStmt" attrs children xmlIds
 meiDoc (TCOrnament attrs []) xmlIds =
   tcXml_  "ornament" attrs xmlIds
 meiDoc (TCOrnament attrs children) xmlIds =
@@ -176,6 +188,10 @@ meiDoc (MEIPerfResList attrs []) xmlIds =
   meiXml_ "perfResList" attrs xmlIds
 meiDoc (MEIPerfResList attrs children) xmlIds =
   meiXml  "perfResList" attrs children xmlIds
+meiDoc (MEIPubStmt attrs []) xmlIds =
+  meiXml_ "pubStmt" attrs xmlIds
+meiDoc (MEIPubStmt attrs children) xmlIds =
+  meiXml  "pubStmt" attrs children xmlIds
 meiDoc (MEIRest attrs []) xmlIds =
   meiXml_ "rest" attrs xmlIds
 meiDoc (MEIRest attrs children) xmlIds =
@@ -188,6 +204,14 @@ meiDoc (MEISection attrs []) xmlIds =
   meiXml_ "section" attrs xmlIds
 meiDoc (MEISection attrs children) xmlIds =
   meiXml  "section" attrs children xmlIds
+meiDoc (MEISource attrs []) xmlIds =
+  meiXml_ "source" attrs xmlIds
+meiDoc (MEISource attrs children) xmlIds =
+  meiXml  "source" attrs children xmlIds
+meiDoc (MEISourceDesc attrs []) xmlIds =
+  meiXml_ "sourceDesc" attrs xmlIds
+meiDoc (MEISourceDesc attrs children) xmlIds =
+  meiXml  "sourceDesc" attrs children xmlIds
 meiDoc (MEIStaff attrs []) xmlIds =
   meiXml_ "staff" attrs xmlIds
 meiDoc (MEIStaff attrs children) xmlIds =
@@ -204,6 +228,14 @@ meiDoc (MEISystemBreak attrs []) xmlIds =
   meiXml_ "sb" attrs xmlIds
 meiDoc (MEISystemBreak attrs children) xmlIds =
   meiXml  "sb" attrs children xmlIds
+meiDoc (MEITitle attrs []) xmlIds =
+  meiXml_ "title" attrs xmlIds
+meiDoc (MEITitle attrs children) xmlIds =
+  meiXml  "title" attrs children xmlIds
+meiDoc (MEITitleStmt attrs []) xmlIds =
+  meiXml_ "titleStmt" attrs xmlIds
+meiDoc (MEITitleStmt attrs children) xmlIds =
+  meiXml  "titleStmt" attrs children xmlIds
 meiDoc (MEITuplet attrs []) xmlIds =
   meiXml_ "tuplet" attrs xmlIds
 meiDoc (MEITuplet attrs children) xmlIds =
