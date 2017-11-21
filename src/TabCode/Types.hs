@@ -1,7 +1,7 @@
 -- TabCode - A parser for the Tabcode lute tablature language
 --
--- Copyright (C) 2015, 2016 Richard Lewis, Goldsmiths' College
--- Author: Richard Lewis <richard.lewis@gold.ac.uk>
+-- Copyright (C) 2015-2017 Richard Lewis
+-- Author: Richard Lewis <richard@rjlewis.me.uk>
 
 -- This file is part of TabCode
 
@@ -18,10 +18,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
-module TabCode where
+module TabCode.Types where
 
-import Data.Set                          (size, fromList)
-import Data.Vector                       (Vector)
+import Data.Set (size, fromList)
+import Data.Vector (Vector)
 import Text.ParserCombinators.Parsec.Pos (Line, Column)
 
 data Duration
@@ -222,14 +222,14 @@ data TabWord
   deriving (Eq, Show)
 
 twPos :: TabWord -> (Line, Column)
-twPos (Chord l c _ _ _)      = (l, c)
-twPos (Rest l c _ _)         = (l, c)
-twPos (BarLine l c _ _)      = (l, c)
-twPos (Meter l c _ _)        = (l, c)
-twPos (CommentWord l c _)    = (l, c)
-twPos (SystemBreak l c _)    = (l, c)
-twPos (PageBreak l c _)      = (l, c)
-twPos (Invalid _ l c _)      = (l, c)
+twPos (Chord l c _ _ _) = (l, c)
+twPos (Rest l c _ _) = (l, c)
+twPos (BarLine l c _ _) = (l, c)
+twPos (Meter l c _ _) = (l, c)
+twPos (CommentWord l c _) = (l, c)
+twPos (SystemBreak l c _) = (l, c)
+twPos (PageBreak l c _) = (l, c)
+twPos (Invalid _ l c _) = (l, c)
 
 twLine :: TabWord -> Line
 twLine = fst . twPos

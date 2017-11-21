@@ -1,7 +1,7 @@
 -- TabCode - A parser for the Tabcode lute tablature language
 --
--- Copyright (C) 2016 Richard Lewis, Goldsmiths' College
--- Author: Richard Lewis <richard.lewis@gold.ac.uk>
+-- Copyright (C) 2015-2017 Richard Lewis
+-- Author: Richard Lewis <richard@rjlewis.me.uk>
 
 -- This file is part of TabCode
 
@@ -18,14 +18,14 @@
 -- You should have received a copy of the GNU General Public License
 -- along with TabCode.  If not, see <http://www.gnu.org/licenses/>.
 
-module TabCode.MEI.Types
+module TabCode.Serialiser.MEIXML.Types
   ( MEI(..)
   , MEIAttr(..)
   , MEIAttrs
   , MEIState(..) ) where
 
 import Data.Text
-import TabCode (Rule)
+import TabCode.Types (Rule)
 
 data MEIAttr
   = StringAttr Text Text
@@ -80,21 +80,21 @@ data MEI
   deriving (Eq, Show)
 
 data MEIState = MEIState {
-    stRules     :: [Rule]
-  , stMdiv      :: MEIAttrs
-  , stPart      :: MEIAttrs
-  , stSection   :: MEIAttrs
-  , stStaff     :: MEIAttrs
-  , stStaffDef  :: MEIAttrs
-  , stLayer     :: MEIAttrs
-  , stMeasure   :: MEIAttrs
+    stRules :: [Rule]
+  , stMdiv :: MEIAttrs
+  , stPart :: MEIAttrs
+  , stSection :: MEIAttrs
+  , stStaff :: MEIAttrs
+  , stStaffDef :: MEIAttrs
+  , stLayer :: MEIAttrs
+  , stMeasure :: MEIAttrs
   , stMeasureId :: MEIAttrs
-  , stBarLine   :: MEIAttrs
+  , stBarLine :: MEIAttrs
   , stBarLineId :: MEIAttrs
-  , stChordId   :: MEIAttrs
-  , stChord     :: MEIAttrs
-  , stRestId    :: MEIAttrs
+  , stChordId :: MEIAttrs
+  , stChord :: MEIAttrs
+  , stRestId :: MEIAttrs
   , stRhythmGlyphId :: MEIAttrs
-  , stNoteId    :: MEIAttrs
+  , stNoteId :: MEIAttrs
   }
   deriving (Eq)

@@ -1,7 +1,7 @@
 -- TabCode - A parser for the Tabcode lute tablature language
 --
--- Copyright (C) 2015, 2016 Richard Lewis, Goldsmiths' College
--- Author: Richard Lewis <richard.lewis@gold.ac.uk>
+-- Copyright (C) 2015-2017 Richard Lewis
+-- Author: Richard Lewis <richard@rjlewis.me.uk>
 
 -- This file is part of TabCode
 
@@ -20,20 +20,20 @@
 
 module Main where
 
-import Data.ByteString.Char8  (pack, putStrLn)
+import Data.ByteString.Char8 (pack, putStrLn)
 import Options.Applicative
-import Prelude                hiding (putStrLn)
-import TabCode.MEI
-import TabCode.MEI.Serialiser (meiDoc)
+import Prelude hiding (putStrLn)
+import TabCode.Serialiser.MEIXML.Converter
+import TabCode.Serialiser.MEIXML.Serialiser (meiDoc)
 import TabCode.Options
-import TabCode.Parser         (parseTabcodeStdIn)
+import TabCode.Parser (parseTabcodeStdIn)
 import Text.XML.Generator
 
 opts :: ParserInfo TCOptions
 opts = info ( helper <*> config )
        ( fullDesc
-         <> progDesc "TabCode MEI XML converter"
-         <> header "tc2mei" )
+         <> progDesc "Reads TabCode text from stdin and writes MEI XML to stdout."
+         <> header "tc2mei - TabCode MEI XML converter" )
 
 main :: IO ()
 main = execParser opts >>= runSerialiser

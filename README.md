@@ -111,9 +111,9 @@ default and has no explicit corresponding switch.
 
 ### License
 
-Copyright (C) 2015, 2016 Richard Lewis, Goldsmiths' College
+Copyright (C) 2015-2017 Richard Lewis
 
-Author: Richard Lewis <richard.lewis@gold.ac.uk>
+Author: Richard Lewis <richard@rjlewis.me.uk>
 
 This file is part of TabCode
 
