@@ -81,7 +81,7 @@ chord = do
   pos <- getPosition
   rs <- option Nothing $ do { r <- rhythmSign; return $ Just r }
   ns <- uniqueNotes $ many1 note
-  cmt <- option Nothing $ do { c <- comment; return $ Just c }
+  cmt <- option Nothing $ do { c <- try comment; return $ Just c }
   endOfWord
   return $ Chord (sourceLine pos) (sourceColumn pos) rs ns cmt
 
@@ -139,7 +139,7 @@ rest :: GenParser Char st TabWord
 rest = do
   pos <- getPosition
   rs <- rhythmSign
-  cmt <- option Nothing $ do { c <- comment; return $ Just c }
+  cmt <- option Nothing $ do { c <- try comment; return $ Just c }
   endOfWord
   return $ Rest (sourceLine pos) (sourceColumn pos) rs cmt
 
@@ -152,7 +152,7 @@ barLine = do
   nonC <- option Counting $ do { char '0'; return NotCounting }
   dash <- option NotDashed $ do { char '='; return Dashed }
   rep <- option Nothing addition
-  cmt <- option Nothing $ do { c <- comment; return $ Just c }
+  cmt <- option Nothing $ do { c <- try comment; return $ Just c }
 
   endOfWord
   if line == "|"
@@ -188,7 +188,7 @@ meter = do
   c2 <- cuts
   p2 <- prol
   char ')'
-  cmt <- option Nothing $ do { c <- comment; return $ Just c }
+  cmt <- option Nothing $ do { c <- try comment; return $ Just c }
 
   endOfWord
   return $ mkMS pos arr m1 c1 p1 m2 c2 p2 cmt
@@ -512,7 +512,7 @@ systemBreak :: GenParser Char st TabWord
 systemBreak = do
   pos <- getPosition
   string "{^}"
-  cmt <- option Nothing $ do { c <- comment; return $ Just c }
+  cmt <- option Nothing $ do { c <- try comment; return $ Just c }
   endOfWord
   return $ SystemBreak (sourceLine pos) (sourceColumn pos) cmt
 
@@ -520,7 +520,7 @@ pageBreak :: GenParser Char st TabWord
 pageBreak = do
   pos <- getPosition
   string "{>}{^}"
-  cmt <- option Nothing $ do { c <- comment; return $ Just c }
+  cmt <- option Nothing $ do { c <- try comment; return $ Just c }
   endOfWord
   return $ PageBreak (sourceLine pos) (sourceColumn pos) cmt
 
