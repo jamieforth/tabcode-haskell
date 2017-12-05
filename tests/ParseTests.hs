@@ -93,6 +93,7 @@ tests = return $ meterSigns
   ++ ornaments
   ++ comments
   ++ structuredComments
+  ++ phrases
 
 meterSigns :: [Test]
 meterSigns =
@@ -374,4 +375,49 @@ structuredComments :: [Test]
 structuredComments =
   [ Test $ mkParseTest "{^}\n" (SystemBreak 1 1 Nothing)
   , Test $ mkParseTest "{>}{^}\n" (PageBreak 1 1 Nothing)
+  ]
+
+phrases :: [Test]
+phrases =
+  [ Test $ mkParsePhraseTest "a1c3\na1c3"
+    [ (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing)
+    , (Chord 2 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing) ]
+  , Test $ mkParsePhraseTest "a1c3 a1c3"
+    [ (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing)
+    , (Chord 1 6 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing) ]
+  , Test $ mkParsePhraseTest "a1c3 a1c3 {foo}"
+    [ (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing)
+    , (Chord 1 6 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] (Just $ Comment "foo")) ]
+  , Test $ mkParsePhraseTest "a1c3 a1c3{foo}"
+    [ (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing)
+    , (Chord 1 6 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] (Just $ Comment "foo")) ]
+  , Test $ mkParsePhraseTest "a1c3\na1c3 {foo}"
+    [ (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing)
+    , (Chord 2 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] (Just $ Comment "foo")) ]
+  , Test $ mkParsePhraseTest "a1c3 Q {foo}"
+    [ (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing)
+    , (Rest 1 6 (RhythmSign Crotchet Simple NoDot Nothing) (Just $ Comment "foo")) ]
+  , Test $ mkParsePhraseTest "a1c3 | {foo}"
+    [ (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing)
+    , (BarLine 1 6 (SingleBar Nothing Nothing NotDashed Counting) (Just $ Comment "foo")) ]
+  , Test $ mkParsePhraseTest "a1c3 M(O) {foo}"
+    [ (Chord 1 1 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                         , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing)
+    , (Meter 1 6 (SingleMeterSign PerfectMinor) (Just $ Comment "foo")) ]
+  , Test $ mkParsePhraseTest "M(O.) {foo} a1c3"
+    [ (Meter 1 1 (SingleMeterSign PerfectMajor) (Just $ Comment "foo"))
+    , (Chord 1 13 Nothing [ Note One A (Nothing, Nothing) Nothing Nothing Nothing
+                          , Note Three C (Nothing, Nothing) Nothing Nothing Nothing ] Nothing) ]
   ]
