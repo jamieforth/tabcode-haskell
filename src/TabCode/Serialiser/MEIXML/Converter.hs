@@ -91,13 +91,16 @@ withBarLines doc = do
 measureP :: TabWordsToMEI -> MEIAttrs -> TabWordsToMEI
 measureP barlineP _ = do
   chords <- many $ tuplet <|> chord <|> rest <|> meter <|> systemBreak <|> pageBreak <|> comment <|> invalid
-  barlineP
+  bl <- barlineP
   st <- getState
   let nextSt = st { stMeasure = mutateAttr (pack "n") (incIntAttr 1) (stMeasure st)
                   , stMeasureId = mutateAttr (pack "xml:id") (incIntAttr 1) (stMeasureId st)
                   }
+      measureAttrs = stMeasureId nextSt <> stMeasure nextSt
+      measureChildren = [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ] ++ getChildren bl
   putState nextSt
-  return $ MEIMeasure (stMeasureId nextSt <> stMeasure nextSt) [ MEIStaff (stStaff nextSt <> staffIDAsDef (stStaffDef nextSt)) [ MEILayer (stLayer nextSt) chords ] ]
+
+  return $ MEIMeasure measureAttrs measureChildren
 
 measureSng :: TabWordsToMEI
 measureSng = measureP barLineSng ( atRight "single" )
