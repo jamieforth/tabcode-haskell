@@ -180,6 +180,8 @@ barLines :: [Test]
 barLines =
   [ Test $ mkMEITest
     "c1\n|\nc1\n" $ asStaff "#staff-0" "<chord xml:id='c1'><note xml:id='n1' tab.course='1' tab.fret='2'/></chord><barLine form='single' n='1' xml:id='bl1'/><chord xml:id='c2'><note xml:id='n2' tab.course='1' tab.fret='2'/></chord>"
+  , Test $ mkMEITestWithStructure Measures
+    "Qa1\n| {foo}\nEa1" $ asMEI "<measure xml:id='m1' n='1'><staff n='1' def='#staff-0'><layer n='1'><chord xml:id='c1' dur='4'><rhythmGlyph xml:id='rg1' symbol='Q'/><note xml:id='n1' tab.course='1' tab.fret='0'/></chord></layer></staff><!--foo--></measure><chord xml:id='c2' dur='8'><rhythmGlyph xml:id='rg2' symbol='E'/><note xml:id='n2' tab.course='1' tab.fret='0'/></chord>"
   ]
 
 measures :: [Test]
