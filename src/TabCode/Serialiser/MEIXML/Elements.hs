@@ -437,29 +437,27 @@ elWorkDesc coreAttrs rls = [ MEIWorkDesc coreAttrs [ work ] ]
     descEl (Rule "tuning_named" t) = Just $ tuning t
     descEl (Rule _ _) = Nothing
 
--- FIXME What are the correct tunings?
 tuning :: String -> MEI
 tuning "renaissance" =
   elPerfMediumLute noMEIAttrs
     "renaissance"
     [ MEICourse ( atPname "g" <> atOct 4 ) [ MEIString ( atPname "g" <> atOct 4 ) [] ]
     , MEICourse ( atPname "d" <> atOct 4 ) [ MEIString ( atPname "d" <> atOct 4 ) [] ]
-    , MEICourse ( atPname "a" <> atOct 4 ) [ MEIString ( atPname "a" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "a" <> atOct 3 ) [ MEIString ( atPname "a" <> atOct 3 ) [] ]
     , MEICourse ( atPname "f" <> atOct 3 ) [ MEIString ( atPname "f" <> atOct 3 ) [] ]
     , MEICourse ( atPname "c" <> atOct 3 ) [ MEIString ( atPname "c" <> atOct 3 ) [] ]
     , MEICourse ( atPname "g" <> atOct 2 ) [ MEIString ( atPname "g" <> atOct 2 ) [] ]
     ]
 
--- FIXME What are the correct tunings?
 tuning "baroque" =
   elPerfMediumLute noMEIAttrs
     "baroque"
-    [ MEICourse ( atPname "g" <> atOct 4 ) [ MEIString ( atPname "g" <> atOct 4 ) [] ]
+    [ MEICourse ( atPname "f" <> atOct 4 ) [ MEIString ( atPname "f" <> atOct 4 ) [] ]
     , MEICourse ( atPname "d" <> atOct 4 ) [ MEIString ( atPname "d" <> atOct 4 ) [] ]
-    , MEICourse ( atPname "a" <> atOct 4 ) [ MEIString ( atPname "a" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "a" <> atOct 3 ) [ MEIString ( atPname "a" <> atOct 3 ) [] ]
     , MEICourse ( atPname "f" <> atOct 3 ) [ MEIString ( atPname "f" <> atOct 3 ) [] ]
-    , MEICourse ( atPname "c" <> atOct 3 ) [ MEIString ( atPname "c" <> atOct 3 ) [] ]
-    , MEICourse ( atPname "g" <> atOct 2 ) [ MEIString ( atPname "g" <> atOct 2 ) [] ]
+    , MEICourse ( atPname "d" <> atOct 3 ) [ MEIString ( atPname "d" <> atOct 3 ) [] ]
+    , MEICourse ( atPname "a" <> atOct 2 ) [ MEIString ( atPname "a" <> atOct 2 ) [] ]
     ]
 
 tuning t = error $ "Unknown tuning name: " ++ t
