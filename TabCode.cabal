@@ -45,6 +45,20 @@ executable tc2mei
   hs-source-dirs: prog
   ghc-options: -O2 -threaded
 
+executable tc2mei-js
+  build-depends: base >= 4.8 && < 5
+               , bytestring >= 0.10.8.1 && < 0.11
+               , optparse-applicative >= 0.14 && < 0.15
+               , TabCode
+               , xmlgen >= 0.6.2.1 && < 0.7
+               , ghcjs-base
+               , ghcjs-prim
+  main-is: TC2MEI-js.hs
+  hs-source-dirs: prog
+  ghc-options: -O2 -threaded
+  ghcjs-options: -DGHCJS_BROWSER
+
+
 test-suite parse-tests
   type: detailed-0.9
   test-module: ParseTests
