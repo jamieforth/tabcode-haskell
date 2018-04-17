@@ -460,6 +460,17 @@ tuning "baroque" =
     , MEICourse ( atPname "a" <> atOct 2 ) [ MEIString ( atPname "a" <> atOct 2 ) [] ]
     ]
 
+tuning "guitar" =
+  elPerfMediumLute noMEIAttrs
+    "guitar"
+    [ MEICourse ( atPname "e" <> atOct 4 ) [ MEIString ( atPname "e" <> atOct 4 ) [] ]
+    , MEICourse ( atPname "b" <> atOct 3 ) [ MEIString ( atPname "b" <> atOct 3 ) [] ]
+    , MEICourse ( atPname "g" <> atOct 3 ) [ MEIString ( atPname "g" <> atOct 3 ) [] ]
+    , MEICourse ( atPname "d" <> atOct 3 ) [ MEIString ( atPname "d" <> atOct 3 ) [] ]
+    , MEICourse ( atPname "a" <> atOct 2 ) [ MEIString ( atPname "a" <> atOct 2 ) [] ]
+    , MEICourse ( atPname "e" <> atOct 2 ) [ MEIString ( atPname "e" <> atOct 2 ) [] ]
+    ]
+
 tuning t = error $ "Unknown tuning name: " ++ t
 
 course :: Course -> Text
