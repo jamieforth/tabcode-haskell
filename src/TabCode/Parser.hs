@@ -240,7 +240,7 @@ trebNote = do
 
 fret :: GenParser Char st Fret
 fret = do
-  f <- oneOf ['a'..'n']
+  f <- oneOf "abcdefghiklmnopqrstvwxyz"
   return $ case f of
     'a' -> A
     'b' -> B
@@ -251,11 +251,21 @@ fret = do
     'g' -> G
     'h' -> H
     'i' -> I
-    'j' -> J
     'k' -> K
     'l' -> L
     'm' -> M
     'n' -> N
+    'o' -> O
+    'p' -> P
+    'q' -> Q
+    'r' -> R
+    's' -> S
+    't' -> T
+    'v' -> V
+    'w' -> W
+    'x' -> X
+    'y' -> Y
+    'z' -> Z
     _   -> error $ "Invalid fret symbol: " ++ (show f)
 
 course :: GenParser Char st Course
@@ -392,7 +402,7 @@ ornament = option Nothing $ (try abbr) <|> (try full)
     full = do
       between (char '(') (char ')') $ do
         char 'O'
-        t <- oneOf "abcdefghijklm"
+        t <- oneOf ['a'..'m']
         s <- optionMaybe int
         pos <- option Nothing $ attachment
         return $ Just $ case t of

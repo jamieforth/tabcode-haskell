@@ -65,7 +65,7 @@ data RhythmSign = RhythmSign Duration Beat Dot (Maybe (Beam Duration)) deriving 
 -- FIXME Perhaps this data model should rather be a numeric fret
 -- number and then any symbol from the source should be captured as
 -- another part of the Note type
-data Fret = A | B | C | D | E | F | G | H | I | J | K | L | M | N deriving (Eq, Show, Ord)
+data Fret = A | B | C | D | E | F | G | H | I |  K | L | M | N | O | P | Q | R | S | T | V | W | X | Y | Z deriving (Eq, Show, Ord)
 
 data Course
   = One
