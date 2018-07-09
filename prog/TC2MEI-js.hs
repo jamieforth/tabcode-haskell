@@ -22,7 +22,6 @@
 module Main where
 
 import Data.ByteString.Char8
-import Options.Applicative
 import TabCode.Serialiser.MEIXML.Converter
 import TabCode.Serialiser.MEIXML.Serialiser (meiDoc)
 import TabCode.Options
